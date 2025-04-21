@@ -1,31 +1,30 @@
 const std = @import("std");
 const math = @import("std").math;
+const zigma = @import("zigma");
+const raylib = @cImport(@cInclude("raylib.h"));
 
-const raylib = @cImport({
-  @cInclude("raylib.h");
-});
+var t: f32 = 0.0;
 
 pub fn main() void {
-  const screenWidth = 800;
-  const screenHeight = 450;
+  zigma.engine.init(.{
+    .title = "Zigma demo",
+    .width = 1920,
+    .height = 1080,
+  });
 
-  raylib.InitWindow(screenWidth, screenHeight, "Zigma");
-  raylib.SetTargetFPS(200);
+  while(zigma.engine.render(draw)){}
 
-  var t: f32 = 0.0;
+  zigma.engine.close();
+}
 
-  while (!raylib.WindowShouldClose()) {
-    t += 0.03;
+fn draw() void {
+  t += 0.03;
 
-    const bounce: i32 = @intFromFloat(math.sin(t) * 130.0);
-    const y = 200 + bounce;
+  const bounce: i32 = @intFromFloat(math.sin(t) * 255.0);
+  const color: u8 = @intCast(math.clamp(bounce, 0, 255));
+  const y = 600 + bounce;
 
-    raylib.BeginDrawing();
-    defer raylib.EndDrawing();
-
-    raylib.ClearBackground(raylib.RAYWHITE);
-    raylib.DrawText("Hello, Zigma World!", 190, y, 20, raylib.DARKGRAY);
-  }
-
-  raylib.CloseWindow();
+  std.debug.print("{}\n", .{color});
+  raylib.DrawRectangle(0, 0, raylib.GetScreenWidth(), raylib.GetScreenHeight(), raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
+  raylib.DrawText("Zigma balls!", 700, y, 100, raylib.Color{ .r = color, .g = 255, .b = 255-color, .a = 255 });
 }

@@ -20,6 +20,16 @@ pub fn build(b: *std.Build) void {
   exe.linkSystemLibrary("dl");
   exe.linkSystemLibrary("rt");
 
+  const zigma = b.addModule("zigma", .{
+    .root_source_file = . { .cwd_relative = "lib/zigma.zig" },
+  });
+  const zigma_engine = b.addModule("engine", .{
+    .root_source_file = . { .cwd_relative = "lib/engine.zig" },
+  });
+  zigma.addImport("engine", zigma_engine);
+
+  exe.root_module.addImport("zigma", zigma);
+
   const run_step = b.addRunArtifact(exe);
   b.step("run", "Run the demo").dependOn(&run_step.step);
 
