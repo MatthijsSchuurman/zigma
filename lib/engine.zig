@@ -1,4 +1,6 @@
 const raylib = @cImport(@cInclude("raylib.h"));
+const testing = @import("std").testing;
+
 
 pub const Config = struct {
   title: [*:0]const u8,
@@ -31,4 +33,9 @@ pub fn render(callback: RenderCallback) bool {
   raylib.EndDrawing();
 
   return true;
+}
+
+
+test "testing something" {
+  try testing.expectEqual(0.0, 0.0);
 }

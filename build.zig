@@ -4,6 +4,7 @@ pub fn build(b: *std.Build) void {
   const target = b.standardTargetOptions(.{});
   const optimize = b.standardOptimizeOption(.{});
 
+  //setup exe
   const demo_name = b.option([]const u8, "demo", "Which demo to build (e.g. text, pulse, wave)");
 
   const exe = b.addExecutable(.{
@@ -20,6 +21,7 @@ pub fn build(b: *std.Build) void {
   exe.linkSystemLibrary("dl");
   exe.linkSystemLibrary("rt");
 
+  //modules
   const zigma = b.addModule("zigma", .{
     .root_source_file = . { .cwd_relative = "lib/zigma.zig" },
   });
@@ -30,8 +32,17 @@ pub fn build(b: *std.Build) void {
 
   exe.root_module.addImport("zigma", zigma);
 
-  const run_step = b.addRunArtifact(exe);
-  b.step("run", "Run the demo").dependOn(&run_step.step);
-
+  //run
+  const run_exec= b.addRunArtifact(exe);
+  b.step("run", "Run the demo").dependOn(&run_exec.step);
   b.default_step.dependOn(&exe.step);
+
+
+  //test
+  const tests = b.addTest(.{
+    .root_source_file = .{ .cwd_relative = "lib/engine.zig" },
+  });
+
+  const run_tests = b.addRunArtifact(tests);
+  b.step("test", "Run unit tests").dependOn(&run_tests.step);
 }
