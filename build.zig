@@ -1,5 +1,12 @@
 const std = @import("std");
 
+const modules = [_]struct {
+  name: []const u8,
+  path: []const u8,
+} {
+ .{.name = "engine", .path = "lib/engine.zig" }
+};
+
 pub fn build(b: *std.Build) void {
   const target = b.standardTargetOptions(.{});
   const optimize = b.standardOptimizeOption(.{});
@@ -23,12 +30,14 @@ pub fn build(b: *std.Build) void {
 
   //modules
   const zigma = b.addModule("zigma", .{
-    .root_source_file = . { .cwd_relative = "lib/zigma.zig" },
+    .root_source_file = . { .cwd_relative = "zigma.zig" },
   });
-  const zigma_engine = b.addModule("engine", .{
-    .root_source_file = . { .cwd_relative = "lib/engine.zig" },
-  });
-  zigma.addImport("engine", zigma_engine);
+  for (modules) |module| {
+    const m = b.addModule(module.name, .{
+      .root_source_file = . { .cwd_relative = module.path },
+    });
+    zigma.addImport(module.name, m);
+  }
 
   exe.root_module.addImport("zigma", zigma);
 
