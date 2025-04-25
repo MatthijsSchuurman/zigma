@@ -24,7 +24,6 @@ fn draw() void {
   const color: u8 = @intCast(math.clamp(bounce, 0, 255));
   const y = 600 + bounce;
 
-  std.debug.print("{}\n", .{color});
-  raylib.DrawRectangle(0, 0, raylib.GetScreenWidth(), raylib.GetScreenHeight(), raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
+  zigma.fx.background.fade(raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
   raylib.DrawText("Zigma balls!", 700, y, 100, raylib.Color{ .r = color, .g = 255, .b = 255-color, .a = 255 });
 }

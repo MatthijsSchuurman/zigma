@@ -4,7 +4,8 @@ const modules = [_]struct {
   name: []const u8,
   path: []const u8,
 } {
- .{.name = "engine", .path = "lib/engine.zig" }
+ .{.name = "engine", .path = "lib/engine.zig" },
+ .{.name = "fx.background", .path = "fx/background.zig" },
 };
 
 pub fn build(b: *std.Build) void {
