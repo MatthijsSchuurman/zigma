@@ -1,5 +1,6 @@
 const raylib = @cImport(@cInclude("raylib.h"));
 const testing = @import("std").testing;
+const std = @import("std");
 
 
 pub const Config = struct {
@@ -11,6 +12,8 @@ pub const Config = struct {
 const RenderCallback = fn () void;
 
 pub fn init(config: Config) void {
+  std.debug.print("Hello, {s}! The value is {d}\n", .{config.title, config.width});
+
   raylib.InitWindow(config.width, config.height, config.title);
   raylib.SetTargetFPS(200);
 }

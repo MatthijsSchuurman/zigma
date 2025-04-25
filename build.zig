@@ -30,23 +30,14 @@ pub fn build(b: *std.Build) void {
   exe.linkSystemLibrary("rt");
 
   //modules
-  const zigma = b.addModule("zigma", .{
-    .root_source_file = . { .cwd_relative = "zigma.zig" },
-  });
-  for (modules) |module| {
-    const m = b.addModule(module.name, .{
-      .root_source_file = . { .cwd_relative = module.path },
-    });
-    zigma.addImport(module.name, m);
-  }
-
-  exe.root_module.addImport("zigma", zigma);
+  exe.root_module.addImport("zigma", b.createModule(.{
+    .root_source_file = . { .cwd_relative = "zigma/ma.zig" },
+  }));
 
   //run
   const run_exec= b.addRunArtifact(exe);
   b.step("run", "Run the demo").dependOn(&run_exec.step);
   b.default_step.dependOn(&exe.step);
-
 
   //test
   const tests = b.addTest(.{
