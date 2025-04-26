@@ -1,5 +1,18 @@
 const raylib = @cImport(@cInclude("raylib.h"));
+const base = @import("base.zig");
 
-pub fn text2d(text: []const u8) void {
-  raylib.DrawText(text, 700, 100, 100, raylib.Color{ .r = 0, .g = 255, .b = 255, .a = 255 });
-}
+pub const Text2D = struct {
+  text: [*c]const u8,
+
+  pub fn draw(obj: *const base.Object) void {
+    const self = @as(*const Text2D, obj.custom);
+
+    raylib.DrawText(self.text, @intFromFloat(obj.position.x), @intFromFloat( obj.position.y), 10,
+      raylib.Color{
+        .r = obj.colors[0].r,
+        .g = obj.colors[0].g,
+        .b = obj.colors[0].b,
+        .a = obj.colors[0].a,
+      });
+  }
+};
