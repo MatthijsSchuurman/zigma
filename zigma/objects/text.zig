@@ -5,7 +5,7 @@ pub const Text2D = struct {
   text: [*c]const u8,
 
   pub fn draw(obj: *const base.Object) void {
-    const self = @as(*const Text2D, obj.custom);
+    const self: *const Text2D = @ptrCast(@alignCast(obj.custom));
 
     raylib.DrawText(self.text, @intFromFloat(obj.position.x), @intFromFloat( obj.position.y), 10,
       raylib.Color{

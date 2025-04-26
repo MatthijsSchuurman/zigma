@@ -1,20 +1,20 @@
 const std = @import("std");
 const math = @import("std").math;
 const zigma = @import("zigma");
+const Object = @import("../zigma/objects/base.zig").Object;
 
 const raylib = @cImport(@cInclude("raylib.h"));
 
 var t: f32 = 0.0;
-var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-pub fn main() void {
 
+pub fn main() !void {
+  var gpa = std.heap.GeneralPurposeAllocator(.{}){};
   const allocator = gpa.allocator();
-  var zigma_balls = try allocator.create(zigma.base.Object);
-  zigma_balls.init(zigma.objects.text.Text2D, &zigma.objects.text.Text2D{
+
+  var zigma_balls = try allocator.create(Object);
+  _ = zigma_balls.init(zigma.objects.text.Text2D, &zigma.objects.text.Text2D{
     .text = "Zigma balls!",
-  })
-    .position(100, 200, 0)
-    .color(255, 0, 255, 255);
+  });
 
   zigma.engine.init(.{
     .title = "Zigma demo",
@@ -26,7 +26,7 @@ pub fn main() void {
     zigma_balls.draw();
   }
 
-  allocator.destroy(zigma_balls.?);
+  allocator.destroy(zigma_balls);
   zigma.engine.close();
 }
 

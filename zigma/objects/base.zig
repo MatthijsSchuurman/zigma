@@ -33,7 +33,7 @@ pub const Object = struct {
   colors: [max_colors]Color,
 
   custom: *const anyopaque,
-  custom_draw: fn(*const Object) void,
+  custom_draw: *const fn(*const Object) void,
 
   pub fn init(self: *Object, comptime T: type, custom: *const T) *Object {
     self.position = .{ .x = 0, .y = 0, .z = 0 };
@@ -45,7 +45,7 @@ pub const Object = struct {
     };
 
     self.custom = custom;
-    self.custom_draw = T.draw;
+    self.custom_draw = &T.draw;
     return self;
   }
 
