@@ -6,12 +6,12 @@ const raylib = @cImport(@cInclude("raylib.h"));
 const timeline = @import("lib/timeline.zig");
 
 pub const Object = @import("objects/base.zig").Object;
-pub const objects = struct {
-  pub const text = @import("objects/text.zig");
+pub const Objects = struct {
+  pub const Text = @import("objects/text.zig");
 };
 
-pub const effects = struct {
-  pub const background = @import("effects/background.zig");
+pub const Effects = struct {
+  pub const Background = @import("effects/background.zig");
 };
 
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};

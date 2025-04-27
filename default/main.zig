@@ -8,7 +8,7 @@ var t: f32 = 0.0;
 
 pub fn main() !void {
   var zigma_balls = try zigma.allocator.create(zigma.Object);
-  _ = zigma_balls.init(zigma.objects.text.Text2D, &zigma.objects.text.Text2D{
+  _ = zigma_balls.init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
     .text = "Zigma balls!",
   });
 
@@ -31,6 +31,6 @@ fn draw() void {
   const color: u8 = @intCast(math.clamp(bounce, 0, 255));
   const y = 600 + bounce;
 
-  zigma.effects.background.fade(raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
+  zigma.Effects.Background.fade(raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
   raylib.DrawText("Zigma balls!", 700, y, 100, raylib.Color{ .r = color, .g = 255, .b = 255-color, .a = 255 });
 }
