@@ -7,20 +7,18 @@ const raylib = @cImport(@cInclude("raylib.h"));
 var t: f32 = 0.0;
 
 pub fn main() !void {
-  var zigma_balls = try zigma.allocator.create(zigma.Object);
-  _ = zigma_balls.init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
-    .text = "Zigma balls!",
-  });
-
   zigma.init(.{
     .title = "Zigma demo",
     .width = 1920,
     .height = 1080,
   });
 
+  _ = (try zigma.scene("intro").object("zigma_balls")).init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
+    .text = "Zigma balls!",
+  });
+
   while(zigma.render(draw)){}
 
-  zigma.allocator.destroy(zigma_balls);
   zigma.deinit();
 }
 
