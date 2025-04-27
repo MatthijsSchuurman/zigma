@@ -33,4 +33,10 @@ pub const Scene = struct {
     self.objectsNames.put(name, new_object) catch @panic("Failed to store object name");
     return new_object;
   }
+
+  pub fn render(self: *Scene) void {
+    for(self.objects.items) |obj| {
+      obj.render();
+    }
+  }
 };

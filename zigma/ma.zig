@@ -60,7 +60,7 @@ pub fn deinit() void {
   _ = gpa.deinit();
 }
 
-pub fn render(callback: RenderCallback) bool {
+pub fn render(sceneName: []const u8, callback: RenderCallback) bool {
   if(raylib.WindowShouldClose()) {
     return false;
   }
@@ -70,9 +70,11 @@ pub fn render(callback: RenderCallback) bool {
   }
 
   raylib.BeginDrawing();
-  callback();
-  raylib.EndDrawing();
 
+  scene(sceneName).render();
+  callback();
+
+  raylib.EndDrawing();
   return true;
 }
 

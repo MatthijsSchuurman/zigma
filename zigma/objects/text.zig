@@ -4,7 +4,7 @@ const base = @import("base.zig");
 pub const Text2D = struct {
   text: [*c]const u8,
 
-  pub fn draw(obj: *const base.Object) void {
+  pub fn render(obj: *const base.Object) void {
     const self: *const Text2D = @ptrCast(@alignCast(obj.custom));
 
     raylib.DrawText(self.text, @intFromFloat(obj.position.x), @intFromFloat( obj.position.y), 10,
