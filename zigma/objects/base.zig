@@ -49,26 +49,26 @@ pub const Object = struct {
     return self;
   }
 
-  pub fn position(self: *Object, x: f32, y: f32, z: f32) *Object {
+  pub fn setPosition(self: *Object, x: f32, y: f32, z: f32) *Object {
     self.position = Position{ .x = x, .y = y, .z = z };
     return self;
   }
 
-  pub fn scale(self: *Object, x: f32, y: f32, z: f32) *Object {
+  pub fn setScale(self: *Object, x: f32, y: f32, z: f32) *Object {
     self.scale = Scale{ .x = x, .y = y, .z = z };
     return self;
   }
 
-  pub fn rotation(self: *Object, x: f32, y: f32, z: f32) *Object {
+  pub fn setRotation(self: *Object, x: f32, y: f32, z: f32) *Object {
     self.rotation = Rotation{ .x = x, .y = y, .z = z };
     return self;
   }
 
-  pub fn color(self: *Object, r: f32, g: f32, b: f32, a: f32) *Object {
+  pub fn setColor(self: *Object, r: u8, g: u8, b: u8, a: u8) *Object {
     self.colors[0] = Color{ .r = r, .g = g, .b = b, .a = a };
     return self;
   }
-  pub fn colors(self: *Object, list: []const Color) *Object {
+  pub fn setColors(self: *Object, list: []const Color) *Object {
     const count = @min(list.len, max_colors);
     for (list[0..count], 0..) |c, i| {
       self.colors[i] = c;

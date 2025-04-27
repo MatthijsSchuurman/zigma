@@ -13,9 +13,13 @@ pub fn main() !void {
     .height = 1080,
   });
 
-  _ = (try zigma.scene("intro").object("zigma_balls")).init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
+  _ = (try zigma.scene("intro").object("zigma_balls"))
+  .init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
     .text = "Zigma balls!",
-  });
+  })
+  .setPosition(100, 100, 0)
+  .setColor(255, 0, 0, 255);
+
 
   while(zigma.render(draw)){}
 
