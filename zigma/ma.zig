@@ -13,8 +13,11 @@ pub const Effects = struct {
 };
 
 
+const builtin = @import("builtin");
+const use_gpa = builtin.mode == .Debug;
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-const allocator = gpa.allocator();
+var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 
 
 const Scene = @import("lib/scene.zig").Scene;
@@ -57,7 +60,7 @@ pub fn deinit() void {
 
   scenes_map.deinit();
 
-  _ = gpa.deinit();
+  if (use_gpa) _ = gpa.deinit() else arena.deinit();
 }
 
 pub fn render(sceneName: []const u8, callback: RenderCallback) bool {
