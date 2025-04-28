@@ -14,13 +14,10 @@ pub fn main() !void {
   });
 
 
-  _ = (try zigma.scene("intro").object("zigma_balls"))
-  .init(zigma.Objects.Text.Text2D, &zigma.Objects.Text.Text2D{
-    .text = "Zigma balls!",
-  })
+  _ = zigma.scene("intro").object("zigma_balls")
+  .init(zigma.Objects.Text.Text2D.init(zigma.allocator).setText("Zigma balls!"))
   .setPosition(100, 100, 0)
   .setColor(255, 0, 0, 255);
-
 
   while(zigma.render("intro", draw)){}
 

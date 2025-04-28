@@ -16,6 +16,8 @@ pub const Scene = struct {
 
   pub fn deinit(self: *Scene) void {
     for(self.objects.items) |obj| {
+      obj.custom_deinit(obj);
+
       self.allocator.destroy(obj);
     }
 
@@ -23,14 +25,14 @@ pub const Scene = struct {
     self.objectsNames.deinit();
   }
 
-  pub fn object(self: *Scene, name: []const u8) !*Object {
+  pub fn object(self: *Scene, name: []const u8) *Object {
     if (self.objectsNames.getPtr(name)) |existing_object| {
       return existing_object.*;
     }
 
-    const new_object = self.allocator.create(Object) catch @panic("Failed to init object");
-    self.objects.append(new_object)  catch @panic("Failed to store object");
-    self.objectsNames.put(name, new_object) catch @panic("Failed to store object name");
+    const new_object = self.allocator.create(Object) catch unreachable;
+    self.objects.append(new_object)  catch unreachable;
+    self.objectsNames.put(name, new_object) catch unreachable;
     return new_object;
   }
 

@@ -17,7 +17,7 @@ const builtin = @import("builtin");
 const use_gpa = builtin.mode == .Debug;
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
+pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 
 
 const Scene = @import("lib/scene.zig").Scene;
