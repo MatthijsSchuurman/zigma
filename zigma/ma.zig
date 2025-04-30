@@ -34,7 +34,8 @@ pub fn scene(name: []const u8) *Scene {
 }
 
 
-const timeline = @import("lib/timeline.zig");
+const Timeline = @import("lib/timeline.zig").Timeline;
+pub var timeline = Timeline.init(allocator);
 
 
 pub const Config = struct {
@@ -59,11 +60,12 @@ pub fn deinit() void {
   }
 
   scenes_map.deinit();
+  timeline.deinit();
 
   if (use_gpa) _ = gpa.deinit() else arena.deinit();
 }
 
-pub fn render(sceneName: []const u8, callback: RenderCallback) bool {
+pub fn render(callback: RenderCallback) bool {
   if(raylib.WindowShouldClose()) {
     return false;
   }
@@ -74,7 +76,9 @@ pub fn render(sceneName: []const u8, callback: RenderCallback) bool {
 
   raylib.BeginDrawing();
 
-  scene(sceneName).render();
+  if (timeline.active()) |activeScene|
+    activeScene.render();
+
   callback();
 
   raylib.EndDrawing();

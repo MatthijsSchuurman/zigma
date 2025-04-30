@@ -15,10 +15,10 @@ pub const Scene = struct {
   }
 
   pub fn deinit(self: *Scene) void {
-    for(self.objects.items) |obj| {
-      obj.custom_deinit(obj);
+    for(self.objects.items) |objectPtr| {
+      objectPtr.custom_deinit(objectPtr);
 
-      self.allocator.destroy(obj);
+      self.allocator.destroy(objectPtr);
     }
 
     self.objects.deinit();
@@ -37,8 +37,8 @@ pub const Scene = struct {
   }
 
   pub fn render(self: *Scene) void {
-    for(self.objects.items) |obj| {
-      obj.render();
+    for(self.objects.items) |objectPtr| {
+      objectPtr.render();
     }
   }
 };
