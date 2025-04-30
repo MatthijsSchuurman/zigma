@@ -48,7 +48,7 @@ pub const Timeline = struct {
       self.timePrevious = 0;
       self.timestampPreviousMS = std.time.milliTimestamp(); //store for next determine
 
-      std.debug.print("time: {:.2}, speed: {:.1}\n", .{self.timeCurrent, self.speed});
+      std.debug.print("time: {d:1.2}, speed: {d:1.2}\n", .{self.timeCurrent, self.speed});
       return;
     }
 
@@ -59,6 +59,6 @@ pub const Timeline = struct {
     self.timeCurrent += timestampDelta * self.speed;
     self.timestampPreviousMS = timestampCurrentMS;
 
-    std.debug.print("time: {:.2}, speed: {:.1}\n", .{self.timeCurrent, self.speed});
+    std.debug.print("time: {d:1.2}, speed: {d:1.2}\n", .{self.timeCurrent, self.speed});
   }
 };

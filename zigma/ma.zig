@@ -55,7 +55,7 @@ pub fn deinit() void {
   rl.CloseWindow();
 
   var it = scenes_map.iterator();
-  while(it.next()) |entry| {
+  while (it.next()) |entry| {
     entry.value_ptr.deinit();
   }
 
@@ -66,23 +66,25 @@ pub fn deinit() void {
 }
 
 pub fn render(callback: RenderCallback) bool {
-  if(rl.WindowShouldClose()) {
+  if (rl.WindowShouldClose()) {
     return false;
   }
+
+  if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
+    timeline.setSpeed(timeline.speed + 0.1);
+  } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
+    timeline.setSpeed(timeline.speed - 0.1);
+  }
+
 
   timeline.determineFrame();
+  const activeScene = timeline.activeScene() orelse return false;
 
   rl.BeginDrawing();
-
-  if (timeline.activeScene()) |activeScene| {
-    activeScene.render();
-  } else {
-    return false;
-  }
-
+  activeScene.render();
   callback();
-
   rl.EndDrawing();
+
   return true;
 }
 
