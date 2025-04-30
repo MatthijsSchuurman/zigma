@@ -1,14 +1,14 @@
 const std = @import("std");
-const scene = @import("scene.zig");
+const scn = @import("scene.zig");
 
 pub const Timeline = struct {
   allocator: std.mem.Allocator,
-  scenes: std.ArrayList(*scene.Scene),
+  scenes: std.ArrayList(*scn.Scene),
 
   pub fn init(allocator: std.mem.Allocator) Timeline {
     return Timeline {
       .allocator = allocator,
-      .scenes = std.ArrayList(*scene.Scene).init(allocator),
+      .scenes = std.ArrayList(*scn.Scene).init(allocator),
     };
   }
 
@@ -16,11 +16,11 @@ pub const Timeline = struct {
     self.scenes.deinit();
   }
 
-  pub fn add(self: *Timeline, scenePtr: *scene.Scene) void {
-    self.scenes.append(scenePtr) catch unreachable;
+  pub fn add(self: *Timeline, scene: *scn.Scene) void {
+    self.scenes.append(scene) catch unreachable;
   }
 
-  pub fn active(self: *Timeline) ?*scene.Scene {
+  pub fn active(self: *Timeline) ?*scn.Scene {
     if (self.scenes.items.len == 0)
       return null;
 

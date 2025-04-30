@@ -1,6 +1,6 @@
 const std = @import("std");
-const testing = @import("std").testing;
-const raylib = @cImport(@cInclude("raylib.h"));
+const tst = @import("std").tst;
+const rl = @cImport(@cInclude("raylib.h"));
 
 
 pub const Object = @import("objects/base.zig").Object;
@@ -47,12 +47,12 @@ pub const Config = struct {
 const RenderCallback = fn () void;
 
 pub fn init(config: Config) void {
-  raylib.InitWindow(config.width, config.height, config.title);
-  raylib.SetTargetFPS(200);
+  rl.InitWindow(config.width, config.height, config.title);
+  rl.SetTargetFPS(200);
 }
 
 pub fn deinit() void {
-  raylib.CloseWindow();
+  rl.CloseWindow();
 
   var it = scenes_map.iterator();
   while(it.next()) |entry| {
@@ -66,26 +66,26 @@ pub fn deinit() void {
 }
 
 pub fn render(callback: RenderCallback) bool {
-  if(raylib.WindowShouldClose()) {
+  if(rl.WindowShouldClose()) {
     return false;
   }
 
-  if(raylib.IsKeyDown(raylib.KEY_LEFT_ALT) and raylib.IsKeyPressed(raylib.KEY_ENTER)) {
-    raylib.ToggleFullscreen();
+  if(rl.IsKeyDown(rl.KEY_LEFT_ALT) and rl.IsKeyPressed(rl.KEY_ENTER)) {
+    rl.ToggleFullscreen();
   }
 
-  raylib.BeginDrawing();
+  rl.BeginDrawing();
 
   if (timeline.active()) |activeScene|
     activeScene.render();
 
   callback();
 
-  raylib.EndDrawing();
+  rl.EndDrawing();
   return true;
 }
 
 
-test "testing something" {
-  try testing.expectEqual(0.0, 0.0);
+test "tst something" {
+  try tst.expectEqual(0.0, 0.0);
 }

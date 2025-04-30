@@ -2,7 +2,7 @@ const std = @import("std");
 const math = @import("std").math;
 const zigma = @import("zigma");
 
-const raylib = @cImport(@cInclude("raylib.h"));
+const rl = @cImport(@cInclude("raylib.h"));
 
 var t: f32 = 0.0;
 
@@ -32,6 +32,6 @@ fn draw() void {
   const color: u8 = @intCast(math.clamp(bounce, 0, 255));
   const y = 600 + bounce;
 
-  zigma.Effects.Background.fade(raylib.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
-  raylib.DrawText("Zigma balls!", 700, y, 100, raylib.Color{ .r = color, .g = 255, .b = 255-color, .a = 255 });
+  zigma.Effects.Background.fade(rl.Color{ .r = 0, .g = 0, .b = 0, .a = 5 });
+  rl.DrawText("Zigma balls!", 700, y, 100, rl.Color{ .r = color, .g = 255, .b = 255-color, .a = 255 });
 }
