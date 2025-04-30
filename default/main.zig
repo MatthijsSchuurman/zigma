@@ -18,7 +18,7 @@ pub fn main() !void {
   .setPosition(100, 100, 0)
   .setColor(255, 0, 0, 255);
 
-  zigma.timeline.add(zigma.scene("intro"));
+  zigma.timeline.addScene(zigma.scene("intro"));
 
   while(zigma.render(draw)){}
 

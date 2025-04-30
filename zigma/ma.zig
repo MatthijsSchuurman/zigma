@@ -70,14 +70,15 @@ pub fn render(callback: RenderCallback) bool {
     return false;
   }
 
-  if(rl.IsKeyDown(rl.KEY_LEFT_ALT) and rl.IsKeyPressed(rl.KEY_ENTER)) {
-    rl.ToggleFullscreen();
-  }
+  timeline.determineFrame();
 
   rl.BeginDrawing();
 
-  if (timeline.active()) |activeScene|
+  if (timeline.activeScene()) |activeScene| {
     activeScene.render();
+  } else {
+    return false;
+  }
 
   callback();
 

@@ -1,10 +1,16 @@
 const std = @import("std");
 const base = @import("../objects/base.zig");
 
+pub const TimelineScene = struct {
+  duration: f32 = 10.0,
+};
+
 pub const Scene = struct {
   allocator: std.mem.Allocator,
   objects: std.ArrayList(*base.Object),
   objectsNames: std.StringHashMap(*base.Object),
+
+  timeline: TimelineScene = .{},
 
   pub fn init(allocator: std.mem.Allocator) Scene {
     return Scene{
