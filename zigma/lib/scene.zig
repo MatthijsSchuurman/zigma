@@ -1,5 +1,5 @@
 const std = @import("std");
-const base = @import("../objects/base.zig");
+const Object = @import("../objects/object.zig").Object;
 
 pub const TimelineScene = struct {
   duration: f32 = 10.0,
@@ -7,44 +7,47 @@ pub const TimelineScene = struct {
 
 pub const Scene = struct {
   allocator: std.mem.Allocator,
-  objects: std.ArrayList(*base.Object),
-  objectsNames: std.StringHashMap(*base.Object),
+  objects: std.ArrayList(*Object),
+  objectsNames: std.StringHashMap(*Object),
 
   timeline: TimelineScene = .{},
 
   pub fn init(allocator: std.mem.Allocator) Scene {
     return Scene{
       .allocator = allocator,
-      .objects = std.ArrayList(*base.Object).init(allocator),
-      .objectsNames = std.StringHashMap(*base.Object).init(allocator),
+      .objects = std.ArrayList(*Object).init(allocator),
+      .objectsNames = std.StringHashMap(*Object).init(allocator),
     };
   }
 
   pub fn deinit(self: *Scene) void {
-    for(self.objects.items) |obj| {
-      obj.custom_deinit(obj);
-
-      self.allocator.destroy(obj);
-    }
+    for(self.objects.items) |obj|
+      obj.deinit();
 
     self.objects.deinit();
     self.objectsNames.deinit();
   }
 
-  pub fn object(self: *Scene, name: []const u8) *base.Object {
-    if (self.objectsNames.getPtr(name)) |existing_object| {
+  pub fn object(self: *Scene, name: []const u8, custom: anytype) *Object{
+    if (self.objectsNames.getPtr(name)) |existing_object|
       return existing_object.*;
+
+    comptime {
+      const info = @typeInfo(@TypeOf(custom));
+      if (info != .Pointer) @compileError("Scene expects object to be a pointer");
+
+      const T = info.Pointer.child;
+      if (!@hasField(T, "object")) @compileError("Scene expects object to have an .object field");
     }
 
-    const new_object = self.allocator.create(base.Object) catch unreachable;
-    self.objects.append(new_object)  catch unreachable;
-    self.objectsNames.put(name, new_object) catch unreachable;
-    return new_object;
+    self.objects.append(&custom.object)  catch unreachable;
+    self.objectsNames.put(name, &custom.object) catch unreachable;
+
+    return &custom.object;
   }
 
   pub fn render(self: *Scene) void {
-    for(self.objects.items) |obj| {
+    for(self.objects.items) |obj|
       obj.render();
-    }
   }
 };

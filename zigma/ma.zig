@@ -3,7 +3,6 @@ const tst = @import("std").tst;
 const rl = @cImport(@cInclude("raylib.h"));
 
 
-pub const Object = @import("objects/base.zig").Object;
 pub const Objects = struct {
   pub const Text = @import("objects/text.zig");
 };

@@ -32,7 +32,6 @@ pub const Object = struct {
   rotation: Rotation,
   colors: [max_colors]Color,
 
-  custom: *const anyopaque,
   custom_render: *const fn(*const Object) void,
   custom_deinit: *const fn(*const Object) void,
 
@@ -52,11 +51,14 @@ pub const Object = struct {
         Color{ .r = 0, .g = 0, .b = 0, .a = 255 },
     };
 
-    self.custom = custom;
     self.custom_render = &T.render;
     self.custom_deinit = &T.deinit;
 
     return self;
+  }
+
+  pub fn deinit(self: *Object) void {
+    self.custom_deinit(self);
   }
 
   pub fn setPosition(self: *Object, x: f32, y: f32, z: f32) *Object {

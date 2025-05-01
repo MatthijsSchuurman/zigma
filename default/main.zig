@@ -13,8 +13,8 @@ pub fn main() !void {
     .height = 1080,
   });
 
-  _ = zigma.scene("intro").object("zigma_balls")
-  .init(zigma.Objects.Text.Text2D.init(zigma.allocator).setText("Zigma balls!"))
+  _ = zigma.scene("intro").object("zigma_balls",
+    zigma.Objects.Text.Text2D.init(zigma.allocator).setText("Zigma balls!"))
   .setPosition(100, 100, 0)
   .setColor(255, 0, 0, 255);
 

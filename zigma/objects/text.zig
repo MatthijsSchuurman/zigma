@@ -1,24 +1,29 @@
 const std = @import("std");
-const base = @import("base.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
+const Object = @import("object.zig").Object;
+
 pub const Text2D = struct {
+  object: Object,
   allocator: std.mem.Allocator,
+
   text: []u8,
 
   pub fn init(allocator: std.mem.Allocator) *Text2D {
-    const object = allocator.create(Text2D) catch unreachable;
-    object.allocator = allocator;
+    const custom = allocator.create(Text2D) catch unreachable;
+    custom.allocator = allocator;
 
     const buffer = allocator.alloc(u8, 1) catch unreachable;
     buffer[0] = 0; //empty 0 terminated string
-    object.text = buffer;
+    custom.text = buffer;
 
-    return object;
+    _ = custom.object.init(custom);
+    return custom;
   }
 
-  pub fn deinit(obj: *const base.Object) void {
-    const self: *const Text2D = @ptrCast(@alignCast(obj.custom));
+  pub fn deinit(object: *const Object) void {
+    const self: *const Text2D = @fieldParentPtr("object", object);
+
     self.allocator.free(self.text);
     self.allocator.destroy(self);
   }
@@ -34,15 +39,15 @@ pub const Text2D = struct {
     return self;
   }
 
-  pub fn render(obj: *const base.Object) void {
-    const self: *const Text2D = @ptrCast(@alignCast(obj.custom));
+  pub fn render(object: *const Object) void {
+    const self: *const Text2D = @fieldParentPtr("object", object);
 
-    rl.DrawText(self.text.ptr, @intFromFloat(obj.position.x), @intFromFloat( obj.position.y), 10,
+    rl.DrawText(self.text.ptr, @intFromFloat(object.position.x), @intFromFloat(object.position.y), 10,
       rl.Color{
-        .r = obj.colors[0].r,
-        .g = obj.colors[0].g,
-        .b = obj.colors[0].b,
-        .a = obj.colors[0].a,
+        .r = object.colors[0].r,
+        .g = object.colors[0].g,
+        .b = object.colors[0].b,
+        .a = object.colors[0].a,
       });
   }
 };
