@@ -14,7 +14,10 @@ pub fn main() !void {
   });
 
   // Intro scene
-  _ = zigma.object("intro", "zigma_balls",
+  _ = zigma.object(.{
+    .scene = "intro",
+    .object = "zigma_balls",
+    },
     zigma.Objects.Text.Text2D.init(zigma.allocator)
     .setText("Zigma balls!")
   )
@@ -22,12 +25,11 @@ pub fn main() !void {
   .setColor(255, 0, 0, 255);
 
   // zigma.effect(.{
-  //   effect = zigma.Effects.Background.fade,
-  //   color = 0,0,0,5
-  //   scene = "intro",
-  //   object = "zigma_balls",
-  //   mode = .continuous,
-  // };
+  //   .scene = "intro",
+  //   .object = "zigma_balls",
+  //   .effect = zigma.Effects.Background.fade,
+  //   .color = 0,0,0,5
+  // });
 
   //Render scenes
   zigma.scenes(.{"intro"});
