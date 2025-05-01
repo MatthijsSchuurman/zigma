@@ -13,13 +13,24 @@ pub fn main() !void {
     .height = 1080,
   });
 
-  _ = zigma.scene("intro").object("zigma_balls",
-    zigma.Objects.Text.Text2D.init(zigma.allocator).setText("Zigma balls!"))
+  // Intro scene
+  _ = zigma.object("intro", "zigma_balls",
+    zigma.Objects.Text.Text2D.init(zigma.allocator)
+    .setText("Zigma balls!")
+  )
   .setPosition(100, 100, 0)
   .setColor(255, 0, 0, 255);
 
-  zigma.timeline.addScene(zigma.scene("intro"));
+  // zigma.effect(.{
+  //   effect = zigma.Effects.Background.fade,
+  //   color = 0,0,0,5
+  //   scene = "intro",
+  //   object = "zigma_balls",
+  //   mode = .continuous,
+  // };
 
+  //Render scenes
+  zigma.scenes(.{"intro"});
   while(zigma.render(draw)){}
 
   zigma.deinit();

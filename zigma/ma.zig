@@ -2,7 +2,7 @@ const std = @import("std");
 const tst = @import("std").tst;
 const rl = @cImport(@cInclude("raylib.h"));
 
-
+// Export Objects & Effects
 pub const Objects = struct {
   pub const Text = @import("objects/text.zig");
 };
@@ -11,14 +11,14 @@ pub const Effects = struct {
   pub const Background = @import("effects/background.zig");
 };
 
-
+// Setup memory management
 const builtin = @import("builtin");
 const use_gpa = builtin.mode == .Debug;
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 
-
+// Scene name mapping
 const Scene = @import("lib/scene.zig").Scene;
 var scenes_map = std.StringHashMap(Scene).init(allocator);
 
@@ -32,11 +32,21 @@ pub fn scene(name: []const u8) *Scene {
   return scenes_map.getPtr(name).?;
 }
 
+// Object management
+const Object = @import("objects/object.zig").Object;
+pub fn object(sceneName: []const u8, objectName: []const u8, customObject: anytype) *Object {
+  return scene(sceneName).object(objectName, customObject);
+}
 
+// Timeline
 const Timeline = @import("lib/timeline.zig").Timeline;
 pub var timeline = Timeline.init(allocator);
+pub fn scenes(comptime names: anytype) void {
+  inline for (names) |sceneName|
+    timeline.addScene(scene(sceneName));
+}
 
-
+// Init, Deinit & Render
 pub const Config = struct {
   title: [*:0]const u8,
   width: i32,
@@ -87,7 +97,7 @@ pub fn render(callback: RenderCallback) bool {
   return true;
 }
 
-
+// Testing
 test "tst something" {
   try tst.expectEqual(0.0, 0.0);
 }
