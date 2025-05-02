@@ -1,5 +1,7 @@
 const std = @import("std");
-const components_position = @import("components/position.zig");
+
+const components = @import("components.zig");
+const systems = @import("systems.zig");
 
 // World
 pub const EntityID = u32;
@@ -10,7 +12,8 @@ pub const World = struct {
   entities: std.StringHashMap(EntityID),
 
   // Components
-  positions: std.AutoHashMap(EntityID, components_position.Position),
+  positions: std.AutoHashMap(EntityID, components.position.Type),
+  texts: std.AutoHashMap(EntityID, components.text.Type),
 
   pub fn init(allocator: std.mem.Allocator) World {
     return World{
@@ -19,7 +22,8 @@ pub const World = struct {
       .entities = std.StringHashMap(u32).init(allocator),
 
       // Components
-      .positions = std.AutoHashMap(u32, components_position.Position).init(allocator),
+      .positions = std.AutoHashMap(u32, components.position.Type).init(allocator),
+      .texts = std.AutoHashMap(u32, components.text.Type).init(allocator),
     };
   }
 
@@ -28,6 +32,7 @@ pub const World = struct {
 
     // Components
     self.positions.deinit();
+    self.texts.deinit();
   }
 
   // Entity
@@ -45,7 +50,8 @@ pub const World = struct {
   }
 
   // Render
-  pub fn render(_: *World) bool {
+  pub fn render(self: *World) bool {
+    systems.render.text.run(self);
     return true;
   }
 };
@@ -54,6 +60,6 @@ pub const Entity = struct {
   id: u32,
   world: *World,
 
-  // Components
-  pub const position = components_position.set;
+  pub const com_position = components.position.set;
+  pub const com_text = components.text.set;
 };

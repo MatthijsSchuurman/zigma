@@ -51,3 +51,25 @@
 //       });
 //   }
 // };
+
+const rl = @cImport(@cInclude("raylib.h"));
+const ecs = @import("../../ecs.zig");
+
+pub fn run(world: *ecs.World) void {
+  var it = world.texts.iterator();
+  while (it.next()) |entry| {
+    const id = entry.key_ptr.*;
+    const text = entry.value_ptr.*;
+
+    if (world.positions.get(id)) |position| {
+       rl.DrawText(
+         @ptrCast(text),
+         @intFromFloat(position.x),
+         @intFromFloat(position.y),
+         200,
+         rl.WHITE,
+      );
+    }
+  }
+}
+

@@ -38,10 +38,9 @@ pub fn deinit() void {
   if (use_gpa) _ = gpa.deinit() else arena.deinit();
 }
 
-pub fn render() bool {
-  if (rl.WindowShouldClose()) {
+pub fn render(world: *ecs.World) bool {
+  if (rl.WindowShouldClose())
     return false;
-  }
 
   // if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
   //   timeline.setSpeed(timeline.speed + 0.1);
@@ -52,9 +51,13 @@ pub fn render() bool {
   // timeline.determineFrame();
 
   rl.BeginDrawing();
+  rl.ClearBackground(.{.r = 0, .g = 0, .b = 23, .a = 50});
+
+  const success = world.render();
 
   rl.EndDrawing();
-  return true;
+
+  return success;
 }
 
 // Testing
