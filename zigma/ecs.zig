@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const components = struct {
+pub const components = struct {
   pub const position = @import("components/position.zig");
   pub const rotation = @import("components/rotation.zig");
   pub const scale = @import("components/scale.zig");
@@ -9,7 +9,7 @@ const components = struct {
   pub const text = @import("components/text.zig");
 };
 
-const systems = struct {
+pub const systems = struct {
   pub const init = struct {
   };
 

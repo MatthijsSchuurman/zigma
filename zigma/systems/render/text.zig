@@ -57,19 +57,34 @@ const ecs = @import("../../ecs.zig");
 
 pub fn run(world: *ecs.World) void {
   var it = world.texts.iterator();
+  const screen_width: f32 = @floatFromInt(rl.GetScreenWidth());
+  const screen_height: f32 = @floatFromInt(rl.GetScreenHeight());
+
   while (it.next()) |entry| {
     const id = entry.key_ptr.*;
     const text = entry.value_ptr.*;
 
-    if (world.positions.get(id)) |position| {
-       rl.DrawText(
-         @ptrCast(text),
-         @intFromFloat(position.x),
-         @intFromFloat(position.y),
-         200,
-         rl.WHITE,
-      );
-    }
+    const position = world.positions.get(id) orelse ecs.components.position.Type{.x = 0, .y = 0, .z = 0};
+    const scale = world.scales.get(id) orelse ecs.components.scale.Type{.x = 2, .y = 1, .z = 1};
+    const color = world.colors.get(id) orelse ecs.components.color.Type{.r = 255, .g = 255, .b = 255, .a = 255};
+
+    const height: f32 = 10 * scale.x;
+    const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text), @intFromFloat(height)));
+
+    const x = (position.x * 0.5 + 0.5) * screen_width;
+    const y = (position.y * 0.5 + 0.5) * screen_height;
+
+    rl.DrawText(
+      @ptrCast(text),
+      @intFromFloat(x - (width / 2)),
+      @intFromFloat(y - (height / 2)),
+      @intFromFloat(height),
+      rl.Color{
+        .r = color.r,
+        .g = color.g,
+        .b = color.b,
+        .a = color.a,
+      }
+    );
   }
 }
-

@@ -7,7 +7,7 @@ pub fn main() !void {
   .com_text("Zigma Balls!!!")
   .com_position(0, 0, 0)
   .com_scale(20, 1, 1)
-  .com_color(255, 0, 255, 255);
+  .com_color(100, 255, 255, 150);
 
   while(zigma.render(&world)){}
 
