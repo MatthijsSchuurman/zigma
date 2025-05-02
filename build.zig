@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
 
   //test
   const tests = b.addTest(.{
-    .root_source_file = .{ .cwd_relative = "lib/engine.zig" },
+    .root_source_file = .{ .cwd_relative = "zigma/ma.zig" },
   });
 
   const run_tests = b.addRunArtifact(tests);
