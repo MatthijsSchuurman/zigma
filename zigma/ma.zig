@@ -20,10 +20,25 @@ pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 
 // Timeline
 const Timeline = @import("lib/timeline.zig").Timeline;
-pub var timeline = Timeline.init(allocator);
+var timeline = Timeline.init(allocator);
 pub fn scenes(comptime names: anytype) void {
   inline for (names) |sceneName|
     timeline.addScene(scene(sceneName));
+}
+
+const Effect = struct {
+  scene: []const u8,
+  object: []const u8,
+
+  start: f32 = 0.0,
+  duration: f32 = 0.0,
+
+  effect: fn(?*Object, f32, *const anyopaque) void,
+  params: *const anyopaque,
+};
+
+pub fn effect(_: Effect) void {
+  //timemline.addEffect(scene(fx.scene).object(fx.object), start, duration, effect, params);
 }
 
 // Scene name mapping
@@ -48,8 +63,8 @@ const SceneObject = struct {
   object: []const u8,
 };
 
-pub fn object(sceneObject: SceneObject, custom: anytype) *Object {
-  return scene(sceneObject.scene).object(sceneObject.object, custom);
+pub fn object(so: SceneObject, custom: anytype) *Object {
+  return scene(so.scene).object(so.object, custom);
 }
 
 // Init, Deinit & Render

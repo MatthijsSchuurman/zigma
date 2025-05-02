@@ -13,7 +13,14 @@ pub fn main() !void {
     .height = 1080,
   });
 
-  // Intro scene
+  introScene();
+
+  zigma.scenes(.{"intro"});
+  while(zigma.render(draw)){}
+  zigma.deinit();
+}
+
+fn introScene() void {
   _ = zigma.object(.{
     .scene = "intro",
     .object = "zigma_balls",
@@ -28,15 +35,16 @@ pub fn main() !void {
   //   .scene = "intro",
   //   .object = "zigma_balls",
   //   .effect = zigma.Effects.Background.fade,
-  //   .color = 0,0,0,5
+  //   .params = .{
+  //     .colors = zigma.Object.Color{0, 0, 0, 5},
+  //   },
   // });
-
-  //Render scenes
-  zigma.scenes(.{"intro"});
-  while(zigma.render(draw)){}
-
-  zigma.deinit();
 }
+
+
+
+
+
 
 fn draw() void {
   t += 0.03;

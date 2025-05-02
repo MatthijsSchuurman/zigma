@@ -26,12 +26,11 @@ pub const Timeline = struct {
   }
 
   pub fn activeScene(self: *Timeline) ?*scn.Scene {
-    var time = self.timeCurrent;
+    var sceneEnd: f32 = 0;
     for (self.scenes.items) |scene| {
-      if (time < scene.timeline.duration)
+      sceneEnd += scene.timeline.duration;
+      if (self.timeCurrent < sceneEnd)
         return scene;
-
-      time += scene.timeline.duration;
     }
 
     return null;
