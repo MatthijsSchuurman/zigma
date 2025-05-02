@@ -5,7 +5,9 @@ pub fn main() !void {
 
   _ = world.entity("zigma balls")
   .com_text("Zigma Balls!!!")
-  .com_position(0.0, 0.0, 0.0);
+  .com_position(0, 0, 0)
+  .com_scale(20, 1, 1)
+  .com_color(255, 0, 255, 255);
 
   while(zigma.render(&world)){}
 
