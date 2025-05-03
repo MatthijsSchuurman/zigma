@@ -8,10 +8,10 @@ pub const Data = struct {
 };
 
 pub fn set(entity: *const ecs.Entity, r: u8, g: u8, b: u8, a: u8) *const ecs.Entity {
-  entity.world.components.Color.put(
+  entity.world.components.color.put(
     entity.id,
     Data{.r = r, .g = g, .b = b, .a = a }
-  ) catch @panic("Color set failed");
+  ) catch @panic("Failed to set color");
 
   return entity;
 }

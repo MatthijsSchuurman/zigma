@@ -7,10 +7,10 @@ pub const Data = struct {
 };
 
 pub fn set(entity: *const ecs.Entity, x: f32, y: f32, z: f32) *const ecs.Entity {
-  entity.world.components.Rotation.put(
+  entity.world.components.rotation.put(
     entity.id,
     Data{.x = x, .y = y, .z = z }
-  ) catch @panic("Rotation set failed");
+  ) catch @panic("Failed to set rotation");
 
   return entity;
 }
