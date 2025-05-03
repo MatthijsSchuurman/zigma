@@ -130,7 +130,7 @@ pub const World = struct {
     }
 
     // Named entity
-    const entry = self.entities.getOrPut(name) catch @panic("Unable to getOrPut entity");
+    const entry = self.entities.getOrPut(name) catch @panic("Unable to put entity");
     if (entry.found_existing) // Use existing
       return entry.value_ptr.*;
 

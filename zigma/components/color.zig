@@ -8,13 +8,16 @@ pub const Data = struct {
 };
 
 pub fn set(entity: *const ecs.Entity, r: u8, g: u8, b: u8, a: u8) *const ecs.Entity {
-  const data = entity.world.allocator.create(Data) catch @panic("Failed to create color");
-  data.* = Data{.r = r, .g = g, .b = b, .a = a };
+  var data: *Data = undefined;
+  const entry = entity.world.components.color.getOrPut(entity.id) catch @panic("Unable to put color");
+  if (!entry.found_existing) {
+    data = entity.world.allocator.create(Data) catch @panic("Failed to create color");
+  } else {
+    data = entry.value_ptr.*;
+  }
 
-  entity.world.components.color.put(
-    entity.id,
-    data,
-  ) catch @panic("Failed to set color");
+  data.* = Data{.r = r, .g = g, .b = b, .a = a };
+  entry.value_ptr.* = data;
 
   return entity;
 }

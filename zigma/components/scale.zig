@@ -7,13 +7,16 @@ pub const Data = struct {
 };
 
 pub fn set(entity: *const ecs.Entity, x: f32, y: f32, z: f32) *const ecs.Entity {
-  const data = entity.world.allocator.create(Data) catch @panic("Failed to create scale");
-  data.* = Data{.x = x, .y = y, .z = z };
+  var data: *Data = undefined;
+  const entry = entity.world.components.scale.getOrPut(entity.id) catch @panic("Unable to put scale");
+  if (!entry.found_existing) {
+    data = entity.world.allocator.create(Data) catch @panic("Failed to create scale");
+  } else {
+    data = entry.value_ptr.*;
+  }
 
-  entity.world.components.scale.put(
-    entity.id,
-    data,
-  ) catch @panic("Failed to set scale");
+  data.* = Data{.x = x, .y = y, .z = z };
+  entry.value_ptr.* = data;
 
   return entity;
 }
