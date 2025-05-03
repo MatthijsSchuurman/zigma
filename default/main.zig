@@ -1,4 +1,3 @@
-const std = @import("std");
 const zigma = @import("zigma");
 
 pub fn main() !void {
@@ -13,7 +12,7 @@ pub fn main() !void {
     .position(0, 0.5, 0)
     .color(255, 255, 255, 255)
   .event("timeline", 1, 2)
-    .position(0, 0.5, 0);
+    .position(0, -0.5, 0);
 
 
   while(zigma.render(&world)){}

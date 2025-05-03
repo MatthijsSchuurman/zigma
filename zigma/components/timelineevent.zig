@@ -1,4 +1,3 @@
-const std= @import("std");
 const ecs = @import("../ecs.zig");
 
 pub const Data = struct {
@@ -35,5 +34,5 @@ pub fn add(entity: *const ecs.Entity, timelineName: []const u8, start: f32, dura
   };
   entry.value_ptr.* = data;
 
-  return entity;
+  return event;
 }
