@@ -4,7 +4,7 @@ const std = @import("std");
 pub const EntityID = u32;
 pub const Entity = struct {
   id: EntityID,
-  parent_id: EntityID = 0,
+  parent_id: EntityID,
   world: *World,
 
   pub const timeline_init = Components.Timeline.init;
@@ -17,17 +17,6 @@ pub const Entity = struct {
   pub const color = Components.Color.set;
 
   pub const text = Components.Text.set;
-
-  pub fn end(entity: *const Entity) *const Entity {
-    if (entity.parent_id != 0) {
-      return &Entity{
-        .id = entity.parent_id,
-        .world = entity.world,
-      };
-    }
-
-    return entity;
-  }
 };
 
 
@@ -84,14 +73,16 @@ pub const World = struct {
   allocator: std.mem.Allocator,
 
   next_id: EntityID = 0,
-  entities: std.StringHashMap(EntityID),
+  entities: std.StringHashMap(Entity),
+  entities_unnamed: std.ArrayList(Entity),
 
   components: ComponentStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(u32).init(allocator),
+      .entities = std.StringHashMap(Entity).init(allocator),
+      .entities_unnamed = std.ArrayList(Entity).init(allocator),
       .components = undefined,
     };
 
@@ -105,31 +96,36 @@ pub const World = struct {
 
   pub fn deinit(self: *World) void {
     self.entities.deinit();
+    self.entities_unnamed.deinit();
 
     inline for (ComponentDeclarations) |declaration|
       @field(self.components, toLower(declaration.name)).deinit();
   }
 
   // Entity
-  pub fn entityNext(self: *World) Entity {
-    defer self.next_id += 1;
-    return Entity{
-      .id = self.next_id,
-      .world = self,
-    };
-  }
-  pub fn entity(self: *World, name: []const u8) Entity {
-    const e = self.entities.getOrPut(name) catch @panic("Unable to create entity");
-    if (!e.found_existing)
-    {
-      const e2 = self.entityNext();
-      e.value_ptr.* = e2.id;
+  pub fn entity(self: *World, name: []const u8) *Entity {
+    if (name.len == 0) { // Unnamed entity
+      const e = Entity{
+        .id = self.next_id,
+        .parent_id = 0,
+        .world = self,
+      };
+
+      defer self.next_id += 1;
+      self.entities_unnamed.append(e) catch @panic("Unable to create entity");
+      return &self.entities_unnamed.items[self.entities_unnamed.items.len - 1];
     }
 
-    return Entity{
-      .id = e.value_ptr.*,
-      .world = self,
-    };
+    // Named entity
+    const e = self.entities.getOrPut(name) catch @panic("Unable to create entity");
+    if (e.found_existing) // Use existing
+      return e.value_ptr;
+
+    defer self.next_id += 1;
+    e.value_ptr.id = self.next_id;
+    e.value_ptr.parent_id = 0;
+    e.value_ptr.world = self;
+    return e.value_ptr;
   }
 
   // Render

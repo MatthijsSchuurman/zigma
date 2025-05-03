@@ -2,6 +2,11 @@ const std = @import("std");
 const ecs = @import("../ecs.zig");
 
 pub fn run(world: *ecs.World) void {
+  determineTime(world);
+  processEvents(world);
+}
+
+pub fn determineTime(world: *ecs.World) void {
   var it = world.components.timeline.iterator();
   while (it.next()) |entry| {
     const id = entry.key_ptr.*;
@@ -24,3 +29,12 @@ pub fn run(world: *ecs.World) void {
   }
 }
 
+pub fn processEvents(world: *ecs.World) void {
+  var it = world.components.timelineevent.iterator();
+  while (it.next()) |entry| {
+    const id = entry.key_ptr.*;
+    const event = entry.value_ptr.*;
+
+    std.debug.print("TimelineEvent {d}: {d}  {any} {d} {d} \n", .{id, event.timeline_id, event.target_id, event.start, event.duration});
+  }
+}

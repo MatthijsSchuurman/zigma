@@ -13,8 +13,7 @@ pub fn main() !void {
     .position(0, 0.5, 0)
     .color(255, 255, 255, 255)
   .event("timeline", 1, 2)
-    .position(0, 0.5, 0)
-    .end();
+    .position(0, 0.5, 0);
 
 
   while(zigma.render(&world)){}

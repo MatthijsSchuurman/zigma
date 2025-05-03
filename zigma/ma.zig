@@ -21,7 +21,7 @@ const Config = struct {
 
 pub fn init(config: Config) ecs.World {
   rl.InitWindow(config.width, config.height, config.title);
-  rl.SetTargetFPS(200);
+  rl.SetTargetFPS(20);
 
   var world = ecs.World.init(allocator);
   _ = world.entity("timeline").timeline_init();
