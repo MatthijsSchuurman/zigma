@@ -1,3 +1,4 @@
+const std = @import("std");
 const zigma = @import("zigma");
 
 pub fn main() !void {
@@ -8,6 +9,18 @@ pub fn main() !void {
   .position(0, 0, 0)
   .scale(20, 1, 1)
   .color(100, 255, 255, 150);
+
+  for (1..10) |c| {
+    const name = try std.fmt.allocPrint(world.allocator, "balls {}", .{ c });
+    var pos: f32 = @floatFromInt(c);
+    pos /= 10;
+
+    _ = world.entity(name)
+    .text("Zigma Balls!!!")
+    .position(-1+pos, -1+pos, 0)
+    .scale(@floatFromInt(c), 1, 1)
+    .color(100, @intCast(c*25), @intCast(c*25), 150);
+  }
 
   while(zigma.render(&world)){}
 
