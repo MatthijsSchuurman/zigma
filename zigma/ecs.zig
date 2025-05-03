@@ -8,18 +8,23 @@ pub const Entity = struct {
   pub const timeline_init = Components.Timeline.init;
   pub const timeline_speed = Components.Timeline.setSpeed;
 
+  pub const action = Components.Action.add;
+
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
   pub const scale = Components.Scale.set;
   pub const color = Components.Color.set;
 
   pub const text = Components.Text.set;
+
+  pub fn end () void {}
 };
 
 
 //Components
 pub const Components = struct {
   pub const Timeline = @import("components/timeline.zig");
+  pub const Action = @import("components/timeline.zig");
 
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
@@ -97,12 +102,18 @@ pub const World = struct {
   }
 
   // Entity
+  pub fn entityNext(self: *World) Entity {
+    defer self.next_id += 1;
+    return Entity{
+      .id = self.next_id,
+      .world = self,
+    };
+  }
   pub fn entity(self: *World, name: []const u8) Entity {
     const e = self.entities.getOrPut(name) catch @panic("Unable to create entity");
-    if (!e.found_existing) {
-      e.value_ptr.* = self.next_id;
-      self.next_id += 1;
-    }
+
+    if (!e.found_existing)
+      return entityNext(self);
 
     return Entity{
       .id = e.value_ptr.*,
