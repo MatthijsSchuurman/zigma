@@ -18,11 +18,10 @@ pub fn init(entity: *const ecs.Entity) *const ecs.Entity {
 }
 
 pub fn setSpeed(entity: *const ecs.Entity, speed: f32) *const ecs.Entity {
-  entity.world.components.timeline.put(
-    entity.id,
-    Data{.speed = speed },
-  ) catch @panic("Failed to set timeline speed");
+  if (entity.world.components.timeline.getPtr(entity.id)) |timeline| {
+    timeline.speed = speed;
+    std.debug.print("Timeline {d} speed: {d:1.2}\n", .{entity.id, timeline.speed});
+  }
 
-  std.debug.print("Timeline speed: {d:1.2}\n", .{speed});
   return entity;
 }

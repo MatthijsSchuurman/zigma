@@ -38,15 +38,15 @@ pub fn render(world: *ecs.World) bool {
   if (rl.WindowShouldClose())
     return false;
 
-   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
-     const timeline = world.entity("timeline");
-     if (world.components.timeline.get(timeline.id)) |current|
-       _ = timeline.timeline_speed(current.speed + 0.1);
-   } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
-     const timeline = world.entity("timeline");
-     if (world.components.timeline.get(timeline.id)) |current|
-       _ = timeline.timeline_speed(current.speed - 0.1);
-   }
+  if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
+    const timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current|
+      _ = timeline.timeline_speed(current.speed + 0.1);
+  } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
+    const timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current|
+      _ = timeline.timeline_speed(current.speed - 0.1);
+  }
 
   rl.BeginDrawing();
   rl.ClearBackground(.{.r = 0, .g = 0, .b = 23, .a = 50});

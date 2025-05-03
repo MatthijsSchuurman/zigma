@@ -49,6 +49,8 @@ pub const Systems = struct {
   pub const Deinit = struct {
   };
 
+  pub const Timeline = @import("systems/timeline.zig");
+
   pub const Render = struct {
     pub const Background = @import("systems/render/background.zig");
     pub const Text = @import("systems/render/text.zig");
@@ -110,6 +112,7 @@ pub const World = struct {
 
   // Render
   pub fn render(self: *World) bool {
+    Systems.Timeline.run(self);
     Systems.Render.Text.run(self);
     return true;
   }
