@@ -1,29 +1,62 @@
 const std = @import("std");
 
-pub const components = struct {
-  pub const position = @import("components/position.zig");
-  pub const rotation = @import("components/rotation.zig");
-  pub const scale = @import("components/scale.zig");
-  pub const color = @import("components/color.zig");
+//Entity
+pub const Entity = struct {
+  id: u32,
+  world: *World,
 
-  pub const text = @import("components/text.zig");
+  // Component chaining
+  pub const position = Components.Position.set;
+  pub const rotation = Components.Rotation.set;
+  pub const scale = Components.Scale.set;
+  pub const color = Components.Color.set;
+  pub const text = Components.Text.set;
 };
 
-pub const systems = struct {
-  pub const init = struct {
+
+//Components
+pub const Components = struct {
+  pub const Position = @import("components/position.zig");
+  pub const Rotation = @import("components/rotation.zig");
+  pub const Scale = @import("components/scale.zig");
+  pub const Color = @import("components/color.zig");
+  pub const Text = @import("components/text.zig");
+};
+
+const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
+
+comptime { // Check component definitions
+  for (ComponentDeclarations) |declaration| {
+    const C = @field(Components, declaration.name);
+
+    if (!@hasDecl(C, "Data"))
+      @compileError("Component " ++ @typeName(C) ++ " Data missing");
+    if (!@hasDecl(C, "set"))
+      @compileError("Component " ++ @typeName(C) ++ " set missing");
+  }
+}
+
+
+//Systems
+pub const Systems = struct {
+  pub const Init = struct {
   };
 
-  pub const deinit = struct {
+  pub const Deinit = struct {
   };
 
-  pub const render = struct {
-    pub const background = @import("systems/render/background.zig");
-    pub const text = @import("systems/render/text.zig");
+  pub const Render = struct {
+    pub const Background = @import("systems/render/background.zig");
+    pub const Text = @import("systems/render/text.zig");
   };
 
-  pub const input = struct {
+  pub const Effects = struct {
+  };
+
+  pub const Input = struct {
   };
 };
+
 
 // World
 pub const EntityID = u32;
@@ -33,40 +66,28 @@ pub const World = struct {
   next_id: EntityID = 0,
   entities: std.StringHashMap(EntityID),
 
-  // Components
-  positions: std.AutoHashMap(EntityID, components.position.Type),
-  rotations: std.AutoHashMap(EntityID, components.rotation.Type),
-  scales: std.AutoHashMap(EntityID, components.scale.Type),
-  colors: std.AutoHashMap(EntityID, components.color.Type),
-
-  texts: std.AutoHashMap(EntityID, components.text.Type),
+  components: ComponentStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
-    return World{
+    var self = World{
       .allocator = allocator,
-
       .entities = std.StringHashMap(u32).init(allocator),
-
-      // Components
-      .positions = std.AutoHashMap(u32, components.position.Type).init(allocator),
-      .rotations = std.AutoHashMap(u32, components.rotation.Type).init(allocator),
-      .scales = std.AutoHashMap(u32, components.scale.Type).init(allocator),
-      .colors = std.AutoHashMap(u32, components.color.Type).init(allocator),
-
-      .texts = std.AutoHashMap(u32, components.text.Type).init(allocator),
+      .components = undefined,
     };
+
+    inline for (ComponentDeclarations) |declaration| {
+      const T = @field(Components, declaration.name).Data;
+      @field(self.components, declaration.name) = std.AutoHashMap(EntityID, T).init(allocator);
+    }
+
+    return self;
   }
 
   pub fn deinit(self: *World) void {
     self.entities.deinit();
 
-    // Components
-    self.positions.deinit();
-    self.rotations.deinit();
-    self.scales.deinit();
-    self.colors.deinit();
-
-    self.texts.deinit();
+    inline for (ComponentDeclarations) |declaration|
+      @field(self.components, declaration.name).deinit();
   }
 
   // Entity
@@ -85,19 +106,32 @@ pub const World = struct {
 
   // Render
   pub fn render(self: *World) bool {
-    systems.render.text.run(self);
+    Systems.Render.Text.run(self);
     return true;
   }
 };
 
-pub const Entity = struct {
-  id: u32,
-  world: *World,
 
-  pub const com_position = components.position.set;
-  pub const com_rotation = components.rotation.set;
-  pub const com_scale = components.scale.set;
-  pub const com_color = components.color.set;
+// Utils
+fn ComponentStores() type {
+  const ds = std.meta.declarations(Components);
+  var f: [ds.len]std.builtin.Type.StructField = undefined;
 
-  pub const com_text = components.text.set;
-};
+  inline for (ds, 0..) |d, i| {
+    const T = @field(Components, d.name).Data;
+    f[i] = .{
+      .name          = d.name,
+      .type          = std.AutoHashMap(EntityID, T),
+      .default_value = null,
+      .is_comptime   = false,
+      .alignment     = 0,
+    };
+  }
+
+  return @Type(.{ .Struct = .{
+    .layout   = .auto,
+    .fields   = &f,
+    .decls    = &.{},
+    .is_tuple = false,
+  }});
+}

@@ -1,12 +1,12 @@
 const ecs = @import("../ecs.zig");
 
-pub fn set(entity: *const ecs.Entity, text: Type) *const ecs.Entity {
-  entity.world.texts.put(
+pub const Data = []const u8;
+
+pub fn set(entity: *const ecs.Entity, text: Data) *const ecs.Entity {
+  entity.world.components.Text.put(
     entity.id,
-    text
-  ) catch @panic("Unable to create component text");
+    text,
+  ) catch @panic("Text set failed");
 
   return entity;
 }
-
-pub const Type = []const u8;

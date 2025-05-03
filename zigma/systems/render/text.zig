@@ -56,7 +56,7 @@ const rl = @cImport(@cInclude("raylib.h"));
 const ecs = @import("../../ecs.zig");
 
 pub fn run(world: *ecs.World) void {
-  var it = world.texts.iterator();
+  var it = world.components.Text.iterator();
   const screen_width: f32 = @floatFromInt(rl.GetScreenWidth());
   const screen_height: f32 = @floatFromInt(rl.GetScreenHeight());
 
@@ -64,9 +64,9 @@ pub fn run(world: *ecs.World) void {
     const id = entry.key_ptr.*;
     const text = entry.value_ptr.*;
 
-    const position = world.positions.get(id) orelse ecs.components.position.Type{.x = 0, .y = 0, .z = 0};
-    const scale = world.scales.get(id) orelse ecs.components.scale.Type{.x = 2, .y = 1, .z = 1};
-    const color = world.colors.get(id) orelse ecs.components.color.Type{.r = 255, .g = 255, .b = 255, .a = 255};
+    const position = world.components.Position.get(id) orelse ecs.Components.Position.Data{.x = 0, .y = 0, .z = 0};
+    const scale = world.components.Scale.get(id) orelse ecs.Components.Scale.Data{.x = 2, .y = 1, .z = 1};
+    const color = world.components.Color.get(id) orelse ecs.Components.Color.Data{.r = 255, .g = 255, .b = 255, .a = 255};
 
     const height: f32 = 10 * scale.x;
     const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text), @intFromFloat(height)));
