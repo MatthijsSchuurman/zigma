@@ -10,7 +10,7 @@ pub fn determineTime(world: *ecs.World) void {
   var it = world.components.timeline.iterator();
   while (it.next()) |entry| {
     const id = entry.key_ptr.*;
-    var timeline = entry.value_ptr;
+    var timeline = entry.value_ptr.*;
 
     if (timeline.timestampPreviousMS == 0 ) { // first time
       timeline.timeCurrent = 0;

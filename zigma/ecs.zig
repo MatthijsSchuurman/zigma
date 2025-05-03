@@ -73,59 +73,78 @@ pub const World = struct {
   allocator: std.mem.Allocator,
 
   next_id: EntityID = 0,
-  entities: std.StringHashMap(Entity),
-  entities_unnamed: std.ArrayList(Entity),
+  entities: std.StringHashMap(*Entity),
+  entities_unnamed: std.ArrayList(*Entity),
 
   components: ComponentStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(Entity).init(allocator),
-      .entities_unnamed = std.ArrayList(Entity).init(allocator),
+      .entities = std.StringHashMap(*Entity).init(allocator),
+      .entities_unnamed = std.ArrayList(*Entity).init(allocator),
       .components = undefined,
     };
 
     inline for (ComponentDeclarations) |declaration| {
       const T = @field(Components, declaration.name).Data;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, T).init(allocator);
+      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, *T).init(allocator);
     }
 
     return self;
   }
 
   pub fn deinit(self: *World) void {
+    var it = self.entities.iterator();
+    while (it.next()) |entry|
+      self.allocator.destroy(entry.value_ptr.*);
+
+    for (self.entities_unnamed.items) |ptr|
+      self.allocator.destroy(ptr);
+
     self.entities.deinit();
     self.entities_unnamed.deinit();
 
-    inline for (ComponentDeclarations) |declaration|
+    inline for (ComponentDeclarations) |declaration| {
+      var it2 = @field(self.components, toLower(declaration.name)).iterator();
+      while (it2.next()) |entry|
+        self.allocator.destroy(entry.value_ptr.*);
+
       @field(self.components, toLower(declaration.name)).deinit();
+    }
   }
 
   // Entity
   pub fn entity(self: *World, name: []const u8) *Entity {
     if (name.len == 0) { // Unnamed entity
-      const e = Entity{
+      const e = self.allocator.create(Entity) catch @panic("Unable to create entity");
+      e.* = Entity{
         .id = self.next_id,
         .parent_id = 0,
         .world = self,
       };
 
       defer self.next_id += 1;
-      self.entities_unnamed.append(e) catch @panic("Unable to create entity");
-      return &self.entities_unnamed.items[self.entities_unnamed.items.len - 1];
+      self.entities_unnamed.append(e) catch @panic("Unable to append entity");
+      return e;
     }
 
     // Named entity
-    const e = self.entities.getOrPut(name) catch @panic("Unable to create entity");
-    if (e.found_existing) // Use existing
-      return e.value_ptr;
+    const entry = self.entities.getOrPut(name) catch @panic("Unable to getOrPut entity");
+    if (entry.found_existing) // Use existing
+      return entry.value_ptr.*;
+
+    const e = self.allocator.create(Entity) catch @panic("Unable to create entity");
+    e.* = Entity{
+      .id = self.next_id,
+      .parent_id = 0,
+      .world = self,
+    };
+
+    entry.value_ptr.* = e;
 
     defer self.next_id += 1;
-    e.value_ptr.id = self.next_id;
-    e.value_ptr.parent_id = 0;
-    e.value_ptr.world = self;
-    return e.value_ptr;
+    return e;
   }
 
   // Render
@@ -146,7 +165,7 @@ fn ComponentStores() type {
     const T = @field(Components, d.name).Data;
     f[i] = .{
       .name          = toLower(d.name),
-      .type          = std.AutoHashMap(EntityID, T),
+      .type          = std.AutoHashMap(EntityID, *T),
       .default_value = null,
       .is_comptime   = false,
       .alignment     = 0,

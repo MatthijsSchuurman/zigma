@@ -19,14 +19,17 @@ pub fn add(entity: *const ecs.Entity, timelineName: []const u8, start: f32, dura
     event.parent_id = entity.id;
   }
 
+  const data = entity.world.allocator.create(Data) catch @panic("Failed to create timeline event");
+  data.* = Data{
+    .timeline_id = timeline.id,
+    .target_id = event.parent_id,
+    .start = start,
+    .duration = duration,
+  };
+
   entity.world.components.timelineevent.put(
     event.id,
-    Data{
-      .timeline_id = timeline.id,
-      .target_id = event.parent_id,
-      .start = start,
-      .duration = duration,
-    },
+    data,
   ) catch @panic("Failed to add event to timeline");
 
   return event;

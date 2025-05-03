@@ -12,7 +12,7 @@ pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 // ECS
 pub const ecs = @import("ecs.zig");
 
-// Init, Deinit & Render
+// Init & Deinit
 const Config = struct {
   title: [*:0]const u8,
   width: i32,
@@ -34,6 +34,7 @@ pub fn deinit() void {
   if (use_gpa) _ = gpa.deinit() else arena.deinit();
 }
 
+// Render
 pub fn render(world: *ecs.World) bool {
   if (rl.WindowShouldClose())
     return false;

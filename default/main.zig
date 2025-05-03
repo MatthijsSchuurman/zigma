@@ -19,4 +19,5 @@ pub fn main() !void {
   while(zigma.render(&world)){}
 
   world.deinit();
+  zigma.deinit();
 }
