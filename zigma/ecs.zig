@@ -5,21 +5,27 @@ pub const Entity = struct {
   id: u32,
   world: *World,
 
-  // Component chaining
+  pub const timeline_init = Components.Timeline.init;
+  pub const timeline_speed = Components.Timeline.setSpeed;
+
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
   pub const scale = Components.Scale.set;
   pub const color = Components.Color.set;
+
   pub const text = Components.Text.set;
 };
 
 
 //Components
 pub const Components = struct {
+  pub const Timeline = @import("components/timeline.zig");
+
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
+
   pub const Text = @import("components/text.zig");
 };
 
@@ -31,8 +37,6 @@ comptime { // Check component definitions
 
     if (!@hasDecl(C, "Data"))
       @compileError("Component " ++ @typeName(C) ++ " Data missing");
-    if (!@hasDecl(C, "set"))
-      @compileError("Component " ++ @typeName(C) ++ " set missing");
   }
 }
 

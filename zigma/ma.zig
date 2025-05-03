@@ -9,10 +9,6 @@ var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
 
-// Timeline
-//const Timeline = @import("timeline.zig").Timeline;
-//var timeline = Timeline.init(allocator);
-
 // ECS
 pub const ecs = @import("ecs.zig");
 
@@ -27,13 +23,13 @@ pub fn init(config: Config) ecs.World {
   rl.InitWindow(config.width, config.height, config.title);
   rl.SetTargetFPS(200);
 
-  return ecs.World.init(allocator);
+  var world = ecs.World.init(allocator);
+  _ = world.entity("timeline").timeline_init();
+  return world;
 }
 
 pub fn deinit() void {
   rl.CloseWindow();
-
-  //timeline.deinit();
 
   if (use_gpa) _ = gpa.deinit() else arena.deinit();
 }
@@ -42,13 +38,15 @@ pub fn render(world: *ecs.World) bool {
   if (rl.WindowShouldClose())
     return false;
 
-  // if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
-  //   timeline.setSpeed(timeline.speed + 0.1);
-  // } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
-  //   timeline.setSpeed(timeline.speed - 0.1);
-  // }
-  //
-  // timeline.determineFrame();
+   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
+     const timeline = world.entity("timeline");
+     if (world.components.timeline.get(timeline.id)) |current|
+       _ = timeline.timeline_speed(current.speed + 0.1);
+   } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
+     const timeline = world.entity("timeline");
+     if (world.components.timeline.get(timeline.id)) |current|
+       _ = timeline.timeline_speed(current.speed - 0.1);
+   }
 
   rl.BeginDrawing();
   rl.ClearBackground(.{.r = 0, .g = 0, .b = 23, .a = 50});
