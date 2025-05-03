@@ -1,14 +1,15 @@
 const std = @import("std");
 
 //Entity
+pub const EntityID = u32;
 pub const Entity = struct {
-  id: u32,
+  id: EntityID,
+  parent_id: EntityID = 0,
   world: *World,
 
   pub const timeline_init = Components.Timeline.init;
   pub const timeline_speed = Components.Timeline.setSpeed;
-
-  pub const action = Components.Action.add;
+  pub const event = Components.TimelineEvent.add;
 
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
@@ -17,14 +18,23 @@ pub const Entity = struct {
 
   pub const text = Components.Text.set;
 
-  pub fn end () void {}
+  pub fn end(entity: *const Entity) *const Entity {
+    if (entity.parent_id != 0) {
+      return &Entity{
+        .id = entity.parent_id,
+        .world = entity.world,
+      };
+    }
+
+    return entity;
+  }
 };
 
 
 //Components
 pub const Components = struct {
   pub const Timeline = @import("components/timeline.zig");
-  pub const Action = @import("components/timeline.zig");
+  pub const TimelineEvent = @import("components/timelineevent.zig");
 
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
@@ -70,7 +80,6 @@ pub const Systems = struct {
 
 
 // World
-pub const EntityID = u32;
 pub const World = struct {
   allocator: std.mem.Allocator,
 
@@ -111,9 +120,11 @@ pub const World = struct {
   }
   pub fn entity(self: *World, name: []const u8) Entity {
     const e = self.entities.getOrPut(name) catch @panic("Unable to create entity");
-
     if (!e.found_existing)
-      return entityNext(self);
+    {
+      const e2 = self.entityNext();
+      e.value_ptr.* = e2.id;
+    }
 
     return Entity{
       .id = e.value_ptr.*,

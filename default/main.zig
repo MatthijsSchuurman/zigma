@@ -8,19 +8,14 @@ pub fn main() !void {
   .text("Zigma Balls!!!")
   .position(0, 0, 0)
   .scale(20, 1, 1)
-  .color(100, 255, 255, 150);
+  .color(100, 255, 255, 150)
+  .event("timeline", 0, 1)
+    .position(0, 0.5, 0)
+    .color(255, 255, 255, 255)
+  .event("timeline", 1, 2)
+    .position(0, 0.5, 0)
+    .end();
 
-  for (1..10) |c| {
-    const name = try std.fmt.allocPrint(world.allocator, "balls {}", .{ c });
-    var pos: f32 = @floatFromInt(c);
-    pos /= 10;
-
-    _ = world.entity(name)
-    .text("Zigma Balls!!!")
-    .position(-1+pos, -1+pos, 0)
-    .scale(@floatFromInt(c), 1, 1)
-    .color(100, @intCast(c*25), @intCast(c*25), 150);
-  }
 
   while(zigma.render(&world)){}
 
