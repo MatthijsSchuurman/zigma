@@ -9,17 +9,13 @@ pub const Data = struct {
 };
 
 pub fn init(entity: *const ecs.Entity) *const ecs.Entity {
-  var data: *Data = undefined;
-  const entry = entity.world.components.timeline.getOrPut(entity.id) catch @panic("Unable to put timeline");
-  if (!entry.found_existing) {
-    data = entity.world.allocator.create(Data) catch @panic("Failed to create timeline");
-  } else {
-    data = entry.value_ptr.*;
-  }
+  if (entity.world.components.timeline.get(entity.id)) |_|
+    return entity;
 
-  data.* = Data{};
-  entry.value_ptr.* = data;
+  const timeline = entity.world.allocator.create(Data) catch @panic("Failed to create timeline");
+  timeline.* = .{};
 
+  entity.world.components.timeline.put(entity.id, timeline) catch @panic("Failed to store timeline");
   return entity;
 }
 

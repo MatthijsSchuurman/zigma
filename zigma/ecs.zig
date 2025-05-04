@@ -13,7 +13,8 @@ pub const Entity = struct {
 
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
-  pub const scale = Components.Scale.set;
+  pub const size = Components.Size.set;
+
   pub const color = Components.Color.set;
 
   pub const text = Components.Text.set;
@@ -27,7 +28,8 @@ pub const Components = struct {
 
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
-  pub const Scale = @import("components/scale.zig");
+  pub const Size = @import("components/size.zig");
+
   pub const Color = @import("components/color.zig");
 
   pub const Text = @import("components/text.zig");

@@ -2,17 +2,15 @@ const ecs = @import("../ecs.zig");
 
 pub const Data = []const u8;
 
-pub fn set(entity: *const ecs.Entity, text: Data) *const ecs.Entity {
-  var data: *Data = undefined;
-  const entry = entity.world.components.text.getOrPut(entity.id) catch @panic("Unable to put text");
-  if (!entry.found_existing) {
-    data = entity.world.allocator.create(Data) catch @panic("Failed to create text");
-  } else {
-    data = entry.value_ptr.*;
+pub fn set(entity: *const ecs.Entity, newText: Data) *const ecs.Entity {
+  if (entity.world.components.text.get(entity.id)) |text| {
+    text.* = newText;
+    return entity;
   }
 
-  data.* = text;
-  entry.value_ptr.* = data;
+  const text = entity.world.allocator.create(Data) catch @panic("Failed to create text");
+  text.* = newText;
 
+  entity.world.components.text.put(entity.id, text) catch @panic("Failed to store text");
   return entity;
 }

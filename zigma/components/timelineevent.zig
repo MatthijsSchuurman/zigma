@@ -18,21 +18,24 @@ pub fn add(entity: *const ecs.Entity, timelineName: []const u8, start: f32, dura
     event.parent_id = entity.id;
   }
 
-  var data: *Data = undefined;
-  const entry = entity.world.components.timelineevent.getOrPut(entity.id) catch @panic("Unable to put timeline event");
-  if (!entry.found_existing) {
-    data = entity.world.allocator.create(Data) catch @panic("Failed to create timeline event");
-  } else {
-    data = entry.value_ptr.*;
+  if (entity.world.components.timelineevent.get(entity.id)) |timelineEvent| {
+    timelineEvent.* = .{
+      .timeline_id = timeline.id,
+      .target_id = event.parent_id,
+      .start = start,
+      .duration = duration,
+    };
+    return entity;
   }
 
-  data.* = Data{
+  const timelineEvent = entity.world.allocator.create(Data) catch @panic("Failed to create timeline event");
+  timelineEvent.* = Data{
     .timeline_id = timeline.id,
     .target_id = event.parent_id,
     .start = start,
     .duration = duration,
   };
-  entry.value_ptr.* = data;
 
+  entity.world.components.timelineevent.put(entity.id, timelineEvent) catch @panic("Failed to store timeline event");
   return event;
 }

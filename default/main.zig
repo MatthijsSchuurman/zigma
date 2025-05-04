@@ -6,7 +6,7 @@ pub fn main() !void {
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
   .position(0, 0, 0)
-  .scale(20, 1, 1)
+  .size(20, 1, 1)
   .color(100, 255, 255, 150)
   .event("timeline", 0, 1)
     .position(0, 0.5, 0)
