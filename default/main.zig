@@ -15,8 +15,7 @@ pub fn main() !void {
     .position(0, -0.5, 0);
 
 
-  while(zigma.render(&world)){}
+  while(zigma.render(world)){}
 
-  world.deinit();
-  zigma.deinit();
+  zigma.deinit(world);
 }

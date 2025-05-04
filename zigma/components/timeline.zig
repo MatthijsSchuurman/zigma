@@ -24,10 +24,6 @@ pub fn init(entity: *const ecs.Entity) *const ecs.Entity {
 }
 
 pub fn setSpeed(entity: *const ecs.Entity, speed: f32) *const ecs.Entity {
-  std.debug.print("setSpeed {d} speed: {d:1.2}\n", .{entity.id, speed});
-  if (entity.world.components.timeline.get(entity.id)) |alala|
-  std.debug.print("ALALA {d} speed: {d:1.2}\n", .{alala.speed, alala.timestampPreviousMS});
-
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
     timeline.speed = speed;
     std.debug.print("Timeline {d} speed: {d:1.2}\n", .{entity.id, timeline.speed});

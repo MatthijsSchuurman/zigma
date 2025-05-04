@@ -142,7 +142,6 @@ pub const World = struct {
     };
 
     entry.value_ptr.* = e;
-
     defer self.next_id += 1;
     return e;
   }

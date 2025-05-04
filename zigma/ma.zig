@@ -19,16 +19,20 @@ const Config = struct {
   height: i32,
 };
 
-pub fn init(config: Config) ecs.World {
+pub fn init(config: Config) *ecs.World {
   rl.InitWindow(config.width, config.height, config.title);
   rl.SetTargetFPS(20);
 
-  var world = ecs.World.init(allocator);
+  const world = allocator.create(ecs.World) catch @panic("Unable to create world");
+  world.* = ecs.World.init(allocator);
   _ = world.entity("timeline").timeline_init();
   return world;
 }
 
-pub fn deinit() void {
+pub fn deinit(world: *ecs.World) void {
+  world.deinit();
+  allocator.destroy(world);
+
   rl.CloseWindow();
 
   if (use_gpa) _ = gpa.deinit() else arena.deinit();
