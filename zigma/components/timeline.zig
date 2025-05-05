@@ -12,9 +12,9 @@ pub fn init(entity: ecs.Entity) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |_|
     return entity;
 
-  const timeline = .{};
+  const new = .{};
 
-  entity.world.components.timeline.put(entity.id, timeline) catch @panic("Failed to store timeline");
+  entity.world.components.timeline.put(entity.id, new) catch @panic("Failed to store timeline");
   return entity;
 }
 

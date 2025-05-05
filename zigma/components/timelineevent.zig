@@ -9,14 +9,31 @@ pub const Data = struct {
   end: f32,
 
   pub const Filter = struct {
-    timeline_id: ?ecs.EntityID = null,
-    target_id: ?ecs.EntityID = null,
+    timeline_id: ?ecs.FieldFilter(ecs.EntityID) = null,
+    target_id: ?ecs.FieldFilter(?ecs.EntityID) = null,
+
+    start: ?ecs.FieldFilter(f32) = null,
+    end: ?ecs.FieldFilter(f32) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
-    return
-      (f.timeline_id == null or self.timeline_id == f.timeline_id) and
-      (f.target_id == null or self.target_id == f.target_id);
+    if (f.timeline_id) |cond|
+      if (!ecs.matchField(ecs.EntityID, self.timeline_id, cond))
+        return false;
+
+    if (f.target_id) |cond|
+      if (!ecs.matchField(?ecs.EntityID, self.target_id, cond))
+        return false;
+
+    if (f.start) |cond|
+      if (!ecs.matchField(f32, self.start, cond))
+        return false;
+
+    if (f.end) |cond|
+      if (!ecs.matchField(f32, self.end, cond))
+        return false;
+
+    return true;
   }
 
   pub const Sort = enum {
@@ -72,7 +89,7 @@ pub const Data = struct {
 };
 
 pub fn query(world: *ecs.World, filter: Data.Filter, sort: []const Data.Sort) []ecs.EntityID {
-  return world.query(Data, &world.components.timelineevent,filter, sort);
+  return world.query(Data, &world.components.timelineevent, filter, sort);
 }
 
 pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
@@ -95,13 +112,13 @@ pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f
 
   if (realStart < 0.0) @panic("Negative time not yet implemented");
 
-  const timelineEvent = Data{
+  const new = Data{
     .timeline_id = timeline.id,
     .target_id = event.parent_id,
     .start = realStart,
     .end = realEnd,
   };
 
-  entity.world.components.timelineevent.put(event.id, timelineEvent) catch @panic("Failed to store timeline event");
+  entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");
   return event;
 }

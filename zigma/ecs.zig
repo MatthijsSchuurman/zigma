@@ -134,6 +134,10 @@ pub const World = struct {
 
   //Components
   pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T), filter: T.Filter, sort: []const T.Sort) []EntityID {
+    if (!@hasDecl(T, "filter")) {
+      @compileError("Type " ++ @typeName(T) ++ " must implement 'filter()' for query support.");
+    }
+
     var results = std.ArrayList(EntityID).init(self.allocator);
 
     var it = component.iterator();
@@ -142,6 +146,10 @@ pub const World = struct {
         results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
 
     if (sort.len > 0) {
+      if (!@hasDecl(T, "compare")) {
+        @compileError("Type " ++ @typeName(T) ++ " must implement 'compare()' for sorting.");
+      }
+
       const Context = struct {
         component: *const std.AutoHashMap(EntityID, T),
         sort: []const T.Sort,
@@ -197,4 +205,38 @@ fn toLower(comptime s: []const u8) [:0]const u8 {
 
   buf[s.len] = 0;
   return buf[0..s.len :0];
+}
+
+// Filter functions
+pub fn FieldFilter(comptime T: type) type {
+  return union(enum) {
+    eq: T,
+    not: T,
+    lt: T,
+    lte: T,
+    gt: T,
+    gte: T,
+  };
+}
+
+pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
+  if (@typeInfo(T) == .Optional) {
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
+      .lt => actual != null and cond.lt != null and actual.? < cond.lt.?,
+      .lte => actual != null and cond.lte != null and actual.? <= cond.lte.?,
+      .gt => actual != null and cond.gt != null and actual.? > cond.gt.?,
+      .gte => actual != null and cond.gte != null and actual.? >= cond.gte.?,
+    };
+  } else {
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
+      .lt => actual < cond.lt,
+      .lte => actual <= cond.lte,
+      .gt => actual > cond.gt,
+      .gte => actual >= cond.gte,
+    };
+  }
 }

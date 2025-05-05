@@ -18,7 +18,7 @@ pub fn run(world: *ecs.World) void {
     const event_entry = world.components.timelineevent.get(id) orelse continue;
 
     const related_ids = ecs.Components.TimelineEvent.query(world,
-      .{.timeline_id = event_entry.timeline_id, .target_id = event_entry.target_id},
+      .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
       &.{.end_desc},
      );
     defer world.allocator.free(related_ids);

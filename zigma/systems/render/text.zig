@@ -15,13 +15,13 @@ pub fn run(world: *ecs.World) void {
     const color = world.components.color.get(id) orelse ecs.Components.Color.Data{.r = 255, .g = 255, .b = 255, .a = 255};
 
     const height: f32 = 10 * size.x;
-    const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text), @intFromFloat(height)));
+    const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text.text), @intFromFloat(height)));
 
     const x = (position.x * 0.5 + 0.5) * screen_width;
     const y = (position.y * 0.5 + 0.5) * screen_height;
 
     rl.DrawText(
-      @ptrCast(text),
+      @ptrCast(text.text),
       @intFromFloat(x - (width / 2)),
       @intFromFloat(y - (height / 2)),
       @intFromFloat(height),
