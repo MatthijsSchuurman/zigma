@@ -1,6 +1,6 @@
 const ecs = @import("../ecs.zig");
 
-pub const Data = struct {
+pub const Component = struct {
   x: f32,
   y: f32,
   z: f32,
@@ -11,7 +11,7 @@ pub const Data = struct {
     z: ?ecs.FieldFilter(f32) = null,
   };
 
-  pub fn filter(self: Data, f: Filter) bool {
+  pub fn filter(self: Component, f: Filter) bool {
     if (f.x) |cond|
       if (!ecs.matchField(f32, self.x, cond))
         return false;
@@ -28,8 +28,8 @@ pub const Data = struct {
   }
 };
 
-pub fn query(world: *ecs.World, filter: Data.Filter) []ecs.EntityID {
-  return world.query(Data, &world.components.position, filter, .{});
+pub fn query(world: *ecs.World, filter: Component.Filter) []ecs.EntityID {
+  return world.query(Component, &world.components.position, filter, .{});
 }
 
 pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {

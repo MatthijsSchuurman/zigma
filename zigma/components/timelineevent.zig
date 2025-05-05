@@ -1,7 +1,7 @@
 const ecs = @import("../ecs.zig");
 const std = @import("std");
 
-pub const Data = struct {
+pub const Component = struct {
   timeline_id: ecs.EntityID,
   target_id: ?ecs.EntityID,
 
@@ -16,7 +16,7 @@ pub const Data = struct {
     end: ?ecs.FieldFilter(f32) = null,
   };
 
-  pub fn filter(self: Data, f: Filter) bool {
+  pub fn filter(self: Component, f: Filter) bool {
     if (f.timeline_id) |cond|
       if (!ecs.matchField(ecs.EntityID, self.timeline_id, cond))
         return false;
@@ -48,7 +48,7 @@ pub const Data = struct {
     end_desc,
   };
 
-  pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
+  pub fn compare(a: Component, b: Component, sort: []const Sort) std.math.Order {
     for (sort) |field| {
       const order = switch (field) {
         .timeline_id_asc => std.math.order(a.timeline_id, b.timeline_id),
@@ -88,8 +88,8 @@ pub const Data = struct {
   }
 };
 
-pub fn query(world: *ecs.World, filter: Data.Filter, sort: []const Data.Sort) []ecs.EntityID {
-  return world.query(Data, &world.components.timelineevent, filter, sort);
+pub fn query(world: *ecs.World, filter: Component.Filter, sort: []const Component.Sort) []ecs.EntityID {
+  return world.query(Component, &world.components.timelineevent, filter, sort);
 }
 
 pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
@@ -112,7 +112,7 @@ pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f
 
   if (realStart < 0.0) @panic("Negative time not yet implemented");
 
-  const new = Data{
+  const new = Component{
     .timeline_id = timeline.id,
     .target_id = event.parent_id,
     .start = realStart,

@@ -10,9 +10,9 @@ pub fn run(world: *ecs.World) void {
     const id = entry.key_ptr.*;
     const text = entry.value_ptr.*;
 
-    const position = world.components.position.get(id) orelse ecs.Components.Position.Data{.x = 0, .y = 0, .z = 0};
-    const size = world.components.size.get(id) orelse ecs.Components.Size.Data{.x = 2, .y = 1, .z = 1};
-    const color = world.components.color.get(id) orelse ecs.Components.Color.Data{.r = 255, .g = 255, .b = 255, .a = 255};
+    const position = world.components.position.get(id) orelse ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0};
+    const size = world.components.size.get(id) orelse ecs.Components.Size.Component{.x = 2, .y = 1, .z = 1};
+    const color = world.components.color.get(id) orelse ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255};
 
     const height: f32 = 10 * size.x;
     const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text.text), @intFromFloat(height)));

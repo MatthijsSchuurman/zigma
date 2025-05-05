@@ -1,6 +1,6 @@
 const ecs = @import("../ecs.zig");
 
-pub const Data = struct {
+pub const Component = struct {
   progress: f32 = 0,
 };
 

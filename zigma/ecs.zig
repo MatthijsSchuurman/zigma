@@ -38,16 +38,6 @@ pub const Components = struct {
 
 const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
 
-comptime { // Check component definitions
-  for (ComponentDeclarations) |declaration| {
-    const C = @field(Components, declaration.name);
-
-    if (!@hasDecl(C, "Data"))
-      @compileError("Component " ++ @typeName(C) ++ " Data missing");
-  }
-}
-
-
 //Systems
 pub const Systems = struct {
   pub const Init = struct {
@@ -88,7 +78,7 @@ pub const World = struct {
     };
 
     inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Data;
+      const T = @field(Components, declaration.name).Component;
       @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, T).init(allocator);
     }
 
@@ -180,7 +170,7 @@ fn ComponentStores() type {
   var f: [ds.len]std.builtin.Type.StructField = undefined;
 
   inline for (ds, 0..) |d, i| {
-    const T = @field(Components, d.name).Data;
+    const T = @field(Components, d.name).Component;
     f[i] = .{
       .name          = toLower(d.name),
       .type          = std.AutoHashMap(EntityID, T),

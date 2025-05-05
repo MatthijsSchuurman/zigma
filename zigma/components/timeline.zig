@@ -1,7 +1,7 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
 
-pub const Data = struct {
+pub const Component = struct {
   speed: f32 = 1.0,
   timeCurrent: f32 = 0,
   timePrevious: f32 = 0,
