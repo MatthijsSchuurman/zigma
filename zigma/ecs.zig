@@ -4,7 +4,7 @@ const std = @import("std");
 pub const EntityID = u32;
 pub const Entity = struct {
   id: EntityID,
-  parent_id: EntityID,
+  parent_id: EntityID = 0,
   world: *World,
 
   pub const timeline_init = Components.Timeline.init;
@@ -75,7 +75,7 @@ pub const Systems = struct {
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  entity_id: EntityID = 0,
+  entity_id: EntityID = 1, // 0 is no entry
   entities: std.StringHashMap(EntityID),
 
   components: ComponentStores(),

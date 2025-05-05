@@ -25,7 +25,9 @@ pub fn init(config: Config) *ecs.World {
 
   const world = allocator.create(ecs.World) catch @panic("Unable to create world");
   world.* = ecs.World.init(allocator);
+
   _ = world.entity("timeline").timeline_init();
+
   return world;
 }
 

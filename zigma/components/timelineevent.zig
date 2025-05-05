@@ -5,6 +5,7 @@ pub const Data = struct {
   target_id: ?ecs.EntityID,
 
   start: f32 = 0,
+  end: f32,
   duration: f32,
 };
 
@@ -19,6 +20,7 @@ pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f
     .timeline_id = timeline.id,
     .target_id = entity.id,
     .start = start,
+    .end = start + duration,
     .duration = duration,
   };
 
