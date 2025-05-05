@@ -1,11 +1,19 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
 
-const timePrecision: f32 = 0.0001;
+const timePrecision: f32 = 0.000001;
 
 pub fn run(world: *ecs.World) void {
   determineTime(world);
   processEvents(world);
+
+  var it = world.components.timelineeventprogress.iterator();
+  while (it.next()) |entry| {
+    const id = entry.key_ptr.*;
+    const event = entry.value_ptr.*;
+
+    std.debug.print("Timeline Event {d}: {d:1.6}\n", .{id, event.progress});
+  }
 }
 
 pub fn determineTime(world: *ecs.World) void {
@@ -27,7 +35,7 @@ pub fn determineTime(world: *ecs.World) void {
       timeline.timestampPreviousMS = timestampCurrentMS;
     }
 
-    std.debug.print("Timeline {d}: {d:1.3}, speed: {d:1.2}\n", .{id, timeline.timeCurrent, timeline.speed});
+    std.debug.print("Timeline {d}: {d:1.6}, speed: {d:1.2}\n", .{id, timeline.timeCurrent, timeline.speed});
   }
 }
 
@@ -38,27 +46,39 @@ pub fn processEvents(world: *ecs.World) void {
     const event = entry.value_ptr.*;
 
     if (world.components.timeline.get(event.timeline_id)) |timeline| {
-      const difference = timeline.timePrevious - timeline.timeCurrent;
-
-      if (@abs(difference) < timePrecision) // Singularity
+      if (@abs(timeline.speed) < timePrecision) // Singularity
         continue; // Nothing's changed
 
-      const entity = ecs.Entity{.id = id, .world = world};
-      const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+      if (timeline.speed >= 0.0) { // Normal time
+        if (timeline.timeCurrent < event.start) // Event not started yet
+          continue;
 
-      if (difference > 0.0) { // Normal time
         if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-          ecs.Components.TimelineEventProgress.progress(entity, progress);
+          const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+
+          ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = world}, progress);
         } else { // No longer active
           if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
-            ecs.Components.TimelineEventProgress.progress(entity, 1.0);
-          } else { // Event already finalized
-            ecs.Components.TimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
+            ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = world}, 1.0);
+          } else if (world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
+            ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = world}); // Removes it from the TimelineEventProgress list
           }
         }
-
       } else { // Tenet
+        if (event.end < timeline.timeCurrent) // Event not started yet
+          continue;
 
+        if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
+          const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+
+          ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = world}, progress);
+        } else { // No longer active
+          if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
+            ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = world}, 0.0);
+          } else if (world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
+            ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = world}); // Removes it from the TimelineEventProgress list
+          }
+        }
       }
     }
   }
