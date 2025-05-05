@@ -133,13 +133,33 @@ pub const World = struct {
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T), filter: anytype, filter_fn: fn(value: T, filter: @TypeOf(filter)) bool) []EntityID {
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T), filter: T.Filter, sort: []const T.Sort) []EntityID {
     var results = std.ArrayList(EntityID).init(self.allocator);
 
     var it = component.iterator();
     while (it.next()) |entry|
-      if (filter_fn(entry.value_ptr.*, filter))
+      if (T.filter(entry.value_ptr.*, filter))
         results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
+
+    if (sort.len > 0) {
+      const Context = struct {
+        component: *const std.AutoHashMap(EntityID, T),
+        sort: []const T.Sort,
+      };
+
+      const context = Context {
+        .component = component,
+        .sort = sort,
+      };
+
+      std.sort.heap(EntityID, results.items, context, struct {
+        fn lessThan(ctx: Context, a: EntityID, b: EntityID) bool {
+          const va = ctx.component.get(a).?;
+          const vb = ctx.component.get(b).?;
+          return T.compare(va, vb, ctx.sort) == .lt;
+        }
+      }.lessThan);
+    }
 
     return results.toOwnedSlice() catch @panic("Failed to convert result to slice");
   }

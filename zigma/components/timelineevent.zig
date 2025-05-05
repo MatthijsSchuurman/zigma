@@ -18,10 +18,61 @@ pub const Data = struct {
       (f.timeline_id == null or self.timeline_id == f.timeline_id) and
       (f.target_id == null or self.target_id == f.target_id);
   }
+
+  pub const Sort = enum {
+    timeline_id_asc,
+    timeline_id_desc,
+    target_id_asc,
+    target_id_desc,
+
+    start_asc,
+    start_desc,
+    end_asc,
+    end_desc,
+  };
+
+  pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
+    for (sort) |field| {
+      const order = switch (field) {
+        .timeline_id_asc => std.math.order(a.timeline_id, b.timeline_id),
+        .timeline_id_desc => std.math.order(b.timeline_id, a.timeline_id),
+        .target_id_asc => blk: {
+          const ta = a.target_id;
+          const tb = b.target_id;
+
+          if (ta == null and tb == null) break :blk .eq;
+          if (ta == null) break :blk .gt; // nulls last
+          if (tb == null) break :blk .lt;
+
+          break :blk std.math.order(ta.?, tb.?);
+        },
+        .target_id_desc => blk: {
+          const ta = a.target_id;
+          const tb = b.target_id;
+
+          if (ta == null and tb == null) break :blk .eq;
+          if (ta == null) break :blk .lt; // nulls first
+          if (tb == null) break :blk .gt;
+
+          break :blk std.math.order(tb.?, ta.?);
+        },
+
+        .start_asc => std.math.order(a.start, b.start),
+        .start_desc => std.math.order(b.start, a.start),
+        .end_asc => std.math.order(a.end, b.end),
+        .end_desc => std.math.order(b.end, a.end),
+      };
+
+      if(order != .eq) // lt/qt not further comparison needed
+        return order;
+    }
+
+    return .eq;
+  }
 };
 
-pub fn query(world: *ecs.World, filter: Data.Filter) []ecs.EntityID {
-  return world.query(Data, &world.components.timelineevent, filter, Data.filter);
+pub fn query(world: *ecs.World, filter: Data.Filter, sort: []const Data.Sort) []ecs.EntityID {
+  return world.query(Data, &world.components.timelineevent,filter, sort);
 }
 
 pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
