@@ -2,7 +2,7 @@ const ecs = @import("../ecs.zig");
 
 pub const Data = []const u8;
 
-pub fn set(entity: *const ecs.Entity, newText: Data) *const ecs.Entity {
+pub fn set(entity: ecs.Entity, newText: Data) ecs.Entity {
   if (entity.world.components.text.get(entity.id)) |text| {
     text.* = newText;
     return entity;

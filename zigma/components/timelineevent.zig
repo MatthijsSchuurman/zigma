@@ -8,34 +8,21 @@ pub const Data = struct {
   duration: f32,
 };
 
-pub fn add(entity: *const ecs.Entity, timelineName: []const u8, start: f32, duration: f32) *const ecs.Entity {
+pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
   const timeline = entity.world.entity(timelineName); // May not exists yet
-  const event = entity.world.entity(""); // Unnamed entity
 
-  if (entity.parent_id != 0) { // Previous event called on entity
-    event.parent_id = entity.parent_id;
-  } else { // First event on entity
-    event.parent_id = entity.id;
-  }
-
-  if (entity.world.components.timelineevent.get(entity.id)) |timelineEvent| {
-    timelineEvent.* = .{
-      .timeline_id = timeline.id,
-      .target_id = event.parent_id,
-      .start = start,
-      .duration = duration,
-    };
-    return entity;
-  }
+  var event = entity;
+  event.id = entity.world.entityNext();
+  event.parent_id = entity.id;
 
   const timelineEvent = entity.world.allocator.create(Data) catch @panic("Failed to create timeline event");
   timelineEvent.* = Data{
     .timeline_id = timeline.id,
-    .target_id = event.parent_id,
+    .target_id = entity.id,
     .start = start,
     .duration = duration,
   };
 
-  entity.world.components.timelineevent.put(entity.id, timelineEvent) catch @panic("Failed to store timeline event");
+  entity.world.components.timelineevent.put(event.id, timelineEvent) catch @panic("Failed to store timeline event");
   return event;
 }

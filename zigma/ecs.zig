@@ -75,17 +75,15 @@ pub const Systems = struct {
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  next_id: EntityID = 0,
-  entities: std.StringHashMap(*Entity),
-  entities_unnamed: std.ArrayList(*Entity),
+  entity_id: EntityID = 0,
+  entities: std.StringHashMap(EntityID),
 
   components: ComponentStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(*Entity).init(allocator),
-      .entities_unnamed = std.ArrayList(*Entity).init(allocator),
+      .entities = std.StringHashMap(EntityID).init(allocator),
       .components = undefined,
     };
 
@@ -98,15 +96,7 @@ pub const World = struct {
   }
 
   pub fn deinit(self: *World) void {
-    var it = self.entities.iterator();
-    while (it.next()) |entry|
-      self.allocator.destroy(entry.value_ptr.*);
-
-    for (self.entities_unnamed.items) |ptr|
-      self.allocator.destroy(ptr);
-
     self.entities.deinit();
-    self.entities_unnamed.deinit();
 
     inline for (ComponentDeclarations) |declaration| {
       var it2 = @field(self.components, toLower(declaration.name)).iterator();
@@ -118,35 +108,26 @@ pub const World = struct {
   }
 
   // Entity
-  pub fn entity(self: *World, name: []const u8) *Entity {
-    if (name.len == 0) { // Unnamed entity
-      const e = self.allocator.create(Entity) catch @panic("Unable to create entity");
-      e.* = Entity{
-        .id = self.next_id,
+  pub fn entityNext(self: *World) EntityID {
+    defer self.entity_id += 1;
+    return self.entity_id;
+  }
+
+  pub fn entity(self: *World, name: []const u8) Entity {
+    if (self.entities.get(name)) |id| // Existing named entity
+      return Entity{
+        .id = id,
         .parent_id = 0,
         .world = self,
       };
 
-      defer self.next_id += 1;
-      self.entities_unnamed.append(e) catch @panic("Unable to append entity");
-      return e;
-    }
-
-    // Named entity
-    const entry = self.entities.getOrPut(name) catch @panic("Unable to put entity");
-    if (entry.found_existing) // Use existing
-      return entry.value_ptr.*;
-
-    const e = self.allocator.create(Entity) catch @panic("Unable to create entity");
-    e.* = Entity{
-      .id = self.next_id,
+    const id = self.entityNext();
+    self.entities.put(name, id) catch @panic("Failed to store entity mapping");
+    return Entity{
+      .id = id,
       .parent_id = 0,
       .world = self,
     };
-
-    entry.value_ptr.* = e;
-    defer self.next_id += 1;
-    return e;
   }
 
   // Render

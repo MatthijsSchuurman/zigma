@@ -7,7 +7,7 @@ pub const Data = struct {
   a: u8,
 };
 
-pub fn set(entity: *const ecs.Entity, r: u8, g: u8, b: u8, a: u8) *const ecs.Entity {
+pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
   if (entity.world.components.color.get(entity.id)) |color| {
     color.* = .{.r = r, .g = g, .b = b, .a = a };
     return entity;

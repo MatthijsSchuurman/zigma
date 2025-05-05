@@ -6,7 +6,7 @@ pub const Data = struct {
   z: f32,
 };
 
-pub fn set(entity: *const ecs.Entity, x: f32, y: f32, z: f32) *const ecs.Entity {
+pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   if (entity.world.components.rotation.get(entity.id)) |rotation| {
     rotation.* = .{.x = x, .y = y, .z = z};
     return entity;

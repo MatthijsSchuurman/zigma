@@ -8,7 +8,7 @@ pub const Data = struct {
   timestampPreviousMS: i64 = 0,
 };
 
-pub fn init(entity: *const ecs.Entity) *const ecs.Entity {
+pub fn init(entity: ecs.Entity) ecs.Entity {
   if (entity.world.components.timeline.get(entity.id)) |_|
     return entity;
 
@@ -19,7 +19,7 @@ pub fn init(entity: *const ecs.Entity) *const ecs.Entity {
   return entity;
 }
 
-pub fn setSpeed(entity: *const ecs.Entity, speed: f32) *const ecs.Entity {
+pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
     timeline.speed = speed;
     std.debug.print("Timeline {d} speed: {d:1.2}\n", .{entity.id, timeline.speed});

@@ -44,11 +44,11 @@ pub fn render(world: *ecs.World) bool {
     return false;
 
   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
-    const timeline = world.entity("timeline");
+    var timeline = world.entity("timeline");
     if (world.components.timeline.get(timeline.id)) |current|
       _ = timeline.timeline_speed(current.speed + 0.1);
   } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
-    const timeline = world.entity("timeline");
+    var timeline = world.entity("timeline");
     if (world.components.timeline.get(timeline.id)) |current|
       _ = timeline.timeline_speed(current.speed - 0.1);
   }
