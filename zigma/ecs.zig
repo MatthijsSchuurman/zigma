@@ -131,6 +131,18 @@ pub const World = struct {
     Systems.Render.Text.run(self);
     return true;
   }
+
+  //Components
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T), filter: anytype, filter_fn: fn(value: T, filter: @TypeOf(filter)) bool) []EntityID {
+    var results = std.ArrayList(EntityID).init(self.allocator);
+
+    var it = component.iterator();
+    while (it.next()) |entry|
+      if (filter_fn(entry.value_ptr.*, filter))
+        results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
+
+    return results.toOwnedSlice() catch @panic("Failed to convert result to slice");
+  }
 };
 
 

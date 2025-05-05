@@ -13,6 +13,18 @@ pub fn run(world: *ecs.World) void {
     const event = entry.value_ptr.*;
 
     std.debug.print("Timeline Event {d}: {d:1.6}\n", .{id, event.progress});
+
+    //get related events
+    const event_entry = world.components.timelineevent.get(id) orelse continue;
+
+    const related_ids = ecs.Components.TimelineEvent.query(world, .{.timeline_id = event_entry.timeline_id, .target_id = event_entry.target_id});
+    defer world.allocator.free(related_ids);
+    for (related_ids) |related_id| {
+      if (related_id == id)
+        continue; // skip self
+
+      std.debug.print("Timeline Event {d} is related to Timeline Event {d}\n", .{id, related_id});
+    }
   }
 }
 
