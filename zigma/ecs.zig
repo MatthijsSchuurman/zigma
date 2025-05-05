@@ -25,6 +25,7 @@ pub const Entity = struct {
 pub const Components = struct {
   pub const Timeline = @import("components/timeline.zig");
   pub const TimelineEvent = @import("components/timelineevent.zig");
+  pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
 
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
