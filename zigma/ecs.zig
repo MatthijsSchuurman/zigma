@@ -89,7 +89,7 @@ pub const World = struct {
 
     inline for (ComponentDeclarations) |declaration| {
       const T = @field(Components, declaration.name).Data;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, *T).init(allocator);
+      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, T).init(allocator);
     }
 
     return self;
@@ -98,13 +98,8 @@ pub const World = struct {
   pub fn deinit(self: *World) void {
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration| {
-      var it2 = @field(self.components, toLower(declaration.name)).iterator();
-      while (it2.next()) |entry|
-        self.allocator.destroy(entry.value_ptr.*);
-
+    inline for (ComponentDeclarations) |declaration|
       @field(self.components, toLower(declaration.name)).deinit();
-    }
   }
 
   // Entity
@@ -148,7 +143,7 @@ fn ComponentStores() type {
     const T = @field(Components, d.name).Data;
     f[i] = .{
       .name          = toLower(d.name),
-      .type          = std.AutoHashMap(EntityID, *T),
+      .type          = std.AutoHashMap(EntityID, T),
       .default_value = null,
       .is_comptime   = false,
       .alignment     = 0,

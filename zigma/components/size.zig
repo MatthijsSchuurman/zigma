@@ -7,13 +7,12 @@ pub const Data = struct {
 };
 
 pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
-  if (entity.world.components.size.get(entity.id)) |size| {
+  if (entity.world.components.size.getPtr(entity.id)) |size| {
     size.* = .{.x = x, .y = y, .z = z};
     return entity;
   }
 
-  const size = entity.world.allocator.create(Data) catch @panic("Failed to create size");
-  size.* = .{.x = x, .y = y, .z = z };
+  const size = .{.x = x, .y = y, .z = z };
 
   entity.world.components.size.put(entity.id, size) catch @panic("Failed to store size");
   return entity;
