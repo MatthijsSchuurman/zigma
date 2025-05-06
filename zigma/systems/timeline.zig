@@ -26,7 +26,7 @@ pub const System = struct {
       //get related events
       const event_entry = self.world.components.timelineevent.get(id) orelse continue;
 
-      const related_ids = ecs.Components.TimelineEvent.query(self.world,
+      const related_ids = ecs.Components.TimelineEvent.Query.exec(self.world,
         .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
         &.{.end_desc},
        );

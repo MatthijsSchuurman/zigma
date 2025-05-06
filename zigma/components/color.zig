@@ -5,6 +5,22 @@ pub const Component = struct {
   g: u8,
   b: u8,
   a: u8,
+};
+
+pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
+  if (entity.world.components.color.getPtr(entity.id)) |existing| {
+    existing.* = .{.r = r, .g = g, .b = b, .a = a };
+    return entity;
+  }
+
+  const new = .{.r = r, .g = g, .b = b, .a = a };
+
+  entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
+  return entity;
+}
+
+pub const Query = struct {
+  pub const Data = Component;
 
   pub const Filter = struct {
     r: ?ecs.FieldFilter(f32) = null,
@@ -13,7 +29,7 @@ pub const Component = struct {
     a: ?ecs.FieldFilter(f32) = null,
   };
 
-  pub fn filter(self: Component, f: Filter) bool {
+  pub fn filter(self: Data, f: Filter) bool {
     if (f.r) |cond|
       if (!ecs.matchField(f32, self.r, cond))
         return false;
@@ -32,20 +48,8 @@ pub const Component = struct {
 
     return true;
   }
-};
 
-pub fn query(world: *ecs.World, filter: Component.Filter) []ecs.EntityID {
-  return world.query(Component, &world.components.color, filter, .{});
-}
-
-pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
-  if (entity.world.components.color.getPtr(entity.id)) |existing| {
-    existing.* = .{.r = r, .g = g, .b = b, .a = a };
-    return entity;
+  pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
+    return world.query(Query, &world.components.color, f, .{});
   }
-
-  const new = .{.r = r, .g = g, .b = b, .a = a };
-
-  entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
-  return entity;
-}
+};

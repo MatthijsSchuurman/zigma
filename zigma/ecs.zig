@@ -127,11 +127,7 @@ pub const World = struct {
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T), filter: T.Filter, sort: []const T.Sort) []EntityID {
-    if (!@hasDecl(T, "filter")) {
-      @compileError("Type " ++ @typeName(T) ++ " must implement 'filter()' for query support.");
-    }
-
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []EntityID {
     var results = std.ArrayList(EntityID).init(self.allocator);
 
     var it = component.iterator();
@@ -145,7 +141,7 @@ pub const World = struct {
       }
 
       const Context = struct {
-        component: *const std.AutoHashMap(EntityID, T),
+        component: *const std.AutoHashMap(EntityID, T.Data),
         sort: []const T.Sort,
       };
 

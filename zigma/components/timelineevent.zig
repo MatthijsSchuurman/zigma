@@ -7,6 +7,41 @@ pub const Component = struct {
 
   start: f32 = 0,
   end: f32,
+};
+
+pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
+  const timeline = entity.world.entity(timelineName); // May not exists yet
+
+  var event = entity;
+  event.id = entity.world.entityNext();
+  if (entity.parent_id == 0) // Set original entry id as parent for event entries only the first time (subsequent will receive it from this event entry)
+    event.parent_id = entity.id;
+
+  var realStart: f32 = undefined;
+  var realEnd: f32 = undefined;
+  if (duration >= 0.0) { // Going forward in time
+    realStart = start;
+    realEnd = start + duration;
+  } else { // Ensure start is always before end, timeline system requires this
+    realStart = start + duration;
+    realEnd = start;
+  }
+
+  if (realStart < 0.0) @panic("Negative time not yet implemented");
+
+  const new = Component{
+    .timeline_id = timeline.id,
+    .target_id = event.parent_id,
+    .start = realStart,
+    .end = realEnd,
+  };
+
+  entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");
+  return event;
+}
+
+pub const Query = struct {
+  pub const Data = Component;
 
   pub const Filter = struct {
     timeline_id: ?ecs.FieldFilter(ecs.EntityID) = null,
@@ -16,7 +51,7 @@ pub const Component = struct {
     end: ?ecs.FieldFilter(f32) = null,
   };
 
-  pub fn filter(self: Component, f: Filter) bool {
+  pub fn filter(self: Data, f: Filter) bool {
     if (f.timeline_id) |cond|
       if (!ecs.matchField(ecs.EntityID, self.timeline_id, cond))
         return false;
@@ -48,7 +83,7 @@ pub const Component = struct {
     end_desc,
   };
 
-  pub fn compare(a: Component, b: Component, sort: []const Sort) std.math.Order {
+  pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
     for (sort) |field| {
       const order = switch (field) {
         .timeline_id_asc => std.math.order(a.timeline_id, b.timeline_id),
@@ -86,39 +121,8 @@ pub const Component = struct {
 
     return .eq;
   }
-};
 
-pub fn query(world: *ecs.World, filter: Component.Filter, sort: []const Component.Sort) []ecs.EntityID {
-  return world.query(Component, &world.components.timelineevent, filter, sort);
-}
-
-pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
-  const timeline = entity.world.entity(timelineName); // May not exists yet
-
-  var event = entity;
-  event.id = entity.world.entityNext();
-  if (entity.parent_id == 0) // Set original entry id as parent for event entries only the first time (subsequent will receive it from this event entry)
-    event.parent_id = entity.id;
-
-  var realStart: f32 = undefined;
-  var realEnd: f32 = undefined;
-  if (duration >= 0.0) { // Going forward in time
-    realStart = start;
-    realEnd = start + duration;
-  } else { // Ensure start is always before end, timeline system requires this
-    realStart = start + duration;
-    realEnd = start;
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
+    return world.query(Query, &world.components.timelineevent, f, sort);
   }
-
-  if (realStart < 0.0) @panic("Negative time not yet implemented");
-
-  const new = Component{
-    .timeline_id = timeline.id,
-    .target_id = event.parent_id,
-    .start = realStart,
-    .end = realEnd,
-  };
-
-  entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");
-  return event;
-}
+};
