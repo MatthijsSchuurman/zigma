@@ -38,27 +38,14 @@ pub const Components = struct {
 
 const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
 
+
 //Systems
 pub const Systems = struct {
-  pub const Init = struct {
-  };
-
-  pub const Deinit = struct {
-  };
-
   pub const Timeline = @import("systems/timeline.zig");
-
-  pub const Render = struct {
-    pub const Background = @import("systems/render/background.zig");
-    pub const Text = @import("systems/render/text.zig");
-  };
-
-  pub const Effects = struct {
-  };
-
-  pub const Input = struct {
-  };
+  pub const Text = @import("systems/render/text.zig");
 };
+
+const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
 
 
 // World
@@ -69,12 +56,14 @@ pub const World = struct {
   entities: std.StringHashMap(EntityID),
 
   components: ComponentStores(),
+  systems: SystemStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
       .entities = std.StringHashMap(EntityID).init(allocator),
       .components = undefined,
+      .systems = undefined,
     };
 
     inline for (ComponentDeclarations) |declaration| {
@@ -85,11 +74,25 @@ pub const World = struct {
     return self;
   }
 
+  pub fn initSystems(self: *World) void {
+    inline for (SystemDeclarations) |declaration| {
+      const T = @field(Systems, declaration.name).System;
+      @field(self.systems, toLower(declaration.name)) = T.init(self);
+    }
+  }
+
   pub fn deinit(self: *World) void {
     self.entities.deinit();
 
     inline for (ComponentDeclarations) |declaration|
       @field(self.components, toLower(declaration.name)).deinit();
+
+    inline for (SystemDeclarations) |declaration| {
+      const T = @field(Systems, declaration.name).System;
+
+      if (@hasDecl(T, "deinit"))
+        @field(self.systems, toLower(declaration.name)).deinit();
+    }
   }
 
   // Entity
@@ -117,8 +120,9 @@ pub const World = struct {
 
   // Render
   pub fn render(self: *World) bool {
-    Systems.Timeline.run(self);
-    Systems.Render.Text.run(self);
+    self.systems.timeline.update();
+
+    self.systems.text.update();
     return true;
   }
 
@@ -174,6 +178,29 @@ fn ComponentStores() type {
     f[i] = .{
       .name          = toLower(d.name),
       .type          = std.AutoHashMap(EntityID, T),
+      .default_value = null,
+      .is_comptime   = false,
+      .alignment     = 0,
+    };
+  }
+
+  return @Type(.{ .Struct = .{
+    .layout   = .auto,
+    .fields   = &f,
+    .decls    = &.{},
+    .is_tuple = false,
+  }});
+}
+
+fn SystemStores() type {
+  const ds = std.meta.declarations(Systems);
+  var f: [ds.len]std.builtin.Type.StructField = undefined;
+
+  inline for (ds, 0..) |d, i| {
+    const T = @field(Systems, d.name).System;
+    f[i] = .{
+      .name          = toLower(d.name),
+      .type          = T,
       .default_value = null,
       .is_comptime   = false,
       .alignment     = 0,
