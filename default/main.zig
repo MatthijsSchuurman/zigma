@@ -10,9 +10,12 @@ pub fn main() !void {
   .color(100, 255, 255, 150)
   .event("timeline", 0, 1)
     .position(0, 0.5, 0)
-    .color(255, 255, 255, 255)
+    .size(1, 1, 1)
+    .color(255, 255, 255, 5)
   .event("timeline", 1, 2)
-    .position(0, -0.5, 0);
+    .position(0, -0.5, 0)
+    .size(10, 1, 1)
+    .color(255, 0, 0, 155);
 
 
   while(zigma.render(world)){}

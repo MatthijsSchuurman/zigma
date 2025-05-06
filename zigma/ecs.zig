@@ -30,7 +30,6 @@ pub const Components = struct {
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Size = @import("components/size.zig");
-
   pub const Color = @import("components/color.zig");
 
   pub const Text = @import("components/text.zig");
@@ -43,11 +42,14 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
 
-  // Render
-  pub const Render_Text = @import("systems/render/text.zig");
-
   // Effects
   pub const Effects_Move = @import("systems/effects/move.zig");
+  pub const Effects_Scale = @import("systems/effects/scale.zig");
+  pub const Effects_Rotate = @import("systems/effects/rotate.zig");
+  pub const Effects_Colorize = @import("systems/effects/colorize.zig");
+
+  // Render
+  pub const Render_Text = @import("systems/render/text.zig");
 };
 
 const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
@@ -128,6 +130,9 @@ pub const World = struct {
     self.systems.timeline.update();
 
     self.systems.effects_move.update();
+    self.systems.effects_scale.update();
+    self.systems.effects_rotate.update();
+    self.systems.effects_colorize.update();
 
     self.systems.render_text.update();
     return true;
