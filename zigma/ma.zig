@@ -21,7 +21,7 @@ const Config = struct {
 
 pub fn init(config: Config) *ecs.World {
   rl.InitWindow(config.width, config.height, config.title);
-  rl.SetTargetFPS(20);
+  rl.SetTargetFPS(200);
 
   const world = allocator.create(ecs.World) catch @panic("Unable to create world");
   world.* = ecs.World.init(allocator);

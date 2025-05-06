@@ -16,29 +16,29 @@ pub const System = struct {
     self.determineTime();
     self.processEvents();
 
-    var it = self.world.components.timelineeventprogress.iterator();
-    while (it.next()) |entry| {
-      const id = entry.key_ptr.*;
-      const event = entry.value_ptr.*;
-
-      std.debug.print("Timeline Event {d}: {d:1.6}\n", .{id, event.progress});
-
-      //get related events
-      const event_entry = self.world.components.timelineevent.get(id) orelse continue;
-
-      const related_ids = ecs.Components.TimelineEvent.Query.exec(self.world,
-        .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
-        &.{.end_desc},
-       );
-      defer self.world.allocator.free(related_ids);
-
-      for (related_ids) |related_id| {
-        if (related_id == id)
-          continue; // skip self
-
-        std.debug.print("Timeline Event {d} is related to Timeline Event {d}\n", .{id, related_id});
-      }
-    }
+    // var it = self.world.components.timelineeventprogress.iterator();
+    // while (it.next()) |entry| {
+    //   const id = entry.key_ptr.*;
+    //   const event = entry.value_ptr.*;
+    //
+    //   std.debug.print("Timeline Event {d}: {d:1.6}\n", .{id, event.progress});
+    //
+    //   //get related events
+    //   const event_entry = self.world.components.timelineevent.get(id) orelse continue;
+    //
+    //   const related_ids = ecs.Components.TimelineEvent.Query.exec(self.world,
+    //     .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
+    //     &.{.end_desc},
+    //    );
+    //   defer self.world.allocator.free(related_ids);
+    //
+    //   for (related_ids) |related_id| {
+    //     if (related_id == id)
+    //       continue; // skip self
+    //
+    //     std.debug.print("Timeline Event {d} is related to Timeline Event {d}\n", .{id, related_id});
+    //   }
+    // }
   }
 
   pub fn determineTime(self: *System) void {

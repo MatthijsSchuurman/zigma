@@ -11,7 +11,7 @@ pub fn main() !void {
   .event("timeline", 0, 1)
     .position(0, 0.5, 0)
     .color(255, 255, 255, 255)
-  .event("timeline", 0.5, 2)
+  .event("timeline", 1, 2)
     .position(0, -0.5, 0);
 
 

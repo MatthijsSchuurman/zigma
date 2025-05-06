@@ -42,7 +42,12 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 //Systems
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
-  pub const Text = @import("systems/render/text.zig");
+
+  // Render
+  pub const Render_Text = @import("systems/render/text.zig");
+
+  // Effects
+  pub const Effects_Move = @import("systems/effects/move.zig");
 };
 
 const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
@@ -122,7 +127,9 @@ pub const World = struct {
   pub fn render(self: *World) bool {
     self.systems.timeline.update();
 
-    self.systems.text.update();
+    self.systems.effects_move.update();
+
+    self.systems.render_text.update();
     return true;
   }
 
