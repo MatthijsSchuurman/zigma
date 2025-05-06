@@ -79,8 +79,10 @@ pub const System = struct {
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+            if (timeline.timePrevious < event.start or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
+              ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
+            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
@@ -94,8 +96,10 @@ pub const System = struct {
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+            if (event.end < timeline.timePrevious or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
+              ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
+            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
