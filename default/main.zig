@@ -3,6 +3,9 @@ const zigma = @import("zigma");
 pub fn main() !void {
   var world = zigma.init(.{.title = "Zigma demo", .width = 1920, .height = 1080});
 
+  _ = world.entity("background")
+  .color(50, 50, 50, 5);
+
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
   .position(0, 0, 0)
@@ -21,7 +24,7 @@ pub fn main() !void {
     .color(255, 0, 0, 155)
   .event(.{.duration = 5, .repeat = 5, .pattern = .PingPong})
     .color(255, 255, 255, 255)
-    .scale(0, 0, 0)
+    .scale(20, 0, 0)
     .position(0, 0, 0);
 
   _ = world.entity("balls")

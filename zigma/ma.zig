@@ -57,10 +57,7 @@ pub fn render(world: *ecs.World) bool {
   }
 
   rl.BeginDrawing();
-  rl.ClearBackground(.{.r = 0, .g = 0, .b = 23, .a = 50});
-
   const success = world.render();
-
   rl.EndDrawing();
 
   return success;

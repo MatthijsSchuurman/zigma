@@ -50,6 +50,7 @@ pub const Systems = struct {
   pub const Effects_Color = @import("systems/effects/color.zig");
 
   // Render
+  pub const Render_Background = @import("systems/render/background.zig");
   pub const Render_Text = @import("systems/render/text.zig");
 };
 
@@ -135,6 +136,7 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
+    self.systems.render_background.update();
     self.systems.render_text.update();
 
     self.systems.fps.update();
