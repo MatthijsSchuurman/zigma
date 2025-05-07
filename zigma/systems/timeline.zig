@@ -82,11 +82,15 @@ pub const System = struct {
             if (timeline.timePrevious < event.start or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
-            const progress = progressCalculation(timeline.timeCurrent, event);
+            var progress = progressCalculation(timeline.timeCurrent, event);
+            progress = motionCalculation(progress, event);
+
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
-              const progress = progressCalculation(timeline.timeCurrent, event);
+              var progress = progressCalculation(timeline.timeCurrent, event);
+              progress = motionCalculation(progress, event);
+
               ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
               ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
@@ -100,11 +104,15 @@ pub const System = struct {
             if (event.end < timeline.timePrevious or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
-            const progress = progressCalculation(timeline.timeCurrent, event);
+            var progress = progressCalculation(timeline.timeCurrent, event);
+            progress = motionCalculation(progress, event);
+
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
-              const progress = progressCalculation(timeline.timeCurrent, event);
+              var progress = progressCalculation(timeline.timeCurrent, event);
+              progress = motionCalculation(progress, event);
+
               ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
               ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
@@ -121,9 +129,9 @@ pub const System = struct {
     const iteration_time = total_time / repeat;
 
     const current_time = timelineCurrent - event.start;
-    const progress = @mod(current_time, iteration_time) / iteration_time;
+    var progress = @mod(current_time, iteration_time) / iteration_time;
 
-    return switch (event.pattern) {
+    progress = switch (event.pattern) {
       .Forward => progress,
       .Reverse => 1 - progress,
       .PingPong => if (progress < 0.5)
@@ -139,5 +147,23 @@ pub const System = struct {
         return prng.random().float(f32);
       }
     };
+
+    return progress;
+  }
+
+  fn motionCalculation(t: f32, event: ecs.Components.TimelineEvent.Component) f32 {
+    const progress = switch (event.motion) {
+      .Instant => if (t >= 1.0) @as(f32, 1.0) else @as(f32, 0.0),
+      .Linear => t,
+      .EaseIn => t * t,
+      .EaseOut => t * (2.0 - t),
+      .EaseInOut => if (t < 0.5)
+        2.0 * t * t
+      else
+        -1.0 + (4.0 - 2.0 * t) * t,
+      .Smooth => t * t * (3.0 - 2.0 * t),
+    };
+
+    return progress;
   }
 };

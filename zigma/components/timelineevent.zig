@@ -10,6 +10,7 @@ pub const Component = struct {
 
   repeat: u32 = 1,
   pattern: Pattern = .Forward,
+  motion: Motion = .Linear,
 };
 
 const Pattern = enum {
@@ -18,6 +19,15 @@ const Pattern = enum {
   PingPong,
   PongPing,
   Random,
+};
+
+const Motion = enum {
+  Instant,
+  Linear,
+  EaseIn,
+  EaseOut,
+  EaseInOut,
+  Smooth,
 };
 
 const Event = struct {
@@ -29,6 +39,7 @@ const Event = struct {
 
   repeat: u32 = 1,
   pattern: Pattern = .Forward,
+  motion: Motion = .Linear,
 };
 
 pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
@@ -92,6 +103,7 @@ pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
 
     .repeat = params.repeat,
     .pattern = params.pattern,
+    .motion = params.motion,
   };
 
   entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");

@@ -20,6 +20,8 @@ pub fn main() !void {
     .rotation(0, 0, 2)
     .color(255, 0, 0, 155)
   .event(.{.duration = 5, .repeat = 5, .pattern = .PingPong})
+    .color(255, 255, 255, 255)
+    .scale(0, 0, 0)
     .position(0, 0, 0);
 
   _ = world.entity("balls")
@@ -28,7 +30,7 @@ pub fn main() !void {
   .scale(20, 0, 0)
   .rotation(0, 0, 0)
   .color(100, 255, 255, 50)
-  .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .Random})
+  .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .PingPong, .motion = .EaseOut})
     .color(100, 255, 100, 255)
     .position(0, 0.5, 0);
 
