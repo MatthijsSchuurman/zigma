@@ -9,8 +9,23 @@ pub const Component = struct {
   end: f32,
 };
 
-pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f32) ecs.Entity {
-  const timeline = entity.world.entity(timelineName); // May not exists yet
+const Event = struct {
+  timeline: []const u8 = "",
+  start: ?f32 = null,
+  end: ?f32 = null,
+  duration: f32 = 1.0, // Default duration if only start is provided
+};
+
+pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
+  if (params.start == undefined and params.end == undefined)
+    @panic("Event start or end needs to be provided");
+
+  var timeline: ecs.Entity = undefined;
+  if (params.timeline.len == 0) {
+    timeline = entity.world.entity("timeline"); // Use main timeline by default
+  } else {
+    timeline = entity.world.entity(params.timeline); // May not exists yet
+  }
 
   var event = entity;
   event.id = entity.world.entityNext();
@@ -19,15 +34,32 @@ pub fn add(entity: ecs.Entity, timelineName: []const u8, start: f32, duration: f
 
   var realStart: f32 = undefined;
   var realEnd: f32 = undefined;
-  if (duration >= 0.0) { // Going forward in time
+  if (params.start) |start| {
     realStart = start;
-    realEnd = start + duration;
-  } else { // Ensure start is always before end, timeline system requires this
-    realStart = start + duration;
-    realEnd = start;
+
+    if (params.end) |end| {
+      realEnd = end;
+    } else {
+      realEnd = start + params.duration;
+    }
+  } else if (params.end) |end| {
+    realEnd = end;
+
+    if (params.start) |start| {
+      realStart = start;
+    } else {
+      realStart = end - params.duration;
+    }
   }
 
-  if (realStart < 0.0) @panic("Negative time not yet implemented");
+  if (realEnd < realStart) { // Ensure start is always before end, timeline system requires this
+    const tmp = realStart;
+    realEnd = realStart;
+    realStart = tmp;
+  }
+
+  if (realStart < 0.0)
+    @panic("Negative time not yet implemented");
 
   const new = Component{
     .timeline_id = timeline.id,
