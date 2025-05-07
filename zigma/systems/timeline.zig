@@ -86,7 +86,8 @@ pub const System = struct {
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
-              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, 1.0);
+              const progress = progressCalculation(timeline.timeCurrent, event);
+              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
               ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
             }
@@ -103,7 +104,8 @@ pub const System = struct {
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
-              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, 0.0);
+              const progress = progressCalculation(timeline.timeCurrent, event);
+              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
               ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
             }
@@ -119,16 +121,23 @@ pub const System = struct {
     const iteration_time = total_time / repeat;
 
     const current_time = timelineCurrent - event.start;
-    const iteration_index = @floor(current_time / iteration_time);
     const progress = @mod(current_time, iteration_time) / iteration_time;
 
     return switch (event.pattern) {
       .Forward => progress,
       .Reverse => 1 - progress,
-      .PingPong => if (@mod(iteration_index, 2) == 0.0 )
-        progress
+      .PingPong => if (progress < 0.5)
+        progress * 2
       else
-        1 - progress,
+        (1 - progress) * 2,
+      .PongPing => if (progress < 0.5)
+        1 - (progress * 2)
+      else
+        (progress - 0.5) * 2,
+      .Random => {
+        var prng = std.rand.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
+        return prng.random().float(f32);
+      }
     };
   }
 };

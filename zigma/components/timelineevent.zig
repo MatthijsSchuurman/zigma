@@ -12,10 +12,12 @@ pub const Component = struct {
   pattern: Pattern = .Forward,
 };
 
-pub const Pattern = enum {
+const Pattern = enum {
   Forward,
   Reverse,
   PingPong,
+  PongPing,
+  Random,
 };
 
 const Event = struct {

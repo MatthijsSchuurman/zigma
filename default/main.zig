@@ -24,11 +24,11 @@ pub fn main() !void {
 
   _ = world.entity("balls")
   .text("Balls!!!")
-  .position(0, 1, 0)
+  .position(0, 0.8, 0)
   .scale(20, 0, 0)
   .rotation(0, 0, 0)
   .color(100, 255, 255, 50)
-  .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong})
+  .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .Random})
     .color(100, 255, 100, 255)
     .position(0, 0.5, 0);
 
