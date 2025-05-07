@@ -9,14 +9,24 @@ pub const Component = struct {
   end: f32,
 
   repeat: u32 = 1,
+  pattern: Pattern = .Forward,
+};
+
+pub const Pattern = enum {
+  Forward,
+  Reverse,
+  PingPong,
 };
 
 const Event = struct {
   timeline: []const u8 = "",
+
   start: ?f32 = null,
   end: ?f32 = null,
   duration: f32 = 1.0, // Default duration if only start is provided
+
   repeat: u32 = 1,
+  pattern: Pattern = .Forward,
 };
 
 pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
@@ -74,9 +84,12 @@ pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
   const new = Component{
     .timeline_id = timeline.id,
     .target_id = event.parent_id,
+
     .start = realStart,
     .end = realEnd,
+
     .repeat = params.repeat,
+    .pattern = params.pattern,
   };
 
   entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");

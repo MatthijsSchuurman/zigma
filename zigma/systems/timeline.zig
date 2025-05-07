@@ -115,13 +115,20 @@ pub const System = struct {
 
   fn progressCalculation(timelineCurrent :f32, event: ecs.Components.TimelineEvent.Component) f32 {
     const total_time = event.end - event.start;
-    const repeat: f32 = @floatFromInt(event.repeat);
+    const repeat: f32 = @floatFromInt(@max(1, event.repeat));
     const iteration_time = total_time / repeat;
 
     const current_time = timelineCurrent - event.start;
-    //const iteration_index = @floar(current_time / iteration_time)
+    const iteration_index = @floor(current_time / iteration_time);
     const progress = @mod(current_time, iteration_time) / iteration_time;
 
-    return progress;
+    return switch (event.pattern) {
+      .Forward => progress,
+      .Reverse => 1 - progress,
+      .PingPong => if (@mod(iteration_index, 2) == 0.0 )
+        progress
+      else
+        1 - progress,
+    };
   }
 };

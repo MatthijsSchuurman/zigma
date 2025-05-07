@@ -19,8 +19,18 @@ pub fn main() !void {
     .scale(10, 1, 1)
     .rotation(0, 0, 2)
     .color(255, 0, 0, 155)
-  .event(.{.duration = 2, .repeat = 15})
-    .color(255, 255, 0, 255);
+  .event(.{.duration = 5, .repeat = 5, .pattern = .PingPong})
+    .position(0, 0, 0);
+
+  _ = world.entity("balls")
+  .text("Balls!!!")
+  .position(0, 1, 0)
+  .scale(20, 0, 0)
+  .rotation(0, 0, 0)
+  .color(100, 255, 255, 50)
+  .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong})
+    .color(100, 255, 100, 255)
+    .position(0, 0.5, 0);
 
 
   while(zigma.render(world)){}
