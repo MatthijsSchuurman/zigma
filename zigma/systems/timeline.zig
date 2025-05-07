@@ -82,7 +82,7 @@ pub const System = struct {
             if (timeline.timePrevious < event.start or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
-            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+            const progress = progressCalculation(timeline.timeCurrent, event);
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
@@ -99,7 +99,7 @@ pub const System = struct {
             if (event.end < timeline.timePrevious or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
-            const progress = (timeline.timeCurrent - event.start) / (event.end - event.start);
+            const progress = progressCalculation(timeline.timeCurrent, event);
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
@@ -111,5 +111,17 @@ pub const System = struct {
         }
       }
     }
+  }
+
+  fn progressCalculation(timelineCurrent :f32, event: ecs.Components.TimelineEvent.Component) f32 {
+    const total_time = event.end - event.start;
+    const repeat: f32 = @floatFromInt(event.repeat);
+    const iteration_time = total_time / repeat;
+
+    const current_time = timelineCurrent - event.start;
+    //const iteration_index = @floar(current_time / iteration_time)
+    const progress = @mod(current_time, iteration_time) / iteration_time;
+
+    return progress;
   }
 };

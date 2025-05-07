@@ -7,6 +7,8 @@ pub const Component = struct {
 
   start: f32 = 0,
   end: f32,
+
+  repeat: u32 = 1,
 };
 
 const Event = struct {
@@ -14,11 +16,16 @@ const Event = struct {
   start: ?f32 = null,
   end: ?f32 = null,
   duration: f32 = 1.0, // Default duration if only start is provided
+  repeat: u32 = 1,
 };
 
 pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
   if (params.start == undefined and params.end == undefined)
-    @panic("Event start or end needs to be provided");
+    if (entity.parent_id == 0) // No previous event
+      @panic("Event start or end needs to be provided or a previous event should exist");
+
+  if (params.repeat < 1)
+    @panic("Event repeat should be at least 1");
 
   var timeline: ecs.Entity = undefined;
   if (params.timeline.len == 0) {
@@ -50,6 +57,9 @@ pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
     } else {
       realStart = end - params.duration;
     }
+  } else if (entity.world.components.timelineevent.get(entity.id)) |previousEvent| { // Get end from previous event
+    realStart = previousEvent.end;
+    realEnd = previousEvent.end + params.duration;
   }
 
   if (realEnd < realStart) { // Ensure start is always before end, timeline system requires this
@@ -66,6 +76,7 @@ pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
     .target_id = event.parent_id,
     .start = realStart,
     .end = realEnd,
+    .repeat = params.repeat,
   };
 
   entity.world.components.timelineevent.put(event.id, new) catch @panic("Failed to store timeline event");
