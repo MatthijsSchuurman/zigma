@@ -46,14 +46,51 @@ pub fn render(world: *ecs.World) bool {
   if (rl.WindowShouldClose())
     return false;
 
+  if (rl.IsKeyPressed(rl.KEY_F)) {
+    const monitor_index = 1; // second screen
+    const width = rl.GetMonitorWidth(monitor_index);
+    const height = rl.GetMonitorHeight(monitor_index);
+    const xpos = rl.GetMonitorPosition(monitor_index).x;
+    const ypos = rl.GetMonitorPosition(monitor_index).y;
+
+    rl.SetWindowSize(width, height);
+    rl.SetWindowPosition(@intFromFloat(xpos), @intFromFloat(ypos));
+  }
+
+  if (rl.IsKeyPressed(rl.KEY_RIGHT)) {
+    var timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_current(current.timeCurrent + current.speed * 5)
+      else
+        _ = timeline.timeline_current(current.timeCurrent + current.speed * 2);
+    }
+  } else if (rl.IsKeyPressed(rl.KEY_LEFT)) {
+    var timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_current(current.timeCurrent - current.speed * 5)
+      else
+        _ = timeline.timeline_current(current.timeCurrent - current.speed * 2);
+    }
+  }
+
   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
     var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current|
-      _ = timeline.timeline_speed(current.speed + 0.1);
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_speed(current.speed + 1.0)
+      else
+        _ = timeline.timeline_speed(current.speed + 0.1);
+    }
   } else if (rl.IsKeyPressed(rl.KEY_KP_SUBTRACT) or rl.IsKeyPressed(rl.KEY_MINUS)) {
     var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current|
-      _ = timeline.timeline_speed(current.speed - 0.1);
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_speed(current.speed - 1.0)
+      else
+        _ = timeline.timeline_speed(current.speed - 0.1);
+    }
   }
 
   rl.BeginDrawing();

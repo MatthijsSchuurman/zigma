@@ -24,3 +24,10 @@ pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
 
   return entity;
 }
+
+pub fn setCurrent(entity: ecs.Entity, current: f32) ecs.Entity {
+  if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
+    timeline.timeCurrent = current;
+
+  return entity;
+}

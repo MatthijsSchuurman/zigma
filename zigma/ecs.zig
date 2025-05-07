@@ -9,6 +9,7 @@ pub const Entity = struct {
 
   pub const timeline_init = Components.Timeline.init;
   pub const timeline_speed = Components.Timeline.setSpeed;
+  pub const timeline_current = Components.Timeline.setCurrent;
   pub const event = Components.TimelineEvent.add;
 
   pub const position = Components.Position.set;
