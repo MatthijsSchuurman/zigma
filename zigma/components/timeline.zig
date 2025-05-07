@@ -19,10 +19,8 @@ pub fn init(entity: ecs.Entity) ecs.Entity {
 }
 
 pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
-  if (entity.world.components.timeline.getPtr(entity.id)) |timeline| {
+  if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
     timeline.speed = speed;
-    std.debug.print("Timeline {d} speed: {d:1.2}\n", .{entity.id, timeline.speed});
-  }
 
   return entity;
 }

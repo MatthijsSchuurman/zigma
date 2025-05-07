@@ -44,7 +44,6 @@ pub const System = struct {
   pub fn determineTime(self: *System) void {
     var it = self.world.components.timeline.iterator();
     while (it.next()) |entry| {
-      const id = entry.key_ptr.*;
       var timeline = entry.value_ptr;
 
       if (timeline.timestampPreviousMS == 0 ) { // first time
@@ -59,8 +58,6 @@ pub const System = struct {
         timeline.timeCurrent += timestampDelta * timeline.speed;
         timeline.timestampPreviousMS = timestampCurrentMS;
       }
-
-      std.debug.print("Timeline {d}: {d:1.6}, speed: {d:1.2}\n", .{id, timeline.timeCurrent, timeline.speed});
     }
   }
 

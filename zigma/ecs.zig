@@ -41,6 +41,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 //Systems
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
+  pub const FPS = @import("systems/fps.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -135,6 +136,8 @@ pub const World = struct {
     self.systems.effects_color.update();
 
     self.systems.render_text.update();
+
+    self.systems.fps.update();
     return true;
   }
 
