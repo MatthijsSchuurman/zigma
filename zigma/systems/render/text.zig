@@ -20,10 +20,10 @@ pub const System = struct {
       const text = entry.value_ptr.*;
 
       const position = self.world.components.position.get(id) orelse ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0};
-      const size = self.world.components.size.get(id) orelse ecs.Components.Size.Component{.x = 2, .y = 1, .z = 1};
+      const scale = self.world.components.scale.get(id) orelse ecs.Components.Scale.Component{.x = 2, .y = 1, .z = 1};
       const color = self.world.components.color.get(id) orelse ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255};
 
-      const height: f32 = 10 * size.x;
+      const height: f32 = 10 * scale.x;
       const width: f32 = @floatFromInt(rl.MeasureText(@ptrCast(text.text), @intFromFloat(height)));
 
       const x = (position.x * 0.5 + 0.5) * screen_width;

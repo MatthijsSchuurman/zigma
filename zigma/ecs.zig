@@ -13,7 +13,7 @@ pub const Entity = struct {
 
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
-  pub const size = Components.Size.set;
+  pub const scale = Components.Scale.set;
 
   pub const color = Components.Color.set;
 
@@ -29,7 +29,7 @@ pub const Components = struct {
 
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
-  pub const Size = @import("components/size.zig");
+  pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
   pub const Text = @import("components/text.zig");
@@ -43,10 +43,10 @@ pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
 
   // Effects
-  pub const Effects_Move = @import("systems/effects/move.zig");
+  pub const Effects_Position = @import("systems/effects/position.zig");
+  pub const Effects_Rotation = @import("systems/effects/rotation.zig");
   pub const Effects_Scale = @import("systems/effects/scale.zig");
-  pub const Effects_Rotate = @import("systems/effects/rotate.zig");
-  pub const Effects_Colorize = @import("systems/effects/colorize.zig");
+  pub const Effects_Color = @import("systems/effects/color.zig");
 
   // Render
   pub const Render_Text = @import("systems/render/text.zig");
@@ -129,10 +129,10 @@ pub const World = struct {
   pub fn render(self: *World) bool {
     self.systems.timeline.update();
 
-    self.systems.effects_move.update();
+    self.systems.effects_position.update();
+    self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
-    self.systems.effects_rotate.update();
-    self.systems.effects_colorize.update();
+    self.systems.effects_color.update();
 
     self.systems.render_text.update();
     return true;

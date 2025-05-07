@@ -7,14 +7,14 @@ pub const Component = struct {
 };
 
 pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
-  if (entity.world.components.size.getPtr(entity.id)) |existing| {
+  if (entity.world.components.scale.getPtr(entity.id)) |existing| {
     existing.* = .{.x = x, .y = y, .z = z};
     return entity;
   }
 
   const new = .{.x = x, .y = y, .z = z };
 
-  entity.world.components.size.put(entity.id, new) catch @panic("Failed to store size");
+  entity.world.components.scale.put(entity.id, new) catch @panic("Failed to store scale");
   return entity;
 }
 
@@ -44,6 +44,6 @@ pub const Query = struct {
   }
 
   pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
-    return world.query(Query, &world.components.size, f, .{});
+    return world.query(Query, &world.components.scale, f, .{});
   }
 };
