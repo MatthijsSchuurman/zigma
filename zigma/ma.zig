@@ -99,8 +99,3 @@ pub fn render(world: *ecs.World) bool {
 
   return success;
 }
-
-// Testing
-test "tst something" {
-  try tst.expectEqual(0.0, 0.0);
-}
