@@ -52,10 +52,16 @@ pub const System = struct {
         timeline.timestampPreviousMS = std.time.milliTimestamp(); //store for next determine
       } else {
         const timestampCurrentMS = std.time.milliTimestamp();
-        const timestampDelta = @as(f32, @floatFromInt(timestampCurrentMS - timeline.timestampPreviousMS)) / 1000.0;
+        var timestampDelta = @as(f32, @floatFromInt(timestampCurrentMS - timeline.timestampPreviousMS)) / 1000.0;
+
+        if (timeline.timeOffset != 0) { // jump by offset
+          timestampDelta += timeline.timeOffset;
+          timeline.timeOffset = 0; // reset offset
+        }
 
         timeline.timePrevious = timeline.timeCurrent;
         timeline.timeCurrent += timestampDelta * timeline.speed;
+        timeline.timeDelta = timestampDelta;
         timeline.timestampPreviousMS = timestampCurrentMS;
       }
     }
@@ -71,12 +77,12 @@ pub const System = struct {
         if (@abs(timeline.speed) < timePrecision) // Singularity
           continue; // Nothing's changed
 
-        if (timeline.speed >= 0.0) { // Normal time
+        if (timeline.timeDelta >= 0.0) { // Normal time
           if (timeline.timeCurrent < event.start) // Event not started yet
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            if (timeline.timePrevious < event.start or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
+            if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
@@ -85,7 +91,10 @@ pub const System = struct {
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
-              var progress = progressCalculation(timeline.timeCurrent, event);
+              if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+                ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+
+              var progress = progressCalculation(event.end, event); // Force end of event
               progress = motionCalculation(progress, event);
 
               ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
@@ -98,7 +107,7 @@ pub const System = struct {
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            if (event.end < timeline.timePrevious or (timeline.timeCurrent == 0 and timeline.timePrevious == 0)) // Not yet active
+            if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
               ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
@@ -107,7 +116,10 @@ pub const System = struct {
             ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
-              var progress = progressCalculation(timeline.timeCurrent, event);
+              if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+                ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+
+              var progress = progressCalculation(event.start, event); // Force start of event
               progress = motionCalculation(progress, event);
 
               ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
@@ -122,23 +134,21 @@ pub const System = struct {
 
   fn progressCalculation(timelineCurrent :f32, event: ecs.Components.TimelineEvent.Component) f32 {
     const total_time = event.end - event.start;
+    const total_elapsed = timelineCurrent - event.start;
     const repeat: f32 = @floatFromInt(@max(1, event.repeat));
-    const iteration_time = total_time / repeat;
+    const iteration_duration = total_time / repeat;
 
-    const current_time = timelineCurrent - event.start;
-    var progress = @mod(current_time, iteration_time) / iteration_time;
+    const progress_position = total_elapsed / iteration_duration;
+    const iteration_index= @floor(progress_position);
+    const iteration_time = progress_position - iteration_index;
+
+    var progress = if (iteration_time == 0 and total_elapsed > 0) 1.0 else iteration_time;
 
     progress = switch (event.pattern) {
       .Forward => progress,
       .Reverse => 1 - progress,
-      .PingPong => if (progress < 0.5)
-        progress * 2
-      else
-        (1 - progress) * 2,
-      .PongPing => if (progress < 0.5)
-        1 - (progress * 2)
-      else
-        (progress - 0.5) * 2,
+      .PingPong => if (@mod(iteration_index, 2) == 0) progress else 1 - progress,
+      .PongPing => if (@mod(iteration_index, 2) == 0) 1 - progress else progress,
       .Random => {
         var prng = std.rand.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
         return prng.random().float(f32);

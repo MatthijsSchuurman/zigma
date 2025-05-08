@@ -5,6 +5,8 @@ pub const Component = struct {
   speed: f32 = 1.0,
   timeCurrent: f32 = 0,
   timePrevious: f32 = 0,
+  timeOffset: f32 = 0,
+  timeDelta: f32 = 0,
   timestampPreviousMS: i64 = 0,
 };
 
@@ -25,9 +27,9 @@ pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
   return entity;
 }
 
-pub fn setCurrent(entity: ecs.Entity, current: f32) ecs.Entity {
+pub fn setOffset(entity: ecs.Entity, offset: f32) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
-    timeline.timeCurrent = current;
+    timeline.timeOffset= offset;
 
   return entity;
 }

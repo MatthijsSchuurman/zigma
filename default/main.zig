@@ -4,7 +4,9 @@ pub fn main() !void {
   var world = zigma.init(.{.title = "Zigma demo", .width = 1920, .height = 1080});
 
   _ = world.entity("background")
-  .color(0, 0, 0, 20);
+  .color(50, 50, 50, 10)
+  .event(.{.start = 0, .end = 10, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
+    .color(50, 80, 80, 10);
 
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")

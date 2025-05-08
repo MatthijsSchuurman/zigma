@@ -57,24 +57,6 @@ pub fn render(world: *ecs.World) bool {
     rl.SetWindowPosition(@intFromFloat(xpos), @intFromFloat(ypos));
   }
 
-  if (rl.IsKeyPressed(rl.KEY_RIGHT)) {
-    var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current| {
-      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
-        _ = timeline.timeline_current(current.timeCurrent + current.speed * 5)
-      else
-        _ = timeline.timeline_current(current.timeCurrent + current.speed * 2);
-    }
-  } else if (rl.IsKeyPressed(rl.KEY_LEFT)) {
-    var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current| {
-      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
-        _ = timeline.timeline_current(current.timeCurrent - current.speed * 5)
-      else
-        _ = timeline.timeline_current(current.timeCurrent - current.speed * 2);
-    }
-  }
-
   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
     var timeline = world.entity("timeline");
     if (world.components.timeline.get(timeline.id)) |current| {
@@ -90,6 +72,24 @@ pub fn render(world: *ecs.World) bool {
         _ = timeline.timeline_speed(current.speed - 1.0)
       else
         _ = timeline.timeline_speed(current.speed - 0.1);
+    }
+  }
+
+  if (rl.IsKeyPressed(rl.KEY_RIGHT)) {
+    var timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_offset(current.speed * 5)
+      else
+        _ = timeline.timeline_offset(current.speed * 2);
+    }
+  } else if (rl.IsKeyPressed(rl.KEY_LEFT)) {
+    var timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |current| {
+      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+        _ = timeline.timeline_offset(-current.speed * 5)
+      else
+        _ = timeline.timeline_offset(-current.speed * 2);
     }
   }
 
