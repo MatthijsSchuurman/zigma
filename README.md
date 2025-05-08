@@ -30,8 +30,8 @@ zig build run
 
 ## Control
 
-| Shortcut| Description |
-| === | === |
+| Shortcut | Description |
+| --- | --- |
 | Esc | Quit |
 | f | Fullscreen |
 | + | Increase main timeline speed a bit |
