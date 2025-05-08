@@ -40,6 +40,7 @@ pub fn build(b: *std.Build) void {
     argv.append("zig") catch unreachable;
     argv.append("test") catch unreachable;
     argv.append(path) catch unreachable;
+    //argv.append("-femit-llvm-ir") catch unreachable;
 
     inline for (system_libs) |lib| {
       argv.append("-l" ++ lib) catch unreachable;
