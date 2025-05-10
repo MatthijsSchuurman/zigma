@@ -96,3 +96,54 @@ test "ECS World should render" {
   // Clean
   world.deinit();
 }
+
+test "ECS World should query timeline events" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+
+  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("test").event(.{ .start = 0, .end = 1 });
+
+  // When
+  const result = world.query(ecs.Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
+
+  // Then
+  try tst.expectEqual(result.len, 1);
+
+  // Clean
+  world.allocator.free(result);
+  world.deinit();
+}
+
+test "ECS should convert to lower case" {
+  // Given
+  const str = "TEST";
+
+  // When
+  const result = ecs.toLower(str);
+
+  // Then
+  try tst.expectEqualStrings(result, "test");
+  try tst.expectEqual(result[result.len], 0);
+}
+
+test "ECS should match various comparison types" {
+    // Given
+  const TestCase = struct {
+    desc: []const u8,
+    actual: i32,
+    cond: ecs.FieldFilter(i32),
+    expected: bool,
+  };
+
+  const cases = [_]TestCase{
+    .{ .desc = "eq pass", .actual = 42, .cond = .{ .eq = 42 }, .expected = true },
+    .{ .desc = "eq fail", .actual = 41, .cond = .{ .eq = 42 }, .expected = false },
+    .{ .desc = "lt pass", .actual = 10, .cond = .{ .lt = 20 }, .expected = true },
+    .{ .desc = "gt fail", .actual = 10, .cond = .{ .gt = 20 }, .expected = false },
+  };
+
+  for (cases) |c| {
+    try tst.expectEqual(ecs.matchField(i32, c.actual, c.cond), c.expected);
+  }
+}

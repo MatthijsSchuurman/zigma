@@ -229,7 +229,7 @@ fn SystemStores() type {
   }});
 }
 
-fn toLower(comptime s: []const u8) [:0]const u8 {
+pub fn toLower(comptime s: []const u8) [:0]const u8 {
   var buf: [s.len + 1]u8 = undefined;
   for (s, 0..) |c, i|
     buf[i] = std.ascii.toLower(c);
