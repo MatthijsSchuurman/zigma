@@ -109,6 +109,8 @@ test { // Export tests in imported files
 
 test "Zigma should init world" {
   // Given
+  rl.SetTraceLogLevel(rl.LOG_NONE);
+
   const config = .{
     .title = "test",
     .width = 320,

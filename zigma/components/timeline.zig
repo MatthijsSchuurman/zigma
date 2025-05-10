@@ -49,11 +49,11 @@ test "Component should init timeline" {
   const result = init(entity);
 
   // Then
-  try tst.expectEqual(result.id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (world.components.timeline.get(entity.id)) |timeline|
-    try tst.expectEqual(timeline, Component{.speed = 1.0, .timeCurrent = 0, .timePrevious = 0, .timeOffset = 0, .timeDelta = 0, .timestampPreviousMS = 0})
+    try tst.expectEqual(Component{.speed = 1.0, .timeCurrent = 0, .timePrevious = 0, .timeOffset = 0, .timeDelta = 0, .timestampPreviousMS = 0}, timeline)
   else
     return error.TestExpected;
 }
@@ -70,11 +70,11 @@ test "Component should set speed" {
   const result = setSpeed(entity, 2.0);
 
   // Then
-  try tst.expectEqual(result.id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (result.world.components.timeline.get(result.id)) |timeline|
-    try tst.expectEqual(timeline.speed, 2.0)
+    try tst.expectEqual(2.0, timeline.speed)
   else
     return error.TestExpected;
 }

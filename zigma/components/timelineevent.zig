@@ -220,8 +220,8 @@ test "Component should add timeline event" {
   });
 
   // Then
-  try tst.expectEqual(result.parent_id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.parent_id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (world.components.timelineevent.get(result.id)) |timelineevent|
     try tst.expectEqual(timelineevent, Component{
@@ -266,6 +266,6 @@ test "Query should filter" {
   defer world.allocator.free(result);
 
   // Then
-  try tst.expectEqual(result.len, 1);
-  try tst.expectEqual(result[0], entity1.id);
+  try tst.expectEqual(1, result.len);
+  try tst.expectEqual(entity1.id, result[0]);
 }

@@ -66,16 +66,16 @@ test "Component should set rotation" {
   const result = set(entity, 1, 2, 3);
 
   // Then
-  try tst.expectEqual(result.id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(rotation, Component{.x = 1, .y = 2, .z = 3})
+    try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, rotation)
   else
     return error.TestExpected;
 }
 
-test "Query should filter by x" {
+test "Query should filter" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
@@ -88,6 +88,6 @@ test "Query should filter by x" {
   defer world.allocator.free(result);
 
   // Then
-  try tst.expectEqual(result.len, 1);
-  try tst.expectEqual(result[0], entity1.id);
+  try tst.expectEqual(1, result.len);
+  try tst.expectEqual(entity1.id, result[0]);
 }

@@ -72,16 +72,16 @@ test "Component should set color" {
   const result = set(entity, 1, 2, 3, 4);
 
   // Then
-  try tst.expectEqual(result.id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(color, Component{.r = 1, .g = 2, .b = 3, .a = 4})
+    try tst.expectEqual(Component{.r = 1, .g = 2, .b = 3, .a = 4}, color)
   else
     return error.TestExpected;
 }
 
-test "Query should filter by x" {
+test "Query should filter" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);

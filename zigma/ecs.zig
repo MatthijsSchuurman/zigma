@@ -290,9 +290,9 @@ test "ECS World should init" {
   defer world.deinit();
 
   // Then
-  try tst.expectEqual(world.entity_id, 1);
-  try tst.expectEqual(world.entities.count(), 0);
-  try tst.expectEqual(world.components.timeline.count(), 0);
+  try tst.expectEqual(1, world.entity_id);
+  try tst.expectEqual(0, world.entities.count());
+  try tst.expectEqual(0, world.components.timeline.count());
 }
 
 test "ECS World should init systems" {
@@ -305,7 +305,7 @@ test "ECS World should init systems" {
   world.initSystems();
 
   // Then
-  try tst.expectEqual(@TypeOf(world.systems.timeline), Systems.Timeline.System);
+  try tst.expectEqual(Systems.Timeline.System, @TypeOf(world.systems.timeline));
 }
 
 test "ECS World should deinit" {
@@ -316,7 +316,7 @@ test "ECS World should deinit" {
   world.deinit();
 
   // Then
-  try tst.expectEqual(world.entity_id, 1);
+  try tst.expectEqual(1, world.entity_id);
 }
 
 test "ECS World should get next entity" {
@@ -329,8 +329,8 @@ test "ECS World should get next entity" {
   const id2 = world.entityNext();
 
   // Then
-  try tst.expectEqual(id, 1);
-  try tst.expectEqual(id2, 2);
+  try tst.expectEqual(1, id);
+  try tst.expectEqual(2, id2);
 }
 
 test "ECS World should add entity" {
@@ -343,13 +343,13 @@ test "ECS World should add entity" {
   const entity2 = world.entity("test");
 
   // Then
-  try tst.expectEqual(world.entities.count(), 1);
-  try tst.expectEqual(entity.id, 1);
-  try tst.expectEqual(entity2.id, 1);
-  try tst.expectEqual(entity.parent_id, 0);
-  try tst.expectEqual(entity2.parent_id, 0);
-  try tst.expectEqual(entity.world, &world);
-  try tst.expectEqual(entity2.world, &world);
+  try tst.expectEqual(1, world.entities.count());
+  try tst.expectEqual(1, entity.id);
+  try tst.expectEqual(1, entity2.id);
+  try tst.expectEqual(0, entity.parent_id);
+  try tst.expectEqual(0, entity2.parent_id);
+  try tst.expectEqual(&world, entity.world);
+  try tst.expectEqual(&world, entity2.world);
 }
 
 test "ECS World should render" {
@@ -362,7 +362,7 @@ test "ECS World should render" {
   const result = world.render();
 
   // Then
-  try tst.expectEqual(result, true);
+  try tst.expectEqual(true, result);
 }
 
 test "ECS World should query timeline events" {
@@ -378,7 +378,7 @@ test "ECS World should query timeline events" {
   defer world.allocator.free(result);
 
   // Then
-  try tst.expectEqual(result.len, 1);
+  try tst.expectEqual(1, result.len);
 }
 
 test "ECS should convert to lower case" {
@@ -389,8 +389,8 @@ test "ECS should convert to lower case" {
   const result = toLower(str);
 
   // Then
-  try tst.expectEqualStrings(result, "test");
-  try tst.expectEqual(result[result.len], 0);
+  try tst.expectEqualStrings("test", result);
+  try tst.expectEqual(0, result[result.len]);
 }
 
 test "ECS should match various comparison types" {
@@ -410,9 +410,8 @@ test "ECS should match various comparison types" {
   };
 
   // When & Then
-  for (cases) |c| {
-    try tst.expectEqual(matchField(i32, c.actual, c.cond), c.expected);
-  }
+  for (cases) |c|
+    try tst.expectEqual(c.expected, matchField(i32, c.actual, c.cond));
 }
 test "ECS should match string comparison types" {
   // Given
@@ -429,7 +428,6 @@ test "ECS should match string comparison types" {
   };
 
   // When & Then
-  for (cases) |c| {
-    try tst.expectEqual(matchField([]const u8, c.actual, c.cond), c.expected);
-  }
+  for (cases) |c|
+    try tst.expectEqual(c.expected, matchField([]const u8, c.actual, c.cond));
 }

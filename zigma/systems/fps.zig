@@ -39,3 +39,35 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("zigma");
+
+test "System should render update" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  rl.SetTraceLogLevel(rl.LOG_NONE);
+  rl.InitWindow(320, 200, "Test");
+  defer rl.CloseWindow();
+
+  _ = world.entity("timeline").timeline_init();
+  var system = System.init(&world);
+
+  // When
+  rl.BeginDrawing();
+  system.update();
+  rl.EndDrawing();
+
+  // Then
+  const img = rl.LoadImageFromScreen();
+  defer rl.UnloadImage(img);
+
+  const x = 30; // Not sure why these coordinates are off, but this is based on rl.TakeScreenshot()
+  const y = 285;
+  const color = rl.GetImageColor(img, x, y);
+  try tst.expectEqual(rl.Color{.r = 50, .g = 50, .b = 50, .a = 255}, color);
+}

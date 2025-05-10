@@ -71,11 +71,11 @@ test "Component should set text" {
   const result = set(entity, "test");
 
   // Then
-  try tst.expectEqual(result.id, entity.id);
-  try tst.expectEqual(result.world, entity.world);
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
 
   if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(text, Component{.text = "test"})
+    try tst.expectEqual(Component{.text = "test"}, text)
   else
     return error.TestExpected;
 }
@@ -93,6 +93,6 @@ test "Query should filter" {
   defer world.allocator.free(result);
 
   // Then
-  try tst.expectEqual(result.len, 1);
-  try tst.expectEqual(result[0], entity1.id);
+  try tst.expectEqual(1, result.len);
+  try tst.expectEqual(entity1.id, result[0]);
 }

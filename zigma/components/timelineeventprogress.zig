@@ -43,7 +43,7 @@ test "Component should activate timeline event progress" {
 
   // Then
   if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
-    try tst.expectEqual(timelineeventprogress, Component{.progress = 0, .target_id = null})
+    try tst.expectEqual(Component{.progress = 0, .target_id = null}, timelineeventprogress)
   else
     return error.TestExpected;
 }
@@ -61,7 +61,7 @@ test "Component should set progress" {
 
   // Then
   if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
-    try tst.expectEqual(timelineeventprogress, Component{.progress = 0.5, .target_id = null})
+    try tst.expectEqual(Component{.progress = 0.5, .target_id = null}, timelineeventprogress)
   else
     return error.TestExpected;
 }
