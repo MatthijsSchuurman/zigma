@@ -63,11 +63,5 @@ test "System should render update" {
   rl.EndDrawing();
 
   // Then
-  const img = rl.LoadImageFromScreen();
-  defer rl.UnloadImage(img);
-
-  const x = 30; // Not sure why these coordinates are off, but this is based on rl.TakeScreenshot()
-  const y = 285;
-  const color = rl.GetImageColor(img, x, y);
-  try tst.expectEqual(rl.Color{.r = 50, .g = 50, .b = 50, .a = 255}, color);
+  try ecs.expectScreenshot("system.fps.render_update");
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const rl = @cImport(@cInclude("raylib.h"));
 
 //Entity
 pub const EntityID = u32;
@@ -280,6 +281,52 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
 
 // Testing
 const tst = std.testing;
+
+pub fn expectScreenshot(key: []const u8) !void {
+  const test_data_dir = ".testdata";
+  const file_extension = "png";
+
+  var path_buf: [512]u8 = undefined;
+  const file_path = try std.fmt.bufPrintZ(&path_buf, "{s}/{s}.{s}", .{test_data_dir, key, file_extension});
+
+  // Get screenshots
+  const actual_screenshot = rl.LoadImageFromScreen();
+  defer rl.UnloadImage(actual_screenshot);
+
+  const expected_screenshot = rl.LoadImage(file_path);
+  defer rl.UnloadImage(expected_screenshot);
+
+  if (expected_screenshot.data == null) { // No screenshot yet
+    std.fs.cwd().makeDir(test_data_dir) catch {}; //Ensure test data directory exists
+    _ = rl.ExportImage(actual_screenshot, file_path);
+    std.debug.print("[screenshot] saved initial: {s}\n", .{file_path});
+    return;
+  }
+
+  if (expected_screenshot.width != actual_screenshot.width or expected_screenshot.height != actual_screenshot.height) {
+    std.debug.print("[screenshot] size mismatch: {s}\n", .{file_path});
+    return error.TestImageSizeMismatch;
+  }
+
+  var failed = false;
+  for (0..@as(usize, @intCast(expected_screenshot.height))) |y_usize| {
+    for (0..@as(usize, @intCast(expected_screenshot.width))) |x_usize| {
+      const y: c_int = @intCast(y_usize);
+      const x: c_int = @intCast(x_usize);
+
+      const expected = rl.GetImageColor(expected_screenshot, x, y);
+      const actual = rl.GetImageColor(actual_screenshot, x, y);
+
+      if (actual.r != expected.r or actual.g != expected.g or actual.b != expected.b or actual.a != expected.a) {
+        std.debug.print("[screenshot] pixel mismatch at {d}, {d}\n", .{x_usize, y_usize});
+        failed = true;
+      }
+    }
+  }
+
+  if (failed)
+    return error.TestImageMismatch;
+}
 
 test "ECS World should init" {
   // Given
