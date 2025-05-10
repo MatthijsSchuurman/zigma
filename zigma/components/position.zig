@@ -56,6 +56,8 @@ const tst = std.testing;
 test "Component Position should set value" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
   const entity = world.entity("test");
 
   // When
@@ -63,7 +65,4 @@ test "Component Position should set value" {
 
   // Then
   try tst.expectEqual(result.id, entity.id);
-
-  // Clean
-  ecs.World.deinit(&world);
 }

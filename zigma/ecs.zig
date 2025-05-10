@@ -282,29 +282,25 @@ test "ECS World should init" {
 
   // When
   var world = World.init(allocator);
+  defer world.deinit();
 
   // Then
   try tst.expectEqual(world.entity_id, 1);
   try tst.expectEqual(world.entities.count(), 0);
   try tst.expectEqual(world.components.timeline.count(), 0);
-
-  // Clean
-  world.deinit();
 }
 
 test "ECS World should init systems" {
   // Given
   const allocator = std.testing.allocator;
   var world = World.init(allocator);
+  defer world.deinit();
 
   // When
   world.initSystems();
 
   // Then
   try tst.expectEqual(@TypeOf(world.systems.timeline), Systems.Timeline.System);
-
-  // Clean
-  world.deinit();
 }
 
 test "ECS World should deinit" {
@@ -321,6 +317,7 @@ test "ECS World should deinit" {
 test "ECS World should get next entity" {
   // Given
   var world = World.init(std.testing.allocator);
+  defer world.deinit();
 
   // When
   const id = world.entityNext();
@@ -329,14 +326,12 @@ test "ECS World should get next entity" {
   // Then
   try tst.expectEqual(id, 1);
   try tst.expectEqual(id2, 2);
-
-  // Clean
-  world.deinit();
 }
 
 test "ECS World should add entity" {
   // Given
   var world = World.init(std.testing.allocator);
+  defer world.deinit();
 
   // When
   const entity = world.entity("test");
@@ -350,42 +345,35 @@ test "ECS World should add entity" {
   try tst.expectEqual(entity2.parent_id, 0);
   try tst.expectEqual(entity.world, &world);
   try tst.expectEqual(entity2.world, &world);
-
-  // Clean
-  world.deinit();
 }
 
 test "ECS World should render" {
   // Given
   var world = World.init(std.testing.allocator);
   world.initSystems();
+  defer world.deinit();
 
   // When
   const result = world.render();
 
   // Then
   try tst.expectEqual(result, true);
-
-  // Clean
-  world.deinit();
 }
 
 test "ECS World should query timeline events" {
   // Given
   var world = World.init(std.testing.allocator);
+  defer world.deinit();
 
   _ = world.entity("timeline").timeline_init();
   _ = world.entity("test").event(.{ .start = 0, .end = 1 });
 
   // When
   const result = world.query(Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
+  defer world.allocator.free(result);
 
   // Then
   try tst.expectEqual(result.len, 1);
-
-  // Clean
-  world.allocator.free(result);
-  world.deinit();
 }
 
 test "ECS should convert to lower case" {

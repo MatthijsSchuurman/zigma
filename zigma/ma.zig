@@ -117,10 +117,8 @@ test "Zigma should init world" {
 
   // When
   const world = init(config);
+  defer deinit(world);
 
   // Then
-  //tst.expectEqual(world, null);
-
-  // Clean
-  deinit(world);
+  //try tst.expectEqual(1, 2);
 }

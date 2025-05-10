@@ -2,6 +2,7 @@ const zigma = @import("zigma");
 
 pub fn main() void {
   var world = zigma.init(.{.title = "Zigma demo", .width = 1920, .height = 1080});
+  defer zigma.deinit(world);
 
   _ = world.entity("background")
   .color(50, 50, 50, 10)
@@ -41,6 +42,4 @@ pub fn main() void {
 
 
   while(zigma.render(world)){}
-
-  zigma.deinit(world);
 }
