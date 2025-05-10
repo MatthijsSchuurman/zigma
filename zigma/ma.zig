@@ -1,5 +1,4 @@
 const std = @import("std");
-const tst = @import("std").tst;
 const rl = @cImport(@cInclude("raylib.h"));
 
 // Setup memory management
@@ -98,4 +97,26 @@ pub fn render(world: *ecs.World) bool {
   rl.EndDrawing();
 
   return success;
+}
+
+
+// Testing
+const tst = std.testing;
+
+test "Zigma should init world" {
+  // Given
+  const config = .{
+    .title = "test",
+    .width = 320,
+    .height = 200,
+  };
+
+  // When
+  const world = init(config);
+
+  // Then
+  //tst.expectEqual(world, null);
+
+  // Clean
+  deinit(world);
 }

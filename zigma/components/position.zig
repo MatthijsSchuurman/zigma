@@ -1,3 +1,4 @@
+const std = @import("std");
 const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
@@ -47,3 +48,22 @@ pub const Query = struct {
     return world.query(Query, &world.components.position, f, .{});
   }
 };
+
+
+// Testing
+const tst = std.testing;
+
+test "Component Position should set value" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  const entity = world.entity("test");
+
+  // When
+  const result = entity.position(1, 2, 3);
+
+  // Then
+  try tst.expectEqual(result.id, entity.id);
+
+  // Clean
+  ecs.World.deinit(&world);
+}
