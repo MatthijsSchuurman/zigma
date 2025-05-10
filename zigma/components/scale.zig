@@ -69,8 +69,8 @@ test "Component should set scale" {
   try tst.expectEqual(result.id, entity.id);
   try tst.expectEqual(result.world, entity.world);
 
-  if (result.world.components.scale.get(result.id)) |pos|
-    try tst.expectEqual(pos, Component{.x = 1, .y = 2, .z = 3})
+  if (world.components.scale.get(entity.id)) |scale|
+    try tst.expectEqual(scale, Component{.x = 1, .y = 2, .z = 3})
   else
     return error.TestExpected;
 }

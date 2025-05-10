@@ -26,3 +26,58 @@ pub fn progress(entity: ecs.Entity, currentProgress: f32) void {
 pub fn deactivate(entity: ecs.Entity) void {
   _ = entity.world.components.timelineeventprogress.remove(entity.id);
 }
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should activate timeline event progress" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+
+  // When
+  activate(entity, null);
+
+  // Then
+  if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
+    try tst.expectEqual(timelineeventprogress, Component{.progress = 0, .target_id = null})
+  else
+    return error.TestExpected;
+}
+
+test "Component should set progress" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+  activate(entity, null);
+
+  // When
+  progress(entity, 0.5);
+
+  // Then
+  if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
+    try tst.expectEqual(timelineeventprogress, Component{.progress = 0.5, .target_id = null})
+  else
+    return error.TestExpected;
+}
+
+test "Component should deactivate timeline event progress" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+  activate(entity, null);
+
+  // When
+  deactivate(entity);
+
+  // Then
+  if (world.components.timelineeventprogress.get(entity.id)) |_|
+    return error.TestExpected;
+}

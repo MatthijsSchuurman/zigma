@@ -75,8 +75,8 @@ test "Component should set color" {
   try tst.expectEqual(result.id, entity.id);
   try tst.expectEqual(result.world, entity.world);
 
-  if (result.world.components.color.get(result.id)) |pos|
-    try tst.expectEqual(pos, Component{.r = 1, .g = 2, .b = 3, .a = 4})
+  if (world.components.color.get(entity.id)) |color|
+    try tst.expectEqual(color, Component{.r = 1, .g = 2, .b = 3, .a = 4})
   else
     return error.TestExpected;
 }

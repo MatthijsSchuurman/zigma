@@ -247,8 +247,6 @@ pub fn FieldFilter(comptime T: type) type {
 }
 
 pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
-  std.debug.print("cond: {}\n", .{cond});
-
   if (T == []const u8)
     return switch (cond) {
       .eq => std.mem.eql(u8, actual, cond.eq),
@@ -435,4 +433,3 @@ test "ECS should match string comparison types" {
     try tst.expectEqual(matchField([]const u8, c.actual, c.cond), c.expected);
   }
 }
-

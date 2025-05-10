@@ -69,8 +69,8 @@ test "Component should set rotation" {
   try tst.expectEqual(result.id, entity.id);
   try tst.expectEqual(result.world, entity.world);
 
-  if (result.world.components.rotation.get(result.id)) |pos|
-    try tst.expectEqual(pos, Component{.x = 1, .y = 2, .z = 3})
+  if (world.components.rotation.get(entity.id)) |rotation|
+    try tst.expectEqual(rotation, Component{.x = 1, .y = 2, .z = 3})
   else
     return error.TestExpected;
 }

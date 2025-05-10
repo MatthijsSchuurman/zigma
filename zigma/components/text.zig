@@ -74,13 +74,13 @@ test "Component should set text" {
   try tst.expectEqual(result.id, entity.id);
   try tst.expectEqual(result.world, entity.world);
 
-  if (result.world.components.text.get(result.id)) |pos|
-    try tst.expectEqual(pos, Component{.text = "test"})
+  if (world.components.text.get(entity.id)) |text|
+    try tst.expectEqual(text, Component{.text = "test"})
   else
     return error.TestExpected;
 }
 
-test "Query should filter by x" {
+test "Query should filter" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);

@@ -69,8 +69,8 @@ test "Component should set position" {
   try tst.expectEqual(result.id, entity.id);
   try tst.expectEqual(result.world, entity.world);
 
-  if (result.world.components.position.get(result.id)) |pos|
-    try tst.expectEqual(pos, Component{.x = 1, .y = 2, .z = 3})
+  if (world.components.position.get(entity.id)) |position|
+    try tst.expectEqual(position, Component{.x = 1, .y = 2, .z = 3})
   else
     return error.TestExpected;
 }
