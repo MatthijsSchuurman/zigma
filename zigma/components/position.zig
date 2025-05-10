@@ -44,8 +44,10 @@ pub const Query = struct {
     return true;
   }
 
+  pub const Sort = enum {noyetimplemented};
+
   pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
-    return world.query(Query, &world.components.position, f, .{});
+    return world.query(Query, &world.components.position, f, &.{});
   }
 };
 
@@ -53,7 +55,7 @@ pub const Query = struct {
 // Testing
 const tst = std.testing;
 
-test "Component Position should set value" {
+test "Component should set position" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
@@ -61,8 +63,31 @@ test "Component Position should set value" {
   const entity = world.entity("test");
 
   // When
-  const result = entity.position(1, 2, 3);
+  const result = set(entity, 1, 2, 3);
 
   // Then
   try tst.expectEqual(result.id, entity.id);
+  try tst.expectEqual(result.world, entity.world);
+
+  if (result.world.components.position.get(result.id)) |pos|
+    try tst.expectEqual(pos, Component{.x = 1, .y = 2, .z = 3})
+  else
+    return error.TestExpected;
+}
+
+test "Query should filter by x" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity1 = set(world.entity("test1"), 1, 2, 3);
+  _ = set(world.entity("test2"), 4, 5, 6);
+
+  // When
+  const result = Query.exec(&world, .{ .x = .{ .eq = 1 } });
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(result.len, 1);
+  try tst.expectEqual(result[0], entity1.id);
 }

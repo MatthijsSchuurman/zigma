@@ -1,3 +1,4 @@
+const std = @import("std");
 const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
@@ -23,33 +24,76 @@ pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    r: ?ecs.FieldFilter(f32) = null,
-    g: ?ecs.FieldFilter(f32) = null,
-    b: ?ecs.FieldFilter(f32) = null,
-    a: ?ecs.FieldFilter(f32) = null,
+    r: ?ecs.FieldFilter(u8) = null,
+    g: ?ecs.FieldFilter(u8) = null,
+    b: ?ecs.FieldFilter(u8) = null,
+    a: ?ecs.FieldFilter(u8) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.r) |cond|
-      if (!ecs.matchField(f32, self.r, cond))
+      if (!ecs.matchField(u8, self.r, cond))
         return false;
 
     if (f.g) |cond|
-      if (!ecs.matchField(f32, self.g, cond))
+      if (!ecs.matchField(u8, self.g, cond))
         return false;
 
     if (f.b) |cond|
-      if (!ecs.matchField(f32, self.b, cond))
+      if (!ecs.matchField(u8, self.b, cond))
         return false;
 
     if (f.a) |cond|
-      if (!ecs.matchField(f32, self.a, cond))
+      if (!ecs.matchField(u8, self.a, cond))
         return false;
 
     return true;
   }
 
+  pub const Sort = enum {noyetimplemented};
+
   pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
-    return world.query(Query, &world.components.color, f, .{});
+    return world.query(Query, &world.components.color, f, &.{});
   }
 };
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should set color" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+
+  // When
+  const result = set(entity, 1, 2, 3, 4);
+
+  // Then
+  try tst.expectEqual(result.id, entity.id);
+  try tst.expectEqual(result.world, entity.world);
+
+  if (result.world.components.color.get(result.id)) |pos|
+    try tst.expectEqual(pos, Component{.r = 1, .g = 2, .b = 3, .a = 4})
+  else
+    return error.TestExpected;
+}
+
+test "Query should filter by x" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity1 = set(world.entity("test1"), 1, 2, 3, 4);
+  _ = set(world.entity("test2"), 5, 6, 7, 8);
+
+  // When
+  const result = Query.exec(&world, .{ .r = .{ .eq = 1 } });
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(result.len, 1);
+  try tst.expectEqual(result[0], entity1.id);
+}

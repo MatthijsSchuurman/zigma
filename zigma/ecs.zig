@@ -153,11 +153,7 @@ pub const World = struct {
       if (T.filter(entry.value_ptr.*, filter))
         results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
 
-    if (sort.len > 0) {
-      if (!@hasDecl(T, "compare")) {
-        @compileError("Type " ++ @typeName(T) ++ " must implement 'compare()' for sorting.");
-      }
-
+    if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
         component: *const std.AutoHashMap(EntityID, T.Data),
         sort: []const T.Sort,
@@ -251,25 +247,36 @@ pub fn FieldFilter(comptime T: type) type {
 }
 
 pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
-  if (@typeInfo(T) == .Optional) {
+  std.debug.print("cond: {}\n", .{cond});
+
+  if (T == []const u8)
     return switch (cond) {
-      .eq => actual == cond.eq,
-      .not => actual != cond.not,
+      .eq => std.mem.eql(u8, actual, cond.eq),
+      .not => !std.mem.eql(u8, actual, cond.not),
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (@typeInfo(T) == .Optional)
+    return switch (cond) {
+      .eq => actual != null and cond.eq != null and actual.? == cond.eq.?,
+      .not => actual != null and cond.not != null and actual.? != cond.not.?,
       .lt => actual != null and cond.lt != null and actual.? < cond.lt.?,
       .lte => actual != null and cond.lte != null and actual.? <= cond.lte.?,
       .gt => actual != null and cond.gt != null and actual.? > cond.gt.?,
       .gte => actual != null and cond.gte != null and actual.? >= cond.gte.?,
     };
-  } else {
-    return switch (cond) {
-      .eq => actual == cond.eq,
-      .not => actual != cond.not,
-      .lt => actual < cond.lt,
-      .lte => actual <= cond.lte,
-      .gt => actual > cond.gt,
-      .gte => actual >= cond.gte,
-    };
-  }
+
+  return switch (cond) {
+    .eq => actual == cond.eq,
+    .not => actual != cond.not,
+    .lt => actual < cond.lt,
+    .lte => actual <= cond.lte,
+    .gt => actual > cond.gt,
+    .gte => actual >= cond.gte,
+  };
 }
 
 
@@ -389,7 +396,7 @@ test "ECS should convert to lower case" {
 }
 
 test "ECS should match various comparison types" {
-    // Given
+  // Given
   const TestCase = struct {
     desc: []const u8,
     actual: i32,
@@ -404,7 +411,28 @@ test "ECS should match various comparison types" {
     .{ .desc = "gt fail", .actual = 10, .cond = .{ .gt = 20 }, .expected = false },
   };
 
+  // When & Then
   for (cases) |c| {
     try tst.expectEqual(matchField(i32, c.actual, c.cond), c.expected);
   }
 }
+test "ECS should match string comparison types" {
+  // Given
+  const TestCase = struct {
+    desc: []const u8,
+    actual: []const u8,
+    cond: FieldFilter([]const u8),
+    expected: bool,
+  };
+
+  const cases = [_]TestCase{
+    .{ .desc = "eq pass", .actual = "test", .cond = .{ .eq = "test" }, .expected = true },
+    .{ .desc = "eq fail", .actual = "test", .cond = .{ .eq = "not_test" }, .expected = false },
+  };
+
+  // When & Then
+  for (cases) |c| {
+    try tst.expectEqual(matchField([]const u8, c.actual, c.cond), c.expected);
+  }
+}
+

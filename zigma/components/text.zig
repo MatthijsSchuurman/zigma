@@ -1,5 +1,5 @@
-const ecs = @import("../ecs.zig");
 const std = @import("std");
+const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
   text: []const u8,
@@ -40,8 +40,8 @@ pub const Query = struct {
   pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
     for (sort) |field| {
       const order = switch (field) {
-        .text_asc => std.math.order(a.text, b.text),
-        .text_desc => std.math.order(b.text, a.text),
+        .text_asc => std.mem.order(u8, a.text, b.text),
+        .text_desc => std.mem.order(u8, b.text, a.text),
       };
 
       if(order != .eq) // lt/qt not further comparison needed
@@ -51,7 +51,48 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn query(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
     return world.query(Query, &world.components.text, f, sort);
   }
 };
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should set text" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+
+  // When
+  const result = set(entity, "test");
+
+  // Then
+  try tst.expectEqual(result.id, entity.id);
+  try tst.expectEqual(result.world, entity.world);
+
+  if (result.world.components.text.get(result.id)) |pos|
+    try tst.expectEqual(pos, Component{.text = "test"})
+  else
+    return error.TestExpected;
+}
+
+test "Query should filter by x" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity1 = set(world.entity("test1"), "test1");
+  _ = set(world.entity("test2"), "test2");
+
+  // When
+  const result = Query.exec(&world, .{ .text = .{ .eq = "test1" }}, &.{.text_asc});
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(result.len, 1);
+  try tst.expectEqual(result[0], entity1.id);
+}

@@ -1,5 +1,5 @@
-const ecs = @import("../ecs.zig");
 const std = @import("std");
+const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
   timeline_id: ecs.EntityID,
