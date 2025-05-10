@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) !void {
   const optimize = b.standardOptimizeOption(.{});
 
   const demo_name = b.option([]const u8, "demo", "Which demo to build (e.g. text, pulse, wave)");
-  const test_file = b.option([]const u8, "file", "Path to a Zig test file to run");
+  const test_filter = b.option([]const u8, "filter", "Filter which tests to run");
 
   // Modules
   const zigma = b.createModule(.{
@@ -36,30 +36,25 @@ pub fn build(b: *std.Build) !void {
   b.step("run", "Run the demo").dependOn(&run_exec.step);
   b.default_step.dependOn(&exe.step);
 
-
   // Setup test
-  const test_step = b.step("test", "Run unit tests");
+  var test_cmd = std.ArrayList(u8).init(b.allocator);
+  defer test_cmd.deinit();
 
-  var dir = try std.fs.cwd().openDir("./", .{ .iterate = true });
-  defer dir.close();
+  try test_cmd.appendSlice("set -o pipefail; ");
+  try test_cmd.appendSlice("zig test -lm -lraylib zigma/ma.zig ");
+  if (test_filter) |filter| {
+    try test_cmd.appendSlice("--test-filter ");
+    if (std.mem.startsWith(u8, filter, "zigma."))
+      try test_cmd.appendSlice(filter["zigma.".len..])
+    else
+      try test_cmd.appendSlice(filter);
 
-  var it = try dir.walk(b.allocator);
-  while (try it.next()) |entry| {
-    if (entry.kind != .file) continue;
-    if (!std.mem.endsWith(u8, entry.path, ".zig")) continue;
-
-    if (test_file) |filter|
-      if (!std.mem.endsWith(u8, entry.path, filter)) continue;
-
-    const tst = b.addTest(.{
-      .root_source_file = .{ .cwd_relative = entry.path },
-    });
-
-    tst.root_module.addImport("zigma", zigma);
-    inline for (system_libs) |lib|
-      tst.linkSystemLibrary(lib);
-
-    const run_test = b.addRunArtifact(tst);
-    test_step.dependOn(&run_test.step);
+    try test_cmd.appendSlice(" ");
   }
+
+  try test_cmd.appendSlice("2>&1 | cat");
+
+  const test_cmd_string = try test_cmd.toOwnedSlice();
+  const run_tests = b.addSystemCommand(&.{"sh", "-c", test_cmd_string});
+  b.step("test", "Run unit tests").dependOn(&run_tests.step);
 }

@@ -103,6 +103,10 @@ pub fn render(world: *ecs.World) bool {
 // Testing
 const tst = std.testing;
 
+test { // Export tests in imported files
+  std.testing.refAllDecls(@This());
+}
+
 test "Zigma should init world" {
   // Given
   const config = .{
