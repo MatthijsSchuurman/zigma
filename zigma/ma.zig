@@ -3,10 +3,15 @@ const rl = @cImport(@cInclude("raylib.h"));
 
 // Setup memory management
 const builtin = @import("builtin");
-const use_gpa = builtin.mode == .Debug;
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-pub const allocator = if (use_gpa) gpa.allocator() else arena.allocator();
+pub const allocator =
+  if (builtin.is_test)
+    std.testing.allocator
+  else if (builtin.mode == .Debug)
+    gpa.allocator()
+  else
+    arena.allocator();
 
 // ECS
 pub const ecs = @import("ecs.zig");
@@ -18,10 +23,12 @@ const Config = struct {
   height: i32,
 };
 
-pub fn init(config: Config) *ecs.World {
+pub fn init(config: Config) void {
   rl.InitWindow(config.width, config.height, config.title);
   rl.SetTargetFPS(200);
+}
 
+pub fn create() *ecs.World {
   const world = allocator.create(ecs.World) catch @panic("Unable to create world");
   world.* = ecs.World.init(allocator);
   world.initSystems();
@@ -31,14 +38,22 @@ pub fn init(config: Config) *ecs.World {
   return world;
 }
 
-pub fn deinit(world: *ecs.World) void {
+pub fn destroy(world: *ecs.World) void {
   world.deinit();
   allocator.destroy(world);
+}
 
+pub fn deinit() void {
   rl.CloseWindow();
 
-  if (use_gpa) _ = gpa.deinit() else arena.deinit();
+  if (!builtin.is_test) {// Test allocator teardown done by test framework
+    if (builtin.mode == .Debug)
+      _ = gpa.deinit()
+    else
+      arena.deinit();
+  }
 }
+
 
 // Render
 pub fn render(world: *ecs.World) bool {
@@ -107,7 +122,7 @@ test { // Export tests in imported files
   std.testing.refAllDecls(@This());
 }
 
-test "Zigma should init world" {
+test "Zigma should init" {
   // Given
   rl.SetTraceLogLevel(rl.LOG_NONE);
 
@@ -118,9 +133,49 @@ test "Zigma should init world" {
   };
 
   // When
-  const world = init(config);
-  defer deinit(world);
+  init(config);
+  defer deinit();
 
   // Then
-  //try tst.expectEqual(1, 2);
+  try tst.expectEqual(true, rl.IsWindowReady());
+}
+
+test "Zigma should create world" {
+  // Given
+  rl.SetTraceLogLevel(rl.LOG_NONE);
+
+  init(.{
+    .title = "test",
+    .width = 320,
+    .height = 200,
+  });
+  defer deinit();
+
+  // When
+  const world = create();
+  defer destroy(world);
+
+  // Then
+}
+
+test "Zigma should render world" {
+  // Given
+  rl.SetTraceLogLevel(rl.LOG_NONE);
+
+  init(.{
+    .title = "test",
+    .width = 320,
+    .height = 200,
+  });
+  defer deinit();
+
+  const world = create();
+  defer destroy(world);
+
+  // When
+  const result = render(world);
+
+  // Then
+  try tst.expectEqual(true, result);
+  try ecs.expectScreenshot("world.render");
 }
