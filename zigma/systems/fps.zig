@@ -43,20 +43,18 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("zigma");
+const zigma = @import("../ma.zig");
 
 test "System should render update" {
   // Given
-  rl.SetTraceLogLevel(rl.LOG_NONE);
-  rl.InitWindow(320, 200, "Test");
-  rl.SetTargetFPS(10); // Ensure consistent FPS
-  defer rl.CloseWindow();
+  zigma.init(.{.title = "test", .width = 320, .height = 200 });
+  rl.SetTargetFPS(10);
+  defer zigma.deinit();
 
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
+  const world = zigma.create();
+  defer zigma.destroy(world);
 
-  _ = world.entity("timeline").timeline_init();
-  var system = System.init(&world);
+  var system = System.init(world);
 
   // When
   rl.BeginDrawing(); // Ensure consistent FPS

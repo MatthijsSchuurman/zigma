@@ -118,14 +118,15 @@ pub fn render(world: *ecs.World) bool {
 // Testing
 const tst = std.testing;
 
-test { // Export tests in imported files
-  std.testing.refAllDecls(@This());
+test { // Before
+  rl.SetTraceLogLevel(rl.LOG_NONE);
+  rl.SetWindowState(rl.FLAG_WINDOW_HIDDEN);
+
+  std.testing.refAllDecls(@This()); // Export tests in imported files
 }
 
 test "Zigma should init" {
   // Given
-  rl.SetTraceLogLevel(rl.LOG_NONE);
-
   const config = .{
     .title = "test",
     .width = 320,
@@ -142,13 +143,7 @@ test "Zigma should init" {
 
 test "Zigma should create world" {
   // Given
-  rl.SetTraceLogLevel(rl.LOG_NONE);
-
-  init(.{
-    .title = "test",
-    .width = 320,
-    .height = 200,
-  });
+  init(.{.title = "test", .width = 320, .height = 200});
   defer deinit();
 
   // When
@@ -156,17 +151,12 @@ test "Zigma should create world" {
   defer destroy(world);
 
   // Then
+  try tst.expectEqual(true, rl.IsWindowReady());
 }
 
 test "Zigma should render world" {
   // Given
-  rl.SetTraceLogLevel(rl.LOG_NONE);
-
-  init(.{
-    .title = "test",
-    .width = 320,
-    .height = 200,
-  });
+  init(.{.title = "test", .width = 320, .height = 200});
   defer deinit();
 
   const world = create();
