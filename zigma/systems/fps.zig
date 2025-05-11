@@ -47,17 +47,20 @@ const zigma = @import("zigma");
 
 test "System should render update" {
   // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
   rl.SetTraceLogLevel(rl.LOG_NONE);
   rl.InitWindow(320, 200, "Test");
+  rl.SetTargetFPS(10); // Ensure consistent FPS
   defer rl.CloseWindow();
+
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
 
   _ = world.entity("timeline").timeline_init();
   var system = System.init(&world);
 
   // When
+  rl.BeginDrawing(); // Ensure consistent FPS
+  rl.EndDrawing();
   rl.BeginDrawing();
   system.update();
   rl.EndDrawing();

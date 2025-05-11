@@ -318,14 +318,23 @@ pub fn expectScreenshot(key: []const u8) !void {
       const actual = rl.GetImageColor(actual_screenshot, x, y);
 
       if (actual.r != expected.r or actual.g != expected.g or actual.b != expected.b or actual.a != expected.a) {
-        std.debug.print("[screenshot] pixel mismatch at {d}, {d}\n", .{x_usize, y_usize});
         failed = true;
+        //std.debug.print("[screenshot] pixel mismatch at {d}, {d}\n", .{x_usize, y_usize});
+        break; // TODO: implement diff overlay
       }
     }
   }
 
-  if (failed)
+  const fail_path = try std.fmt.bufPrintZ(&path_buf, "{s}/{s}-failed.{s}", .{test_data_dir, key, file_extension});
+  if (failed) {
+    _ = rl.ExportImage(actual_screenshot, fail_path);
+    std.debug.print("[screenshot] saved failure: {s}\n", .{fail_path});
     return error.TestImageMismatch;
+  } else {
+    _ = std.fs.cwd().deleteFile(fail_path) catch |e|
+      if (e != error.FileNotFound)
+        return e;
+  }
 }
 
 test "ECS World should init" {
