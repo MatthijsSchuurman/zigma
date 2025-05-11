@@ -1,6 +1,5 @@
-const rl = @cImport(@cInclude("raylib.h"));
-const ecs = @import("../../ecs.zig");
 const std = @import("std");
+const ecs = @import("../../ecs.zig");
 
 pub const System = struct {
   world: *ecs.World,

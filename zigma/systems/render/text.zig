@@ -1,6 +1,6 @@
-const rl = @cImport(@cInclude("raylib.h"));
-const ecs = @import("../../ecs.zig");
 const std = @import("std");
+const ecs = @import("../../ecs.zig");
+const rl = @cImport(@cInclude("raylib.h"));
 
 pub const System = struct {
   world: *ecs.World,
@@ -55,3 +55,32 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should render update" {
+  // Given
+  zigma.init(.{.title = "test", .width = 320, .height = 200 });
+  rl.SetTargetFPS(10);
+  defer zigma.deinit();
+
+  const world = zigma.create();
+  defer zigma.destroy(world);
+
+  _ = world.entity("test").text("test").scale(10, 1, 1);
+
+  var system = System.init(world);
+
+  // When
+  rl.BeginDrawing(); // Ensure consistent FPS
+  rl.EndDrawing();
+  rl.BeginDrawing();
+  system.update();
+  rl.EndDrawing();
+
+  // Then
+  try ecs.expectScreenshot("system.text.render_update");
+}
