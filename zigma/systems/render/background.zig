@@ -11,7 +11,7 @@ pub const System = struct {
     };
   }
 
-  pub fn update(self: *System) void {
+  pub fn render(self: *System) void {
     const background_entity = self.world.entity("background");
     if (self.world.components.color.get(background_entity.id)) |color| {
       if (color.a == 0) { // No wipe
@@ -29,7 +29,7 @@ pub const System = struct {
 const tst = std.testing;
 const zigma = @import("../../ma.zig");
 
-test "System should render update" {
+test "System should render background" {
   // Given
   zigma.init(.{.title = "test", .width = 320, .height = 200 });
   rl.SetTargetFPS(10);
@@ -46,9 +46,9 @@ test "System should render update" {
   rl.BeginDrawing(); // Ensure consistent FPS
   rl.EndDrawing();
   rl.BeginDrawing();
-  system.update();
+  system.render();
   rl.EndDrawing();
 
   // Then
-  try ecs.expectScreenshot("system.background.render_update");
+  try ecs.expectScreenshot("system.render.background");
 }

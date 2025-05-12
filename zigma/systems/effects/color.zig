@@ -70,8 +70,8 @@ test "System should update color" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("test").color(0, 0, 0);
-  const event = world.entity("test event").color(1, -1, 100);
+  const entity = world.entity("test").color(255, 128, 0, 100);
+  const event = world.entity("test event").color(0, 128, 255, 200);
 
   const new = .{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
@@ -84,7 +84,7 @@ test "System should update color" {
 
   // Then
   if (entity.world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.x = 0.5, .y = -0.5, .z = 50}, color)
+    try tst.expectEqual(ecs.Components.Color.Component{.r = 128, .g = 128, .b = 128, .a = 150}, color)
    else
     return error.TestExpectedColor;
 }

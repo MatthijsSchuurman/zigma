@@ -1,5 +1,5 @@
 const std = @import("std");
-const ecs = @import("../ecs.zig");
+const ecs = @import("../../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
 pub const System = struct {
@@ -11,7 +11,7 @@ pub const System = struct {
     };
   }
 
-  pub fn update(self: *System) void {
+  pub fn render(self: *System) void {
     const screen_width = rl.GetScreenWidth();
     const screen_height = rl.GetScreenHeight();
 
@@ -43,9 +43,9 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../ma.zig");
+const zigma = @import("../../ma.zig");
 
-test "System should render update" {
+test "System should render fps" {
   // Given
   zigma.init(.{.title = "test", .width = 320, .height = 200 });
   rl.SetTargetFPS(10);
@@ -60,9 +60,9 @@ test "System should render update" {
   rl.BeginDrawing(); // Ensure consistent FPS
   rl.EndDrawing();
   rl.BeginDrawing();
-  system.update();
+  system.render();
   rl.EndDrawing();
 
   // Then
-  try ecs.expectScreenshot("system.fps.render_update");
+  try ecs.expectScreenshot("system.render.fps");
 }
