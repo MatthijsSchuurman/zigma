@@ -13,7 +13,7 @@ pub const Component = struct {
   motion: Motion = .Linear,
 };
 
-const Pattern = enum {
+pub const Pattern = enum {
   Forward,
   Reverse,
   PingPong,
@@ -21,7 +21,7 @@ const Pattern = enum {
   Random,
 };
 
-const Motion = enum {
+pub const Motion = enum {
   Instant,
   Linear,
   EaseIn,
