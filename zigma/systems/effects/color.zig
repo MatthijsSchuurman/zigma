@@ -1,6 +1,5 @@
-const rl = @cImport(@cInclude("raylib.h"));
-const ecs = @import("../../ecs.zig");
 const std = @import("std");
+const ecs = @import("../../ecs.zig");
 
 pub const System = struct {
   world: *ecs.World,
@@ -60,3 +59,32 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should update color" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").color(255, 128, 0, 100);
+  const event = world.entity("test event").color(0, 128, 255, 200);
+
+  const new = .{.target_id = entity.id, .progress = 0.5};
+  world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
+
+  var system = System.init(&world);
+  defer system.deinit();
+
+  // When
+  system.update();
+
+  // Then
+  if (entity.world.components.color.get(entity.id)) |color|
+    try tst.expectEqual(ecs.Components.Color.Component{.r = 128, .g = 128, .b = 128, .a = 150}, color)
+   else
+    return error.TestExpectedColor;
+}

@@ -27,3 +27,18 @@ A minimal, modular Zig + Raylib framework for building audiovisual demos on Linu
 ```sh
 zig build run
 ```
+
+## Control
+
+| Shortcut | Description |
+| --- | --- |
+| Esc | Quit |
+| f | Fullscreen |
+| + | Increase main timeline speed a bit |
+| - | Decrease main timeline speed a bit |
+| Shift + | Increase main timeline speed a lot |
+| Shift - | Decrease main timeline speed a lot |
+| Right | Jump a bit forward on the main timeline |
+| Left | Jump a bit backwards on the main timeline |
+| Shift Right | Jump a lot forward on the main timeline |
+| Shift Left | Jump a lot backwards on the main timeline |

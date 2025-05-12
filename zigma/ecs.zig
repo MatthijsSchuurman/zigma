@@ -1,4 +1,5 @@
 const std = @import("std");
+const rl = @cImport(@cInclude("raylib.h"));
 
 //Entity
 pub const EntityID = u32;
@@ -42,7 +43,6 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 //Systems
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
-  pub const FPS = @import("systems/fps.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -53,6 +53,7 @@ pub const Systems = struct {
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
   pub const Render_Text = @import("systems/render/text.zig");
+  pub const FPS = @import("systems/render/fps.zig");
 };
 
 const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
@@ -137,10 +138,10 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
-    self.systems.render_background.update();
-    self.systems.render_text.update();
+    self.systems.render_background.render();
+    self.systems.render_text.render();
 
-    self.systems.fps.update();
+    self.systems.fps.render();
     return true;
   }
 
@@ -153,11 +154,7 @@ pub const World = struct {
       if (T.filter(entry.value_ptr.*, filter))
         results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
 
-    if (sort.len > 0) {
-      if (!@hasDecl(T, "compare")) {
-        @compileError("Type " ++ @typeName(T) ++ " must implement 'compare()' for sorting.");
-      }
-
+    if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
         component: *const std.AutoHashMap(EntityID, T.Data),
         sort: []const T.Sort,
@@ -229,7 +226,7 @@ fn SystemStores() type {
   }});
 }
 
-fn toLower(comptime s: []const u8) [:0]const u8 {
+pub fn toLower(comptime s: []const u8) [:0]const u8 {
   var buf: [s.len + 1]u8 = undefined;
   for (s, 0..) |c, i|
     buf[i] = std.ascii.toLower(c);
@@ -251,23 +248,242 @@ pub fn FieldFilter(comptime T: type) type {
 }
 
 pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
-  if (@typeInfo(T) == .Optional) {
+  if (T == []const u8)
     return switch (cond) {
-      .eq => actual == cond.eq,
-      .not => actual != cond.not,
+      .eq => std.mem.eql(u8, actual, cond.eq),
+      .not => !std.mem.eql(u8, actual, cond.not),
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (@typeInfo(T) == .Optional)
+    return switch (cond) {
+      .eq => actual != null and cond.eq != null and actual.? == cond.eq.?,
+      .not => actual != null and cond.not != null and actual.? != cond.not.?,
       .lt => actual != null and cond.lt != null and actual.? < cond.lt.?,
       .lte => actual != null and cond.lte != null and actual.? <= cond.lte.?,
       .gt => actual != null and cond.gt != null and actual.? > cond.gt.?,
       .gte => actual != null and cond.gte != null and actual.? >= cond.gte.?,
     };
-  } else {
-    return switch (cond) {
-      .eq => actual == cond.eq,
-      .not => actual != cond.not,
-      .lt => actual < cond.lt,
-      .lte => actual <= cond.lte,
-      .gt => actual > cond.gt,
-      .gte => actual >= cond.gte,
-    };
+
+  return switch (cond) {
+    .eq => actual == cond.eq,
+    .not => actual != cond.not,
+    .lt => actual < cond.lt,
+    .lte => actual <= cond.lte,
+    .gt => actual > cond.gt,
+    .gte => actual >= cond.gte,
+  };
+}
+
+
+// Testing
+const tst = std.testing;
+
+pub fn expectScreenshot(key: []const u8) !void {
+  const test_data_dir = ".testdata";
+  const file_extension = "png";
+
+  var path_buf: [512]u8 = undefined;
+  const file_path = try std.fmt.bufPrintZ(&path_buf, "{s}/{s}.{s}", .{test_data_dir, key, file_extension});
+
+  // Get screenshots
+  const actual_screenshot = rl.LoadImageFromScreen();
+  defer rl.UnloadImage(actual_screenshot);
+
+  const expected_screenshot = rl.LoadImage(file_path);
+  defer rl.UnloadImage(expected_screenshot);
+
+  if (expected_screenshot.data == null) { // No screenshot yet
+    std.fs.cwd().makeDir(test_data_dir) catch {}; //Ensure test data directory exists
+    _ = rl.ExportImage(actual_screenshot, file_path);
+    std.debug.print("[screenshot] saved initial: {s}\n", .{file_path});
+    return;
   }
+
+  if (expected_screenshot.width != actual_screenshot.width or expected_screenshot.height != actual_screenshot.height) {
+    std.debug.print("[screenshot] size mismatch: {s}\n", .{file_path});
+    return error.TestImageSizeMismatch;
+  }
+
+  var failed = false;
+  for (0..@as(usize, @intCast(expected_screenshot.height))) |y_usize| {
+    for (0..@as(usize, @intCast(expected_screenshot.width))) |x_usize| {
+      const y: c_int = @intCast(y_usize);
+      const x: c_int = @intCast(x_usize);
+
+      const expected = rl.GetImageColor(expected_screenshot, x, y);
+      const actual = rl.GetImageColor(actual_screenshot, x, y);
+
+      if (actual.r != expected.r or actual.g != expected.g or actual.b != expected.b or actual.a != expected.a) {
+        failed = true;
+        //std.debug.print("[screenshot] pixel mismatch at {d}, {d}\n", .{x_usize, y_usize});
+        break; // TODO: implement diff overlay
+      }
+    }
+  }
+
+  const fail_path = try std.fmt.bufPrintZ(&path_buf, "{s}/{s}-failed.{s}", .{test_data_dir, key, file_extension});
+  if (failed) {
+    _ = rl.ExportImage(actual_screenshot, fail_path);
+    std.debug.print("[screenshot] saved failure: {s}\n", .{fail_path});
+    return error.TestImageMismatch;
+  } else {
+    _ = std.fs.cwd().deleteFile(fail_path) catch |e|
+      if (e != error.FileNotFound)
+        return e;
+  }
+}
+
+test "ECS World should init" {
+  // Given
+  const allocator = std.testing.allocator;
+
+  // When
+  var world = World.init(allocator);
+  defer world.deinit();
+
+  // Then
+  try tst.expectEqual(1, world.entity_id);
+  try tst.expectEqual(0, world.entities.count());
+  try tst.expectEqual(0, world.components.timeline.count());
+}
+
+test "ECS World should init systems" {
+  // Given
+  const allocator = std.testing.allocator;
+  var world = World.init(allocator);
+  defer world.deinit();
+
+  // When
+  world.initSystems();
+
+  // Then
+  try tst.expectEqual(Systems.Timeline.System, @TypeOf(world.systems.timeline));
+}
+
+test "ECS World should deinit" {
+  // Given
+  var world = World.init(std.testing.allocator);
+
+  // When
+  world.deinit();
+
+  // Then
+  try tst.expectEqual(1, world.entity_id);
+}
+
+test "ECS World should get next entity" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  defer world.deinit();
+
+  // When
+  const id = world.entityNext();
+  const id2 = world.entityNext();
+
+  // Then
+  try tst.expectEqual(1, id);
+  try tst.expectEqual(2, id2);
+}
+
+test "ECS World should add entity" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  defer world.deinit();
+
+  // When
+  const entity = world.entity("test");
+  const entity2 = world.entity("test");
+
+  // Then
+  try tst.expectEqual(1, world.entities.count());
+  try tst.expectEqual(1, entity.id);
+  try tst.expectEqual(1, entity2.id);
+  try tst.expectEqual(0, entity.parent_id);
+  try tst.expectEqual(0, entity2.parent_id);
+  try tst.expectEqual(&world, entity.world);
+  try tst.expectEqual(&world, entity2.world);
+}
+
+test "ECS World should render" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  world.initSystems();
+  defer world.deinit();
+
+  // When
+  const result = world.render();
+
+  // Then
+  try tst.expectEqual(true, result);
+}
+
+test "ECS World should query timeline events" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  defer world.deinit();
+
+  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("test").event(.{ .start = 0, .end = 1 });
+
+  // When
+  const result = world.query(Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(1, result.len);
+}
+
+test "ECS should convert to lower case" {
+  // Given
+  const str = "TEST";
+
+  // When
+  const result = toLower(str);
+
+  // Then
+  try tst.expectEqualStrings("test", result);
+  try tst.expectEqual(0, result[result.len]);
+}
+
+test "ECS should match various comparison types" {
+  // Given
+  const TestCase = struct {
+    desc: []const u8,
+    actual: i32,
+    cond: FieldFilter(i32),
+    expected: bool,
+  };
+
+  const cases = [_]TestCase{
+    .{ .desc = "eq pass", .actual = 42, .cond = .{ .eq = 42 }, .expected = true },
+    .{ .desc = "eq fail", .actual = 41, .cond = .{ .eq = 42 }, .expected = false },
+    .{ .desc = "lt pass", .actual = 10, .cond = .{ .lt = 20 }, .expected = true },
+    .{ .desc = "gt fail", .actual = 10, .cond = .{ .gt = 20 }, .expected = false },
+  };
+
+  // When & Then
+  for (cases) |c|
+    try tst.expectEqual(c.expected, matchField(i32, c.actual, c.cond));
+}
+test "ECS should match string comparison types" {
+  // Given
+  const TestCase = struct {
+    desc: []const u8,
+    actual: []const u8,
+    cond: FieldFilter([]const u8),
+    expected: bool,
+  };
+
+  const cases = [_]TestCase{
+    .{ .desc = "eq pass", .actual = "test", .cond = .{ .eq = "test" }, .expected = true },
+    .{ .desc = "eq fail", .actual = "test", .cond = .{ .eq = "not_test" }, .expected = false },
+  };
+
+  // When & Then
+  for (cases) |c|
+    try tst.expectEqual(c.expected, matchField([]const u8, c.actual, c.cond));
 }

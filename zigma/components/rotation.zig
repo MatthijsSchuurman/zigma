@@ -1,3 +1,4 @@
+const std = @import("std");
 const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
@@ -43,7 +44,50 @@ pub const Query = struct {
     return true;
   }
 
+  pub const Sort = enum {noyetimplemented};
+
   pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
-    return world.query(Query, &world.components.rotation, f, .{});
+    return world.query(Query, &world.components.rotation, f, &.{});
   }
 };
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should set rotation" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+
+  // When
+  const result = set(entity, 1, 2, 3);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.rotation.get(entity.id)) |rotation|
+    try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, rotation)
+  else
+    return error.TestExpectedRotation;
+}
+
+test "Query should filter" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity1 = set(world.entity("test1"), 1, 2, 3);
+  _ = set(world.entity("test2"), 4, 5, 6);
+
+  // When
+  const result = Query.exec(&world, .{ .x = .{ .eq = 1 } });
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(1, result.len);
+  try tst.expectEqual(entity1.id, result[0]);
+}

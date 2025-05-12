@@ -1,5 +1,5 @@
-const ecs = @import("../ecs.zig");
 const std = @import("std");
+const ecs = @import("../ecs.zig");
 
 pub const Component = struct {
   timeline_id: ecs.EntityID,
@@ -13,7 +13,7 @@ pub const Component = struct {
   motion: Motion = .Linear,
 };
 
-const Pattern = enum {
+pub const Pattern = enum {
   Forward,
   Reverse,
   PingPong,
@@ -21,7 +21,7 @@ const Pattern = enum {
   Random,
 };
 
-const Motion = enum {
+pub const Motion = enum {
   Instant,
   Linear,
   EaseIn,
@@ -196,3 +196,76 @@ pub const Query = struct {
     return world.query(Query, &world.components.timelineevent, f, sort);
   }
 };
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should add timeline event" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const timeline = world.entity("timeline");
+  const entity = world.entity("test");
+
+  // When
+  const result = add(entity, Event{
+    .start = 1.0,
+    .end = 2.0,
+    .duration = 1.0,
+    .repeat = 1,
+    .pattern = Pattern.Forward,
+    .motion = Motion.Linear,
+  });
+
+  // Then
+  try tst.expectEqual(entity.id, result.parent_id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.timelineevent.get(result.id)) |timelineevent|
+    try tst.expectEqual(timelineevent, Component{
+      .timeline_id = timeline.id,
+      .target_id = entity.id,
+      .start = 1.0,
+      .end = 2.0,
+      .repeat = 1,
+      .pattern = Pattern.Forward,
+      .motion = Motion.Linear,
+    })
+  else
+    return error.TestExpectedTimelineEvent;
+}
+
+test "Query should filter" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  _ = world.entity("timeline");
+
+  const entity1 = add(world.entity("test1"), Event{
+    .start = 1.0,
+    .end = 2.0,
+    .duration = 1.0,
+    .repeat = 1,
+    .pattern = Pattern.Forward,
+    .motion = Motion.Linear,
+  });
+  _ = add(world.entity("test2"), Event{
+    .start = 3.0,
+    .end = 4.0,
+    .duration = 1.0,
+    .repeat = 1,
+    .pattern = Pattern.Forward,
+    .motion = Motion.Linear,
+  });
+
+  // When
+  const result = Query.exec(&world, .{ .start = .{ .eq = 1.0 } }, &.{ .start_asc });
+  defer world.allocator.free(result);
+
+  // Then
+  try tst.expectEqual(1, result.len);
+  try tst.expectEqual(entity1.id, result[0]);
+}

@@ -1,6 +1,5 @@
-const rl = @cImport(@cInclude("raylib.h"));
-const ecs = @import("../../ecs.zig");
 const std = @import("std");
+const ecs = @import("../../ecs.zig");
 
 pub const System = struct {
   world: *ecs.World,
@@ -50,3 +49,32 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should update rotation" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").rotation(0, 0, 0);
+  const event = world.entity("test event").rotation(1, -1, 100);
+
+  const new = .{.target_id = entity.id, .progress = 0.5};
+  world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
+
+  var system = System.init(&world);
+  defer system.deinit();
+
+  // When
+  system.update();
+
+  // Then
+  if (entity.world.components.rotation.get(entity.id)) |rotation|
+    try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0.5, .y = -0.5, .z = 50}, rotation)
+   else
+    return error.TestExpectedRotation;
+}

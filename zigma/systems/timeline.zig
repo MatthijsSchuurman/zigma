@@ -46,24 +46,25 @@ pub const System = struct {
     while (it.next()) |entry| {
       var timeline = entry.value_ptr;
 
+      var timeDelta: f32 = 0.0;
+      const timestampCurrentMS = std.time.milliTimestamp();
+
       if (timeline.timestampPreviousMS == 0 ) { // first time
         timeline.timeCurrent = 0;
-        timeline.timePrevious = 0;
-        timeline.timestampPreviousMS = std.time.milliTimestamp(); //store for next determine
       } else {
-        const timestampCurrentMS = std.time.milliTimestamp();
-        var timestampDelta = @as(f32, @floatFromInt(timestampCurrentMS - timeline.timestampPreviousMS)) / 1000.0;
-
-        if (timeline.timeOffset != 0) { // jump by offset
-          timestampDelta += timeline.timeOffset;
-          timeline.timeOffset = 0; // reset offset
-        }
-
-        timeline.timePrevious = timeline.timeCurrent;
-        timeline.timeCurrent += timestampDelta * timeline.speed;
-        timeline.timeDelta = timestampDelta;
-        timeline.timestampPreviousMS = timestampCurrentMS;
+        const timestampDelta = @as(f32, @floatFromInt(timestampCurrentMS - timeline.timestampPreviousMS)) / 1000.0;
+        timeDelta += timestampDelta * timeline.speed;
       }
+
+      if (timeline.timeOffset != 0) { // jump by offset
+        timeDelta += timeline.timeOffset;
+        timeline.timeOffset = 0; // reset offset
+      }
+
+      timeline.timePrevious = timeline.timeCurrent;
+      timeline.timeCurrent += timeDelta;
+      timeline.timeDelta = timeDelta;
+      timeline.timestampPreviousMS = timestampCurrentMS;
     }
   }
 
@@ -138,9 +139,9 @@ pub const System = struct {
     const repeat: f32 = @floatFromInt(@max(1, event.repeat));
     const iteration_duration = total_time / repeat;
 
-    const progress_position = total_elapsed / iteration_duration;
-    const iteration_index= @floor(progress_position);
-    const iteration_time = progress_position - iteration_index;
+    const progress_timeline = total_elapsed / iteration_duration;
+    const iteration_index= @floor(progress_timeline);
+    const iteration_time = progress_timeline - iteration_index;
 
     var progress = if (iteration_time == 0 and total_elapsed > 0) 1.0 else iteration_time;
 
@@ -174,3 +175,222 @@ pub const System = struct {
     return progress;
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should determine time" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("timeline").timeline_init();
+
+  var system = System.init(&world);
+
+  // When
+  system.determineTime();
+
+  // Then
+  if (entity.world.components.timeline.get(entity.id)) |timeline| {
+    try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
+    const timestampCurrentMS = timeline.timestampPreviousMS;
+
+    try tst.expectEqual(ecs.Components.Timeline.Component{
+      .speed = 1.0,
+      .timeCurrent = 0.0,
+      .timePrevious = 0.0,
+      .timeDelta = 0.0,
+      .timeOffset = 0.0,
+      .timestampPreviousMS = timestampCurrentMS,
+    }, timeline);
+  } else {
+    return error.TestExpectedTimeline;
+  }
+
+
+  // Given
+  std.time.sleep(1_000_000);
+
+  // When
+  system.determineTime();
+
+  // Then
+  if (entity.world.components.timeline.get(entity.id)) |timeline| {
+    try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
+    const timestampCurrentMS = timeline.timestampPreviousMS;
+
+    try tst.expectEqual(ecs.Components.Timeline.Component{
+      .speed = 1.0,
+      .timeCurrent = 0.001,
+      .timePrevious = 0.0,
+      .timeDelta = 0.001,
+      .timeOffset = 0.0,
+      .timestampPreviousMS = timestampCurrentMS,
+    }, timeline);
+  } else {
+    return error.TestExpectedTimeline;
+  }
+}
+
+test "System should determine offset" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("timeline").timeline_init();
+
+  var system = System.init(&world);
+
+  // When
+  _ = world.entity("timeline").timeline_offset(0.5);
+  system.determineTime();
+
+  // Then
+  if (entity.world.components.timeline.get(entity.id)) |timeline| {
+    try tst.expectEqual(ecs.Components.Timeline.Component{
+      .speed = 1.0,
+      .timeCurrent = 0.5,
+      .timePrevious = 0.0,
+      .timeDelta = 0.5,
+      .timeOffset = 0.0,
+      .timestampPreviousMS = timeline.timestampPreviousMS,
+    }, timeline);
+  } else {
+    return error.TestExpectedTimeline;
+  }
+}
+
+
+
+test "System should determine Tenet time" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("timeline").timeline_init()
+    .timeline_speed(-1.0);
+
+  var system = System.init(&world);
+
+  // When
+  system.determineTime();
+  std.time.sleep(1_000_000);
+  system.determineTime();
+
+  // Then
+  if (entity.world.components.timeline.get(entity.id)) |timeline| {
+    try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
+    const timestampCurrentMS = timeline.timestampPreviousMS;
+    try tst.expectEqual(ecs.Components.Timeline.Component{
+      .speed = -1.0,
+      .timeCurrent = -0.001,
+      .timePrevious = 0.0,
+      .timeDelta = -0.001,
+      .timeOffset = 0.0,
+      .timestampPreviousMS = timestampCurrentMS,
+    }, timeline);
+  } else {
+    return error.TestExpectedTimeline;
+  }
+}
+
+
+test "System should process events" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("timeline").timeline_init()
+  .timeline_offset(0.5);
+
+  var system = System.init(&world);
+  system.determineTime();
+
+  // When
+  const event = world.entity("test").event(.{.start = 0.0, .duration = 1.0});
+  system.processEvents();
+
+  // Then
+  if (entity.world.components.timelineeventprogress.get(event.id)) |timelineeventprogress| {
+    try tst.expectEqual(ecs.Components.TimelineEventProgress.Component{
+      .progress = 0.5,
+      .target_id = event.parent_id,
+    }, timelineeventprogress);
+  } else {
+    return error.TestExpectedTimeline;
+  }
+}
+
+
+test "System should process calculation" {
+  // Given
+  var event = ecs.Components.TimelineEvent.Component{
+    .timeline_id = 0,
+    .start = 0.0,
+    .end = 1.0,
+    .repeat = 1,
+    .pattern = ecs.Components.TimelineEvent.Pattern.Forward,
+    .motion = ecs.Components.TimelineEvent.Motion.Linear,
+    .target_id = 0,
+  };
+
+  var i: f32 = 0;
+  while (i <= 1.0) : (i += 0.1) {
+    // When
+    const result = System.progressCalculation(i, event);
+
+    // Then
+    try tst.expectEqual(i, result);
+  }
+
+
+  // Given
+  event.pattern = ecs.Components.TimelineEvent.Pattern.Reverse;
+
+  i = 0;
+  while (i <= 1.0) : (i += 0.1) {
+    // When
+    const result = System.progressCalculation(i, event);
+
+    // Then
+    try tst.expectEqual(1 - i, result);
+  }
+}
+
+test "System should motion calculation" {
+  // Given
+  var event = ecs.Components.TimelineEvent.Component{
+    .timeline_id = 0,
+    .start = 0.0,
+    .end = 1.0,
+    .repeat = 1,
+    .pattern = ecs.Components.TimelineEvent.Pattern.Forward,
+    .motion = ecs.Components.TimelineEvent.Motion.Linear,
+    .target_id = 0,
+  };
+
+  var i: f32 = 0;
+  while (i <= 1.0) : (i += 0.1) {
+    // When
+    const result = System.motionCalculation(i, event);
+
+    // Then
+    try tst.expectEqual(i, result);
+  }
+
+
+  // Given
+  event.motion = ecs.Components.TimelineEvent.Motion.EaseIn;
+
+  i = 0;
+  while (i <= 1.0) : (i += 0.1) {
+    // When
+    const result = System.motionCalculation(i, event);
+
+    // Then
+    try tst.expectEqual(i * i, result);
+  }
+}
