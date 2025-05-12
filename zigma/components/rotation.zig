@@ -72,7 +72,7 @@ test "Component should set rotation" {
   if (world.components.rotation.get(entity.id)) |rotation|
     try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, rotation)
   else
-    return error.TestExpected;
+    return error.TestExpectedRotation;
 }
 
 test "Query should filter" {

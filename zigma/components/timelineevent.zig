@@ -234,7 +234,7 @@ test "Component should add timeline event" {
       .motion = Motion.Linear,
     })
   else
-    return error.TestExpected;
+    return error.TestExpectedTimelineEvent;
 }
 
 test "Query should filter" {

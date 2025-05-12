@@ -49,3 +49,32 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should update position" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").position(0, 0, 0);
+  const event = world.entity("test event").position(1, -1, 100);
+
+  const new = .{.target_id = entity.id, .progress = 0.5};
+  world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
+
+  var system = System.init(&world);
+  defer system.deinit();
+
+  // When
+  system.update();
+
+  // Then
+  if (entity.world.components.position.get(entity.id)) |position|
+    try tst.expectEqual(ecs.Components.Position.Component{.x = 0.5, .y = -0.5, .z = 50}, position)
+   else
+    return error.TestExpectedPosition;
+}

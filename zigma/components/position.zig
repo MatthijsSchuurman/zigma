@@ -72,7 +72,7 @@ test "Component should set position" {
   if (world.components.position.get(entity.id)) |position|
     try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, position)
   else
-    return error.TestExpected;
+    return error.TestExpectedPosition;
 }
 
 test "Query should filter" {

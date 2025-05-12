@@ -72,7 +72,7 @@ test "Component should set scale" {
   if (world.components.scale.get(entity.id)) |scale|
     try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, scale)
   else
-    return error.TestExpected;
+    return error.TestExpectedScale;
 }
 
 test "Query should filter" {

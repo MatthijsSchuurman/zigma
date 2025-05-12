@@ -77,7 +77,7 @@ test "Component should set text" {
   if (world.components.text.get(entity.id)) |text|
     try tst.expectEqual(Component{.text = "test"}, text)
   else
-    return error.TestExpected;
+    return error.TestExpectedText;
 }
 
 test "Query should filter" {

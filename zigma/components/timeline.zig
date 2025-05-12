@@ -55,7 +55,7 @@ test "Component should init timeline" {
   if (world.components.timeline.get(entity.id)) |timeline|
     try tst.expectEqual(Component{.speed = 1.0, .timeCurrent = 0, .timePrevious = 0, .timeOffset = 0, .timeDelta = 0, .timestampPreviousMS = 0}, timeline)
   else
-    return error.TestExpected;
+    return error.TestExpectedTimeline;
 }
 
 test "Component should set speed" {
@@ -76,7 +76,7 @@ test "Component should set speed" {
   if (result.world.components.timeline.get(result.id)) |timeline|
     try tst.expectEqual(2.0, timeline.speed)
   else
-    return error.TestExpected;
+    return error.TestExpectedTimeline;
 }
 
 test "Component should set offset" {

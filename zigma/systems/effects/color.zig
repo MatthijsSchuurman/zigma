@@ -59,3 +59,32 @@ pub const System = struct {
     }
   }
 };
+
+
+// Testing
+const tst = std.testing;
+const zigma = @import("../../ma.zig");
+
+test "System should update color" {
+  // Given
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").color(0, 0, 0);
+  const event = world.entity("test event").color(1, -1, 100);
+
+  const new = .{.target_id = entity.id, .progress = 0.5};
+  world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
+
+  var system = System.init(&world);
+  defer system.deinit();
+
+  // When
+  system.update();
+
+  // Then
+  if (entity.world.components.color.get(entity.id)) |color|
+    try tst.expectEqual(ecs.Components.Color.Component{.x = 0.5, .y = -0.5, .z = 50}, color)
+   else
+    return error.TestExpectedColor;
+}

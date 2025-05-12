@@ -78,7 +78,7 @@ test "Component should set color" {
   if (world.components.color.get(entity.id)) |color|
     try tst.expectEqual(Component{.r = 1, .g = 2, .b = 3, .a = 4}, color)
   else
-    return error.TestExpected;
+    return error.TestExpectedColor;
 }
 
 test "Query should filter" {
