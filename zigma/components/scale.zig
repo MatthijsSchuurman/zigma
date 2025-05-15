@@ -14,8 +14,8 @@ pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   }
 
   const new = .{.x = x, .y = y, .z = z };
-
   entity.world.components.scale.put(entity.id, new) catch @panic("Failed to store scale");
+
   return entity;
 }
 

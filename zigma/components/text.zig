@@ -12,8 +12,8 @@ pub fn set(entity: ecs.Entity, text: []const u8) ecs.Entity {
   }
 
   const new = .{.text = text};
-
   entity.world.components.text.put(entity.id, new) catch @panic("Failed to store text");
+
   return entity;
 }
 
