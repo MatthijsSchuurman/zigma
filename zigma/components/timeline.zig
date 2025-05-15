@@ -29,7 +29,7 @@ pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
 
 pub fn setOffset(entity: ecs.Entity, offset: f32) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
-    timeline.timeOffset= offset;
+    timeline.timeOffset = offset;
 
   return entity;
 }

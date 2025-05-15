@@ -13,6 +13,12 @@ pub const Entity = struct {
   pub const timeline_offset = Components.Timeline.setOffset;
   pub const event = Components.TimelineEvent.add;
 
+  pub const camera_init = Components.Camera.init;
+  pub const camera_activate = Components.Camera.activate;
+  pub const camera_deactivate = Components.Camera.deactivate;
+  pub const camera_target = Components.Camera.target;
+  pub const camera_fovy = Components.Camera.fovy;
+
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
   pub const scale = Components.Scale.set;
@@ -29,6 +35,8 @@ pub const Components = struct {
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
 
+  pub const Camera = @import("components/camera.zig");
+
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
@@ -43,6 +51,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 //Systems
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
+  pub const Camera = @import("systems/camera.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -138,10 +147,14 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
+
     self.systems.render_background.render();
+
     self.systems.render_text.render();
 
     self.systems.fps.render();
+
+    self.systems.camera.setup();
     return true;
   }
 

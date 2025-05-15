@@ -16,6 +16,10 @@ fn intro() void {
   .event(.{.start = 0, .end = 10, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
     .color(50, 80, 80, 10);
 
+  _ = world.entity("camera")
+  .event(.{.start = 0, .end = 10, .motion = .Smooth})
+    .position(-5, 3, 2);
+
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
   .position(0, 0, 0)
