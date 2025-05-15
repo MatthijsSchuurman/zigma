@@ -23,10 +23,10 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const text = entry.value_ptr.*;
 
-      const position = self.world.components.position.get(id) orelse ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0};
-      const rotation = self.world.components.rotation.get(id) orelse ecs.Components.Rotation.Component{.x = 0, .y = 0, .z = 0};
-      const scale = self.world.components.scale.get(id) orelse ecs.Components.Scale.Component{.x = 1, .y = 1, .z = 1};
-      const color = self.world.components.color.get(id) orelse ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255};
+      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text component
+      const rotation = self.world.components.rotation.get(id) orelse unreachable;
+      const scale = self.world.components.scale.get(id) orelse unreachable;
+      const color = self.world.components.color.get(id) orelse unreachable;
 
       const font_height: f32 = 10 * scale.x;
       const width: f32 = rl.MeasureTextEx(font, @ptrCast(text.text), font_height, font_spacing).x;

@@ -18,16 +18,15 @@ pub fn init(entity: ecs.Entity) ecs.Entity {
     return entity;
 
   const is_first = entity.world.components.camera.count() == 0;
-  const new = entity.world.components.camera.getOrPut(entity.id) catch @panic("Failed to store camera");
-
-  //ensure defaults are set
-  new.value_ptr.* = .{
+  const new = .{
     .active = is_first,
     .target = .{.x = 0, .y = 0, .z = 0},
     .fovy = 45,
   };
+  entity.world.components.camera.put(entity.id, new) catch @panic("Failed to store camera");
 
-  _ = entity.position(5, 2, 5)
+  _ = entity
+  .position(5, 2, 5)
   .rotation(0, 1, 0); //aka up
 
   return entity;

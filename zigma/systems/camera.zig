@@ -17,7 +17,7 @@ pub const System = struct {
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
 
-      const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable;
+      const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
       const rotation = self.world.components.rotation.get(entry.key_ptr.*) orelse unreachable;
 
       rl.BeginMode3D(rl.Camera3D{
