@@ -179,7 +179,6 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../../ma.zig");
 
 test "System should determine time" {
   // Given

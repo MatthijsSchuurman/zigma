@@ -15,8 +15,8 @@ pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
   }
 
   const new = .{.r = r, .g = g, .b = b, .a = a };
-
   entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
+
   return entity;
 }
 

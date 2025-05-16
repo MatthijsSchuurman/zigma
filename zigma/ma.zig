@@ -34,6 +34,7 @@ pub fn create() *ecs.World {
   world.initSystems();
 
   _ = world.entity("timeline").timeline_init();
+  _ = world.entity("camera").camera_init();
 
   return world;
 }
@@ -106,6 +107,7 @@ pub fn render(world: *ecs.World) bool {
         _ = timeline.timeline_offset(-current.speed * 2);
     }
   }
+
 
   rl.BeginDrawing();
   const success = world.render();

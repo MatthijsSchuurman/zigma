@@ -13,12 +13,19 @@ pub const Entity = struct {
   pub const timeline_offset = Components.Timeline.setOffset;
   pub const event = Components.TimelineEvent.add;
 
+  pub const camera_init = Components.Camera.init;
+  pub const camera_activate = Components.Camera.activate;
+  pub const camera_deactivate = Components.Camera.deactivate;
+  pub const camera_target = Components.Camera.target;
+  pub const camera_fovy = Components.Camera.fovy;
+
   pub const position = Components.Position.set;
   pub const rotation = Components.Rotation.set;
   pub const scale = Components.Scale.set;
 
   pub const color = Components.Color.set;
 
+  pub const model = Components.Model.set;
   pub const text = Components.Text.set;
 };
 
@@ -29,11 +36,14 @@ pub const Components = struct {
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
 
+  pub const Camera = @import("components/camera.zig");
+
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
+  pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
 };
 
@@ -43,6 +53,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 //Systems
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
+  pub const Camera = @import("systems/camera.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -52,6 +63,7 @@ pub const Systems = struct {
 
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
+  pub const Render_Model = @import("systems/render/model.zig");
   pub const Render_Text = @import("systems/render/text.zig");
   pub const FPS = @import("systems/render/fps.zig");
 };
@@ -95,11 +107,21 @@ pub const World = struct {
   pub fn deinit(self: *World) void {
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration|
+    inline for (ComponentDeclarations) |declaration| {
+      const T = @field(Components, declaration.name).Component;
+      if (@hasDecl(T, "deinit")) { // Deinit each component
+        var components = &@field(self.components, toLower(declaration.name));
+        var it = components.iterator();
+        while (it.next()) |entry|
+          entry.value_ptr.*.deinit();
+      }
+
       @field(self.components, toLower(declaration.name)).deinit();
+    }
 
     inline for (SystemDeclarations) |declaration| {
       const T = @field(Systems, declaration.name).System;
+
 
       if (@hasDecl(T, "deinit"))
         @field(self.systems, toLower(declaration.name)).deinit();
@@ -138,10 +160,16 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
+    // Render
     self.systems.render_background.render();
-    self.systems.render_text.render();
 
+    self.systems.camera.start();
+    self.systems.render_model.render();
+    self.systems.camera.stop();
+
+    self.systems.render_text.render();
     self.systems.fps.render();
+
     return true;
   }
 

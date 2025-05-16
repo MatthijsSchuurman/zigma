@@ -23,10 +23,10 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const text = entry.value_ptr.*;
 
-      const position = self.world.components.position.get(id) orelse ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0};
-      const rotation = self.world.components.rotation.get(id) orelse ecs.Components.Rotation.Component{.x = 0, .y = 0, .z = 0};
-      const scale = self.world.components.scale.get(id) orelse ecs.Components.Scale.Component{.x = 1, .y = 1, .z = 1};
-      const color = self.world.components.color.get(id) orelse ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255};
+      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text component
+      const rotation = self.world.components.rotation.get(id) orelse unreachable;
+      const scale = self.world.components.scale.get(id) orelse unreachable;
+      const color = self.world.components.color.get(id) orelse unreachable;
 
       const font_height: f32 = 10 * scale.x;
       const width: f32 = rl.MeasureTextEx(font, @ptrCast(text.text), font_height, font_spacing).x;
@@ -59,24 +59,20 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../../ma.zig");
 
 test "System should render text" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  rl.SetTargetFPS(10);
-  defer zigma.deinit();
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
 
-  const world = zigma.create();
-  defer zigma.destroy(world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  var system = System.init(&world);
 
   _ = world.entity("test").text("test").scale(10, 1, 1);
 
-  var system = System.init(world);
-
   // When
-  rl.BeginDrawing(); // Ensure consistent FPS
-  rl.EndDrawing();
   rl.BeginDrawing();
   system.render();
   rl.EndDrawing();

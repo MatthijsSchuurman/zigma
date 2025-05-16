@@ -15,8 +15,8 @@ pub fn init(entity: ecs.Entity) ecs.Entity {
     return entity;
 
   const new = .{};
-
   entity.world.components.timeline.put(entity.id, new) catch @panic("Failed to store timeline");
+
   return entity;
 }
 
@@ -29,7 +29,7 @@ pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
 
 pub fn setOffset(entity: ecs.Entity, offset: f32) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
-    timeline.timeOffset= offset;
+    timeline.timeOffset = offset;
 
   return entity;
 }
