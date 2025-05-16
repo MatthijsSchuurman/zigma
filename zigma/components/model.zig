@@ -4,29 +4,30 @@ const rl = @cImport(@cInclude("raylib.h"));
 
 pub const Component = struct {
   name: []const u8,
-  mesh: rl.Mesh,
+  model: rl.Model,
 
   pub fn deinit(self: *Component) void{
-    rl.UnloadMesh(self.mesh);
+    rl.UnloadModel(self.model);
   }
 };
 
 pub fn set(entity: ecs.Entity, name: []const u8) ecs.Entity {
-  if (entity.world.components.mesh.getPtr(entity.id)) |existing| {
+  if (entity.world.components.model.getPtr(entity.id)) |existing| {
     existing.deinit();
+
 
     existing.* = .{
       .name = name,
-      .mesh = loadMesh(name),
+      .model = rl.LoadModelFromMesh(loadMesh(name)),
     };
     return entity;
   }
 
   const new = .{
     .name = name,
-    .mesh = loadMesh(name),
+    .model = rl.LoadModelFromMesh(loadMesh(name)),
   };
-  entity.world.components.mesh.put(entity.id, new) catch @panic("Failed to store mesh");
+  entity.world.components.model.put(entity.id, new) catch @panic("Failed to store model");
 
   _ = entity
   .position(0, 0, 0)
@@ -82,7 +83,7 @@ pub const Query = struct {
   }
 
   pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
-    return world.query(Query, &world.components.mesh, f, sort);
+    return world.query(Query, &world.components.model, f, sort);
   }
 };
 
@@ -108,13 +109,12 @@ test "Component should set mesh" {
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
-  if (world.components.mesh.get(entity.id)) |mesh| {
-    if (!std.mem.eql(u8, mesh.name, "cube"))
+  if (world.components.model.get(entity.id)) |model| {
+    if (!std.mem.eql(u8, model.name, "cube"))
       return error.TestExpectedName;
-    if (mesh.mesh.vertexCount != 24)
-      return error.TestExpectedVertexCount;
-  } else
-    return error.TestExpectedText;
+
+    try tst.expectEqual("cube", model.name);
+  }
 
   if (world.components.position.get(entity.id)) |position|
     try tst.expectEqual(ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0}, position)

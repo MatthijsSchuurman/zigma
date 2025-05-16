@@ -42,7 +42,7 @@ fn intro() void {
     .position(0, 0, 0);
 
   _ = world.entity("balls")
-  .mesh("sphere")
+  .model("sphere")
   .color(100, 255, 255, 50)
   .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .PingPong, .motion = .EaseOut})
     .color(100, 255, 100, 255)

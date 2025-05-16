@@ -25,7 +25,7 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
-  pub const mesh = Components.Mesh.set;
+  pub const model = Components.Model.set;
   pub const text = Components.Text.set;
 };
 
@@ -43,7 +43,7 @@ pub const Components = struct {
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
-  pub const Mesh = @import("components/mesh.zig");
+  pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
 };
 
@@ -159,8 +159,6 @@ pub const World = struct {
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
-
-    self.systems.render_model.update();
 
     // Render
     self.systems.render_background.render();
