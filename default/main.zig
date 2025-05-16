@@ -12,13 +12,11 @@ fn intro() void {
   defer zigma.destroy(world);
 
   _ = world.entity("background")
-  .color(50, 50, 50, 10)
-  .event(.{.start = 0, .end = 10, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
-    .color(50, 80, 80, 10);
+  .color(50, 50, 50, 255);
 
   _ = world.entity("camera")
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
-    .position(-1, 3, 2);
+    .position(-5, 0.5, 2);
 
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
@@ -41,19 +39,20 @@ fn intro() void {
     .scale(20, 0, 0)
     .position(0, 0, 0);
 
-  _ = world.entity("float")
+  _ = world.entity("floor")
   .model("plane")
   .scale(10, 0, 10)
   .position(0, 0, 0);
 
   _ = world.entity("balls")
   .model("sphere")
-  .color(100, 255, 255, 50)
-   .position(0, 0.5, 0)
-  .event(.{.start = 0, .duration = 10, .repeat = 10, .pattern = .PingPong, .motion = .EaseOut})
+  .color(100, 255, 255, 255)
+  .position(0, 2, 0)
+  .scale(1, 1, 1)
+  .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
     .color(100, 255, 100, 255)
-    .position(0, 1, 0)
-    .scale(1, 0.75, 1)
+    .position(0, 0.5, 0)
+    .scale(1, 0.5, 1)
   .event(.{.start = 0, .duration = 10, .repeat = 6})
     .color(100, 0, 100, 50);
 

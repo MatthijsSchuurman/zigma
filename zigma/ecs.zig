@@ -163,9 +163,9 @@ pub const World = struct {
     // Render
     self.systems.render_background.render();
 
-    self.systems.camera.setup();
+    self.systems.camera.start();
     self.systems.render_model.render();
-    rl.EndMode3D(); // started in camera setup... kinda weird to clear it here
+    self.systems.camera.stop();
 
     self.systems.render_text.render();
     self.systems.fps.render();

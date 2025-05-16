@@ -11,7 +11,7 @@ pub const System = struct {
     };
   }
 
-  pub fn setup(self: *System) void {
+  pub fn start(self: *System) void {
     var it = self.world.components.camera.iterator();
 
     while (it.next()) |entry| {
@@ -43,13 +43,24 @@ pub const System = struct {
       break;
     }
   }
+
+  pub fn stop(self: *System) void {
+    var it = self.world.components.camera.iterator();
+
+    while (it.next()) |entry| {
+      if (!entry.value_ptr.*.active) continue;
+
+      rl.EndMode3D();
+      break;
+    }
+  }
 };
 
 
 // Testing
 const tst = std.testing;
 
-test "System should setup camera" {
+test "System should start / stop camera" {
   // Given
   rl.InitWindow(320, 200, "test");
   defer rl.CloseWindow();
@@ -61,7 +72,8 @@ test "System should setup camera" {
 
   // When
   rl.BeginDrawing();
-  system.setup();
+  system.start();
+  system.stop();
   rl.EndDrawing();
 
   // Then

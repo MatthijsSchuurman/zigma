@@ -6,11 +6,9 @@ pub const System = struct {
   world: *ecs.World,
 
   pub fn init(world: *ecs.World) System {
-    const self = System{
+    return System{
       .world = world,
     };
-
-    return self;
   }
 
   pub fn render(self: *System) void {
@@ -57,8 +55,9 @@ test "System should render model" {
 
   // When
   rl.BeginDrawing();
-  world.systems.camera.setup();
+  world.systems.camera.start();
   system.render();
+  world.systems.camera.stop();
   rl.EndDrawing();
 
   // Then
