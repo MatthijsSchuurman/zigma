@@ -3,28 +3,35 @@ const ecs = @import("../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
 pub const Component = struct {
-  name: []const u8,
+  type: []const u8,
   model: rl.Model,
+  material_id: ecs.EntityID,
 
   pub fn deinit(self: *Component) void{
     rl.UnloadModel(self.model);
   }
 };
 
-pub fn set(entity: ecs.Entity, name: []const u8) ecs.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |existing| {
-    existing.deinit();
+const Model = struct {
+  type: []const u8,
+  material: []const u8 = "",
+};
 
-    existing.* = .{
-      .name = name,
-      .model = rl.LoadModelFromMesh(loadMesh(name)),
-    };
+pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
+  if (entity.world.components.model.getPtr(entity.id)) |_|
     return entity;
+
+  var material: ecs.Entity = undefined;
+  if (params.material.len == 0) {
+    material = entity.world.entity("material"); // Use main material by default
+  } else {
+    material = entity.world.entity(params.material); // May not exists yet
   }
 
   const new = .{
-    .name = name,
-    .model = rl.LoadModelFromMesh(loadMesh(name)),
+    .type = params.type,
+    .model = rl.LoadModelFromMesh(loadMesh(params.type)),
+    .material_id = material.id,
   };
   entity.world.components.model.put(entity.id, new) catch @panic("Failed to store model");
 
@@ -37,12 +44,12 @@ pub fn set(entity: ecs.Entity, name: []const u8) ecs.Entity {
   return entity;
 }
 
-fn loadMesh(name: []const u8) rl.Mesh {
-  if (std.mem.eql(u8, name, "cube")) return rl.GenMeshCube(1, 1, 1);
-  if (std.mem.eql(u8, name, "sphere")) return rl.GenMeshSphere(1, 16, 16);
-  if (std.mem.eql(u8, name, "cylinder")) return rl.GenMeshCylinder(1, 1, 16);
-  if (std.mem.eql(u8, name, "torus")) return rl.GenMeshTorus(1, 1, 16, 16);
-  if (std.mem.eql(u8, name, "plane")) return rl.GenMeshPlane(1, 1, 1, 1);
+fn loadMesh(mesh_type: []const u8) rl.Mesh {
+  if (std.mem.eql(u8, mesh_type, "cube")) return rl.GenMeshCube(1, 1, 1);
+  if (std.mem.eql(u8, mesh_type, "sphere")) return rl.GenMeshSphere(1, 16, 16);
+  if (std.mem.eql(u8, mesh_type, "cylinder")) return rl.GenMeshCylinder(1, 1, 16);
+  if (std.mem.eql(u8, mesh_type, "torus")) return rl.GenMeshTorus(1, 1, 16, 16);
+  if (std.mem.eql(u8, mesh_type, "plane")) return rl.GenMeshPlane(1, 1, 1, 1);
 
   @panic("LoadMeshFromFile not yet implemented");
 }
@@ -51,27 +58,27 @@ pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    name: ?ecs.FieldFilter([]const u8) = null,
+    type: ?ecs.FieldFilter([]const u8) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
-    if (f.name) |cond|
-      if (!ecs.matchField([]const u8, self.name, cond))
+    if (f.type) |cond|
+      if (!ecs.matchField([]const u8, self.type, cond))
         return false;
 
     return true;
   }
 
   pub const Sort = enum {
-    name_asc,
-    name_desc,
+    type_asc,
+    type_desc,
   };
 
   pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
     for (sort) |field| {
       const order = switch (field) {
-        .name_asc => std.mem.order(u8, a.name, b.name),
-        .name_desc => std.mem.order(u8, b.name, a.name),
+        .type_asc => std.mem.order(u8, a.type, b.type),
+        .type_desc => std.mem.order(u8, b.type, a.type),
       };
 
       if(order != .eq) // lt/qt not further comparison needed
@@ -102,17 +109,17 @@ test "Component should set mesh" {
   const entity = world.entity("test");
 
   // When
-  const result = set(entity, "cube");
+  const result = init(entity, .{.type = "cube"});
 
   // Then
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.model.get(entity.id)) |model| {
-    if (!std.mem.eql(u8, model.name, "cube"))
+    if (!std.mem.eql(u8, model.type, "cube"))
       return error.TestExpectedName;
 
-    try tst.expectEqual("cube", model.name);
+    try tst.expectEqual("cube", model.type);
   }
 
   if (world.components.position.get(entity.id)) |position|
@@ -144,11 +151,11 @@ test "Query should filter" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity1 = set(world.entity("test1"), "cube");
-  _ = set(world.entity("test2"), "sphere");
+  const entity1 = init(world.entity("test1"), .{.type = "cube"});
+  _ = init(world.entity("test2"), .{.type = "sphere"});
 
   // When
-  const result = Query.exec(&world, .{ .name = .{ .eq = "cube" }}, &.{.name_asc});
+  const result = Query.exec(&world, .{ .type = .{ .eq = "cube" }}, &.{.type_asc});
   defer world.allocator.free(result);
 
   // Then

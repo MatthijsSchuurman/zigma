@@ -25,7 +25,7 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
-  pub const model = Components.Model.set;
+  pub const model = Components.Model.init;
   pub const text = Components.Text.set;
 };
 

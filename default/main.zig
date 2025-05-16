@@ -40,22 +40,19 @@ fn intro() void {
     .position(0, 0, 0);
 
   _ = world.entity("floor")
-  .model("plane")
+  .model(.{.type = "plane"})
   .scale(10, 0, 10)
   .position(0, 0, 0);
 
   _ = world.entity("balls")
-  .model("sphere")
+  .model(.{.type = "sphere"})
   .color(100, 255, 255, 255)
   .position(0, 2, 0)
   .scale(1, 1, 1)
   .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
     .color(100, 255, 100, 255)
     .position(0, 0.5, 0)
-    .scale(1, 0.5, 1)
-  .event(.{.start = 0, .duration = 10, .repeat = 6})
-    .color(100, 0, 100, 50);
-
+    .scale(1, 0.5, 1);
 
   while(zigma.render(world)){}
 }
