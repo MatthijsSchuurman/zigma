@@ -63,6 +63,7 @@ pub const Systems = struct {
 
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
+  pub const Render_Model = @import("systems/render/model.zig");
   pub const Render_Text = @import("systems/render/text.zig");
   pub const FPS = @import("systems/render/fps.zig");
 };
@@ -121,6 +122,7 @@ pub const World = struct {
     inline for (SystemDeclarations) |declaration| {
       const T = @field(Systems, declaration.name).System;
 
+
       if (@hasDecl(T, "deinit"))
         @field(self.systems, toLower(declaration.name)).deinit();
     }
@@ -158,24 +160,14 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
+    self.systems.render_model.update();
 
+    // Render
     self.systems.render_background.render();
 
     self.systems.camera.setup();
-
-  const mesh = rl.GenMeshCube(1.0, 1.0, 1.0);
-  const model = rl.LoadModelFromMesh(mesh);
-  defer rl.UnloadModel(model);
-  rl.DrawModelEx(
-    model,
-    rl.Vector3{ .x = 0.0, .y = 0.0, .z = 0.0 }, // position
-    rl.Vector3{ .x = 0.0, .y = 1.0, .z = 0.0 }, // rotation axis
-    0.0, // rotation angle
-    rl.Vector3{ .x = 1.0, .y = 1.0, .z = 1.0 }, // scale
-    rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 }); // color
-
-  rl.EndMode3D();
-
+    self.systems.render_model.render();
+    rl.EndMode3D(); // started in camera setup... kinda weird to clear it here
 
     self.systems.render_text.render();
     self.systems.fps.render();
