@@ -3,6 +3,7 @@ const ecs = @import("../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
 pub const Component = struct {
+  material: rl.Material,
   shader_id: ecs.EntityID,
 
   metalness: f32,
@@ -34,6 +35,7 @@ pub fn init(entity: ecs.Entity, params: Material) ecs.Entity {
   }
 
   const new = .{
+    .material = rl.LoadMaterialDefault(),
     .shader_id = shader.id,
 
     .metalness = params.metalness,
@@ -114,8 +116,16 @@ test "Component should set mesh" {
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
-  if (world.components.material.get(entity.id)) |material|
-    try tst.expectEqual(Component{.shader_id = 2, .metalness = 0.0, .roughness = 1.0, .alpha_blend = false, .double_sided = false}, material);
+  if (world.components.material.get(entity.id)) |material| {
+    try tst.expectEqual(2, material.shader_id);
+    try tst.expectEqual(0.0, material.metalness);
+    try tst.expectEqual(1.0, material.roughness);
+    try tst.expectEqual(false, material.alpha_blend);
+    try tst.expectEqual(false, material.double_sided);
+    try tst.expectEqual(1, material.material.shader.id);
+    try tst.expectEqual(0, material.material.maps[0].texture.id);
+    try tst.expectEqual(0, material.material.maps[1].texture.id);
+  }
 
   if (world.components.color.get(entity.id)) |color|
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)

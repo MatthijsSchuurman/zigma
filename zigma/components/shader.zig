@@ -3,13 +3,13 @@ const ecs = @import("../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
 pub const Component = struct {
-  shader: rl.Shader,
+  lighting: rl.Shader,
   lit: bool,
   blend: bool,
   depth: bool,
 
   pub fn deinit(self: *Component) void{
-    rl.UnloadShader(self.shader);
+    rl.UnloadShader(self.lighting);
   }
 };
 
@@ -23,9 +23,8 @@ pub fn init(entity: ecs.Entity, params: Shader) ecs.Entity {
   if (entity.world.components.shader.getPtr(entity.id)) |_|
     return entity;
 
-  const shader = rl.LoadShader("../shaders/lighting.vs", "../shaders/lighting.fs");
   const new = .{
-    .shader = shader,
+    .lighting = rl.LoadShader("zigma/shaders/lighting.vs", "zigma/shaders/lighting.fs"),
     .lit = params.lit,
     .blend = params.blend,
     .depth = params.depth,

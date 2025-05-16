@@ -1,6 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const rl = @cImport(@cInclude("raylib.h"));
+const rl = @cImport({
+  @cInclude("raylib.h");
+  @cInclude("raymath.h");
+});
 
 pub const System = struct {
   world: *ecs.World,
@@ -12,6 +15,10 @@ pub const System = struct {
   }
 
   pub fn render(self: *System) void {
+    const shader_entity = self.world.entity("shader");
+    const shader = self.world.components.shader.get(shader_entity.id) orelse unreachable;
+    const matNormal_location = rl.GetShaderLocation(shader.lighting, "matNormal");
+
     var it = self.world.components.model.iterator();
     while (it.next()) |entry| {
       const id = entry.key_ptr.*;
@@ -22,6 +29,15 @@ pub const System = struct {
       const scale = self.world.components.scale.get(id) orelse unreachable;
       const color = self.world.components.color.get(id) orelse unreachable;
 
+      const model_matrix = rl.MatrixMultiply(
+        rl.MatrixRotateXYZ(rl.Vector3{ .x = rotation.x, .y = rotation.y, .z = rotation.z }),
+        rl.MatrixTranslate(position.x, position.y, position.z));
+
+      const normal_matrix = rl.MatrixTranspose(rl.MatrixInvert(model_matrix));
+
+      rl.BeginShaderMode(shader.lighting);
+      rl.SetShaderValueMatrix(shader.lighting, matNormal_location, normal_matrix);
+
       rl.DrawModelEx(
         model.model,
         rl.Vector3{ .x = position.x, .y = position.y, .z = position.z },
@@ -30,6 +46,8 @@ pub const System = struct {
         rl.Vector3{ .x = scale.x, .y = scale.y, .z = scale.z },
         rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = color.a },
       );
+
+      rl.EndShaderMode();
     }
   }
 };

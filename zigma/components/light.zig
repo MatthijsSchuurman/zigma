@@ -2,7 +2,7 @@ const std = @import("std");
 const ecs = @import("../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
-pub const MAX_LIGHTS = 16;
+pub const MAX_LIGHTS = 4;
 
 pub const Component = struct {
   active: bool,

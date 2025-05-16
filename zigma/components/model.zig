@@ -21,18 +21,25 @@ pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |_|
     return entity;
 
-  var material: ecs.Entity = undefined;
+  var material_entity: ecs.Entity = undefined;
   if (params.material.len == 0) {
-    material = entity.world.entity("material"); // Use default material
+    material_entity = entity.world.entity("material"); // Use default material
   } else {
-    material = entity.world.entity(params.material); // May not exists yet
+    material_entity = entity.world.entity(params.material); // May not exists yet
   }
 
   const new = .{
     .type = params.type,
     .model = rl.LoadModelFromMesh(loadMesh(params.type)),
-    .material_id = material.id,
+    .material_id = material_entity.id,
   };
+
+  if (entity.world.components.material.get(material_entity.id)) |material| {
+    for (0..@as(usize, @intCast(new.model.materialCount))) |i| {
+      new.model.materials[i] = material.material;
+    }
+  }
+
   entity.world.components.model.put(entity.id, new) catch @panic("Failed to store model");
 
   _ = entity

@@ -19,6 +19,7 @@ fn intro() void {
     .position(-5, 0.5, 2);
 
   _ = world.entity("light")
+  .color(0, 0, 255, 255)
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
     .color(255, 0, 0, 255)
     .position(5, 0.5, 2);
@@ -46,6 +47,7 @@ fn intro() void {
 
   _ = world.entity("floor")
   .model(.{.type = "plane"})
+  .color(255, 255, 255, 255)
   .scale(10, 0, 10)
   .position(0, 0, 0);
 
