@@ -64,7 +64,6 @@ const zigma = @import("../../ma.zig");
 test "System should render text" {
   // Given
   zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  rl.SetTargetFPS(10);
   defer zigma.deinit();
 
   const world = zigma.create();
