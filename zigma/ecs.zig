@@ -8,12 +8,12 @@ pub const Entity = struct {
   parent_id: EntityID = 0,
   world: *World,
 
-  pub const timeline_init = Components.Timeline.init;
+  pub const timeline = Components.Timeline.init;
   pub const timeline_speed = Components.Timeline.setSpeed;
   pub const timeline_offset = Components.Timeline.setOffset;
   pub const event = Components.TimelineEvent.add;
 
-  pub const camera_init = Components.Camera.init;
+  pub const camera = Components.Camera.init;
   pub const camera_activate = Components.Camera.activate;
   pub const camera_deactivate = Components.Camera.deactivate;
   pub const camera_target = Components.Camera.target;
@@ -454,7 +454,7 @@ test "ECS World should query timeline events" {
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
-  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("timeline").timeline();
   _ = world.entity("test").event(.{ .start = 0, .end = 1 });
 
   // When

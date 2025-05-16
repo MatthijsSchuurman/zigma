@@ -55,7 +55,7 @@ test "System should render fps" {
 
   var system = System.init(&world);
 
-  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("timeline").timeline();
 
   // When
   rl.BeginDrawing(); // Ensure consistent FPS

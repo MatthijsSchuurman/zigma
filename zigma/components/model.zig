@@ -15,7 +15,6 @@ pub fn set(entity: ecs.Entity, name: []const u8) ecs.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |existing| {
     existing.deinit();
 
-
     existing.* = .{
       .name = name,
       .model = rl.LoadModelFromMesh(loadMesh(name)),

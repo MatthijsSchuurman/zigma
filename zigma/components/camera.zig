@@ -100,7 +100,7 @@ test "Component should set camera" {
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity = world.entity("test").camera_init();
+  const entity = world.entity("test").camera();
 
   // When
   const result = target(entity, 1, 2, 3);
@@ -120,7 +120,7 @@ test "Component should set fovy" {
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity = world.entity("test").camera_init();
+  const entity = world.entity("test").camera();
 
   // When
   const result = fovy(entity, 90);
@@ -140,8 +140,8 @@ test "Component should activate camera" {
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity = world.entity("test").camera_init();
-  const entity2 = world.entity("test2").camera_init();
+  const entity = world.entity("test").camera();
+  const entity2 = world.entity("test2").camera();
 
   if (world.components.camera.get(entity.id)) |camera|
     try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
@@ -176,8 +176,8 @@ test "Component should deactivate camera" {
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity = world.entity("test").camera_init();
-  const entity2 = world.entity("test2").camera_init();
+  const entity = world.entity("test").camera();
+  const entity2 = world.entity("test2").camera();
 
   // When
   const result = deactivate(entity);

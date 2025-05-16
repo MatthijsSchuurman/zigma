@@ -50,7 +50,7 @@ test "System should render model" {
 
   var system = System.init(&world);
 
-  _ = world.entity("camera").camera_init();
+  _ = world.entity("camera").camera();
   _ = world.entity("test").model("cube");
 
   // When
