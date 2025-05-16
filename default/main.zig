@@ -42,14 +42,14 @@ fn intro() void {
     .position(0, 0, 0);
 
   _ = world.entity("balls")
-  .text("Balls!!!")
-  .position(0, 0.8, 0)
-  .scale(20, 0, 0)
-  .rotation(0, 0, 0)
+  .mesh("sphere")
   .color(100, 255, 255, 50)
   .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .PingPong, .motion = .EaseOut})
     .color(100, 255, 100, 255)
-    .position(0, 0.5, 0);
+    .position(0, 0.5, 0)
+    .scale(1, 0.75, 1)
+  .event(.{.start = 0, .duration = 10, .repeat = 5})
+    .rotation(0, 1, 0);
 
 
   while(zigma.render(world)){}

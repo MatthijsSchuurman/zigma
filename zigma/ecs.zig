@@ -25,6 +25,7 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
+  pub const mesh = Components.Mesh.set;
   pub const text = Components.Text.set;
 };
 
@@ -42,6 +43,7 @@ pub const Components = struct {
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
+  pub const Mesh = @import("components/mesh.zig");
   pub const Text = @import("components/text.zig");
 };
 
@@ -104,8 +106,17 @@ pub const World = struct {
   pub fn deinit(self: *World) void {
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration|
+    inline for (ComponentDeclarations) |declaration| {
+      const T = @field(Components, declaration.name).Component;
+      if (@hasDecl(T, "deinit")) { // Deinit each component
+        var components = &@field(self.components, toLower(declaration.name));
+        var it = components.iterator();
+        while (it.next()) |entry|
+          entry.value_ptr.*.deinit();
+      }
+
       @field(self.components, toLower(declaration.name)).deinit();
+    }
 
     inline for (SystemDeclarations) |declaration| {
       const T = @field(Systems, declaration.name).System;
@@ -150,11 +161,25 @@ pub const World = struct {
 
     self.systems.render_background.render();
 
-    self.systems.render_text.render();
+    self.systems.camera.setup();
 
+  const mesh = rl.GenMeshCube(1.0, 1.0, 1.0);
+  const model = rl.LoadModelFromMesh(mesh);
+  defer rl.UnloadModel(model);
+  rl.DrawModelEx(
+    model,
+    rl.Vector3{ .x = 0.0, .y = 0.0, .z = 0.0 }, // position
+    rl.Vector3{ .x = 0.0, .y = 1.0, .z = 0.0 }, // rotation axis
+    0.0, // rotation angle
+    rl.Vector3{ .x = 1.0, .y = 1.0, .z = 1.0 }, // scale
+    rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 }); // color
+
+  rl.EndMode3D();
+
+
+    self.systems.render_text.render();
     self.systems.fps.render();
 
-    self.systems.camera.setup();
     return true;
   }
 

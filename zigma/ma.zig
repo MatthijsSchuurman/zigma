@@ -111,21 +111,6 @@ pub fn render(world: *ecs.World) bool {
 
   rl.BeginDrawing();
   const success = world.render();
-
-  const mesh = rl.GenMeshCube(1.0, 1.0, 1.0);
-  const model = rl.LoadModelFromMesh(mesh);
-  defer rl.UnloadModel(model);
-  rl.DrawModelEx(
-    model,
-    rl.Vector3{ .x = 0.0, .y = 0.0, .z = 0.0 }, // position
-    rl.Vector3{ .x = 0.0, .y = 1.0, .z = 0.0 }, // rotation axis
-    0.0, // rotation angle
-    rl.Vector3{ .x = 1.0, .y = 1.0, .z = 1.0 }, // scale
-    rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 }); // color
-
-  rl.EndMode3D();
-
-
   rl.EndDrawing();
 
   return success;

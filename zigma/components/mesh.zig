@@ -5,11 +5,15 @@ const rl = @cImport(@cInclude("raylib.h"));
 pub const Component = struct {
   name: []const u8,
   mesh: rl.Mesh,
+
+  pub fn deinit(self: *Component) void{
+    rl.UnloadMesh(self.mesh);
+  }
 };
 
 pub fn set(entity: ecs.Entity, name: []const u8) ecs.Entity {
   if (entity.world.components.mesh.getPtr(entity.id)) |existing| {
-    rl.UnloadMesh(existing.mesh);
+    existing.deinit();
 
     existing.* = .{
       .name = name,
