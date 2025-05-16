@@ -12,6 +12,9 @@ pub const System = struct {
   }
 
   pub fn start(self: *System) void {
+    const shader_entity = self.world.entity("shader"); // Use default for now
+    const shader = self.world.components.shader.get(shader_entity.id) orelse unreachable;
+
     var it = self.world.components.camera.iterator();
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
@@ -19,17 +22,19 @@ pub const System = struct {
       const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
       const rotation = self.world.components.rotation.get(entry.key_ptr.*) orelse unreachable;
 
+      const camera_position = rl.Vector3{
+        .x = position.x,
+        .y = position.y,
+        .z = position.z,
+      };
+
       rl.BeginMode3D(rl.Camera3D{
         .target = rl.Vector3{
           .x = entry.value_ptr.*.target.x,
           .y = entry.value_ptr.*.target.y,
           .z = entry.value_ptr.*.target.z,
         },
-        .position = rl.Vector3{
-          .x = position.x,
-          .y = position.y,
-          .z = position.z,
-        },
+        .position = camera_position,
         .up = rl.Vector3{
           .x = rotation.x,
           .y = rotation.y,
@@ -38,6 +43,13 @@ pub const System = struct {
         .fovy = entry.value_ptr.*.fovy,
         .projection = rl.CAMERA_PERSPECTIVE,
       });
+
+
+      rl.BeginShaderMode(shader.lighting);
+      rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "viewPos"), &camera_position, rl.SHADER_UNIFORM_VEC3);
+
+      const ambient = rl.Vector4{ .x = 0.15, .y = 0.15, .z = 0.15, .w = 1.0 };
+      rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "ambient"), &ambient, rl.SHADER_UNIFORM_VEC4);
 
       break;
     }
@@ -48,6 +60,7 @@ pub const System = struct {
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
 
+      rl.EndShaderMode();
       rl.EndMode3D();
       break;
     }
@@ -67,6 +80,8 @@ test "System should start / stop camera" {
   defer world.deinit();
 
   var system = System.init(&world);
+
+  _ = world.entity("shader").shader(.{});
 
   // When
   rl.BeginDrawing();

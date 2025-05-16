@@ -3,6 +3,8 @@ const ecs = @import("../ecs.zig");
 const rl = ecs.raylib;
 
 pub const MAX_LIGHTS = 4;
+const LIGHT_DIRECTIONAL = 0; // Redefined from lighting.fs
+const LIGHT_POINT = 1; // Redefined from lighting.fs
 
 pub const Component = struct {
   active: bool,
@@ -23,8 +25,8 @@ pub const LightType = enum(u8) {
 
   pub fn raylibType(self: LightType) i32 {
     return switch (self) {
-      .point       => rl.LIGHT_POINT,
-      .directional => rl.LIGHT_DIRECTIONAL,
+      .point       => LIGHT_POINT,
+      .directional => LIGHT_DIRECTIONAL,
     };
   }
 };

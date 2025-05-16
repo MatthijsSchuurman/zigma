@@ -20,9 +20,12 @@ pub const System = struct {
     var count: usize = 0;
     var position_buffer: [light_component.MAX_LIGHTS]rl.Vector4 = undefined;
     var color_buffer: [light_component.MAX_LIGHTS]rl.Vector4 = undefined;
+    var enabled_buffer: [light_component.MAX_LIGHTS]i32 = undefined;
+    var type_buffer: [light_component.MAX_LIGHTS]i32 = undefined;
 
     var it = self.world.components.light.iterator();
     while (it.next()) |entry| {
+      if (!entry.value_ptr.*.active) continue;
       if (count >= light_component.MAX_LIGHTS) break; // Shouldn't happen but lets be sure
 
       const id = entry.key_ptr.*;
@@ -33,12 +36,16 @@ pub const System = struct {
 
       position_buffer[count] = rl.Vector4{ .x = position.x, .y = position.y, .z = position.z, .w = light.radius };
       color_buffer[count] = rl.Vector4{ .x = (@as(f32, @floatFromInt(color.r)) / 255.0), .y = (@as(f32, @floatFromInt(color.g)) / 255.0), .z = (@as(f32, @floatFromInt(color.b)) / 255.0), .w = (@as(f32, @floatFromInt(color.a)) / 255.0) };
+      enabled_buffer[count] = if (light.active) 1 else 0;
+      type_buffer[count] = light.type.raylibType();
 
       count += 1;
     }
 
     rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].position"), &position_buffer, rl.SHADER_UNIFORM_VEC4);
     rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].color"), &color_buffer, rl.SHADER_UNIFORM_VEC4);
+    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].enabled"), &enabled_buffer, rl.SHADER_UNIFORM_INT);
+    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].type"), &type_buffer, rl.SHADER_UNIFORM_INT);
     rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lightCount"), &count, rl.SHADER_UNIFORM_INT);
   }
 };

@@ -122,8 +122,8 @@ test "Component should set mesh" {
     try tst.expectEqual(1.0, material.roughness);
     try tst.expectEqual(false, material.alpha_blend);
     try tst.expectEqual(false, material.double_sided);
-    try tst.expectEqual(1, material.material.shader.id);
-    try tst.expectEqual(0, material.material.maps[0].texture.id);
+    try tst.expectEqual(3, material.material.shader.id);
+    try tst.expectEqual(1, material.material.maps[0].texture.id);
     try tst.expectEqual(0, material.material.maps[1].texture.id);
   }
 

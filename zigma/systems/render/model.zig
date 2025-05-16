@@ -32,7 +32,6 @@ pub const System = struct {
 
       const normal_matrix = rl.MatrixTranspose(rl.MatrixInvert(model_matrix));
 
-      rl.BeginShaderMode(shader.lighting);
       rl.SetShaderValueMatrix(shader.lighting, matNormal_location, normal_matrix);
 
       rl.DrawModelEx(
@@ -43,8 +42,6 @@ pub const System = struct {
         rl.Vector3{ .x = scale.x, .y = scale.y, .z = scale.z },
         rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = color.a },
       );
-
-      rl.EndShaderMode();
     }
   }
 };
@@ -65,6 +62,7 @@ test "System should render model" {
   var system = System.init(&world);
 
   _ = world.entity("camera").camera(.{});
+  _ = world.entity("shader").shader(.{});
   _ = world.entity("test").model(.{.type = "cube"});
 
   // When
