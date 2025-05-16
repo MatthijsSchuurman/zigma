@@ -1,5 +1,9 @@
 const std = @import("std");
-const rl = @cImport(@cInclude("raylib.h"));
+pub const raylib = @cImport({
+  @cInclude("raylib.h");
+  @cInclude("raymath.h");
+});
+const rl = raylib;
 
 //Entity
 pub const EntityID = u32;

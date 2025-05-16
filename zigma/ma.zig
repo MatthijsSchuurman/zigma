@@ -1,5 +1,4 @@
 const std = @import("std");
-const rl = @cImport(@cInclude("raylib.h"));
 
 // Setup memory management
 const builtin = @import("builtin");
@@ -15,6 +14,7 @@ pub const allocator =
 
 // ECS
 pub const ecs = @import("ecs.zig");
+const rl = ecs.raylib;
 
 // Init & Deinit
 const Config = struct {

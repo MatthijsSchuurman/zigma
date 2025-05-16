@@ -1,6 +1,6 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const rl = @cImport(@cInclude("raylib.h"));
+const rl = ecs.raylib;
 
 const light_component = @import("../../components/light.zig");
 
