@@ -25,6 +25,7 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
+  pub const shader = Components.Shader.init;
   pub const material = Components.Material.init;
   pub const model = Components.Model.init;
   pub const text = Components.Text.set;
@@ -44,6 +45,7 @@ pub const Components = struct {
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
+  pub const Shader = @import("components/shader.zig");
   pub const Material = @import("components/material.zig");
   pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");

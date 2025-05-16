@@ -33,8 +33,10 @@ pub fn create() *ecs.World {
   world.* = ecs.World.init(allocator);
   world.initSystems();
 
+  // Default entities
   _ = world.entity("timeline").timeline();
   _ = world.entity("camera").camera();
+  _ = world.entity("shader").shader(.{});
   _ = world.entity("material").material(.{});
 
   return world;
