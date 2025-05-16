@@ -43,18 +43,19 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../../ma.zig");
 
 test "System should render fps" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
+  rl.InitWindow(320, 200, "test");
   rl.SetTargetFPS(10);
-  defer zigma.deinit();
+  defer rl.CloseWindow();
 
-  const world = zigma.create();
-  defer zigma.destroy(world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
 
-  var system = System.init(world);
+  var system = System.init(&world);
+
+  _ = world.entity("timeline").timeline_init();
 
   // When
   rl.BeginDrawing(); // Ensure consistent FPS

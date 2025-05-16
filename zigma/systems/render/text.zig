@@ -59,23 +59,20 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../../ma.zig");
 
 test "System should render text" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  defer zigma.deinit();
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
 
-  const world = zigma.create();
-  defer zigma.destroy(world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  var system = System.init(&world);
 
   _ = world.entity("test").text("test").scale(10, 1, 1);
 
-  var system = System.init(world);
-
   // When
-  rl.BeginDrawing(); // Ensure consistent FPS
-  rl.EndDrawing();
   rl.BeginDrawing();
   system.render();
   rl.EndDrawing();

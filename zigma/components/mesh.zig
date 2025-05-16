@@ -93,11 +93,11 @@ const zigma = @import("../ma.zig");
 
 test "Component should set mesh" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  defer zigma.deinit();
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
 
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
 
   const entity = world.entity("test");
 
@@ -139,11 +139,11 @@ test "Component should set mesh" {
 
 test "Query should filter" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  defer zigma.deinit();
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
 
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
 
   const entity1 = set(world.entity("test1"), "cube");
   _ = set(world.entity("test2"), "sphere");

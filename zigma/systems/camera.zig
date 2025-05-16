@@ -48,17 +48,16 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const zigma = @import("../ma.zig");
 
 test "System should setup camera" {
   // Given
-  zigma.init(.{.title = "test", .width = 320, .height = 200 });
-  defer zigma.deinit();
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
 
-  const world = zigma.create();
-  defer zigma.destroy(world);
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
 
-  var system = System.init(world);
+  var system = System.init(&world);
 
   // When
   rl.BeginDrawing();
