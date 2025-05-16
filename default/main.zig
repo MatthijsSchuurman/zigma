@@ -18,6 +18,11 @@ fn intro() void {
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
     .position(-5, 0.5, 2);
 
+  _ = world.entity("light")
+  .event(.{.start = 0, .end = 10, .motion = .Smooth})
+    .color(255, 0, 0, 255)
+    .position(5, 0.5, 2);
+
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
   .position(0, 0, 0)

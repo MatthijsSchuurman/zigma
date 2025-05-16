@@ -456,9 +456,14 @@ test "ECS World should add entity" {
 
 test "ECS World should render" {
   // Given
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
+
   var world = World.init(std.testing.allocator);
   world.initSystems();
   defer world.deinit();
+
+  _ = world.entity("shader").shader(.{});
 
   // When
   const result = world.render();

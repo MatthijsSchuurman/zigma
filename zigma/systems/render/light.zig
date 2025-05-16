@@ -37,9 +37,9 @@ pub const System = struct {
       count += 1;
     }
 
-    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lightPos[0]"), &position_buffer, rl.SHADER_UNIFORM_VEC4);
-    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lightCol[0]"), &color_buffer, rl.SHADER_UNIFORM_VEC4);
-    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lightCount"), &count, rl.SHADER_UNIFORM_INT);
+    rl.SetShaderValueV(shader.shader, rl.GetShaderLocation(shader.shader, "lightPos[0]"), &position_buffer, rl.SHADER_UNIFORM_VEC4, @as(c_int, @intCast(count)));
+    rl.SetShaderValueV(shader.shader, rl.GetShaderLocation(shader.shader, "lightCol[0]"), &color_buffer, rl.SHADER_UNIFORM_VEC4, @as(c_int, @intCast(count)));
+    rl.SetShaderValueV(shader.shader, rl.GetShaderLocation(shader.shader, "lightCount"), &count, rl.SHADER_UNIFORM_INT, 1);
   }
 };
 
