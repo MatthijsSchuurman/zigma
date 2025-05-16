@@ -18,7 +18,7 @@ fn intro() void {
 
   _ = world.entity("camera")
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
-    .position(-5, 3, 2);
+    .position(-1, 3, 2);
 
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
@@ -41,15 +41,21 @@ fn intro() void {
     .scale(20, 0, 0)
     .position(0, 0, 0);
 
+  _ = world.entity("float")
+  .model("plane")
+  .scale(10, 0, 10)
+  .position(0, 0, 0);
+
   _ = world.entity("balls")
   .model("sphere")
   .color(100, 255, 255, 50)
-  .event(.{.start = 0, .duration = 5, .repeat = 5, .pattern = .PingPong, .motion = .EaseOut})
+   .position(0, 0.5, 0)
+  .event(.{.start = 0, .duration = 10, .repeat = 10, .pattern = .PingPong, .motion = .EaseOut})
     .color(100, 255, 100, 255)
-    .position(0, 0.5, 0)
+    .position(0, 1, 0)
     .scale(1, 0.75, 1)
-  .event(.{.start = 0, .duration = 10, .repeat = 5})
-    .rotation(0, 1, 0);
+  .event(.{.start = 0, .duration = 10, .repeat = 6})
+    .color(100, 0, 100, 50);
 
 
   while(zigma.render(world)){}

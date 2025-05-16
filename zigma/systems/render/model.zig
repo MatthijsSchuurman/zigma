@@ -16,14 +16,23 @@ pub const System = struct {
   pub fn render(self: *System) void {
     var it = self.world.components.model.iterator();
 
-    while(it.next()) |model| {
+    while (it.next()) |entry| {
+      const id = entry.key_ptr.*;
+      const model = entry.value_ptr.*;
+
+      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text component
+      const rotation = self.world.components.rotation.get(id) orelse unreachable;
+      const scale = self.world.components.scale.get(id) orelse unreachable;
+      const color = self.world.components.color.get(id) orelse unreachable;
+
       rl.DrawModelEx(
-        model.value_ptr.*.model,
-        rl.Vector3{ .x = 0.0, .y = 0.0, .z = 0.0 }, // position
-        rl.Vector3{ .x = 0.0, .y = 1.0, .z = 0.0 }, // rotation axis
+        model.model,
+        rl.Vector3{ .x = position.x, .y = position.y, .z = position.z },
+        rl.Vector3{ .x = rotation.x, .y = rotation.y, .z = rotation.z }, // rotation axis
         0.0, // rotation angle
-        rl.Vector3{ .x = 1.0, .y = 1.0, .z = 1.0 }, // scale
-        rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 }); // color
+        rl.Vector3{ .x = scale.x, .y = scale.y, .z = scale.z },
+        rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = color.a },
+      );
     }
   }
 };
