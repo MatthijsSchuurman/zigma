@@ -35,8 +35,9 @@ pub fn create() *ecs.World {
 
   // Default entities
   _ = world.entity("timeline").timeline();
-  _ = world.entity("camera").camera();
+  _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
+  _ = world.entity("light").light(.{});
   _ = world.entity("material").material(.{});
 
   return world;
