@@ -52,7 +52,7 @@ pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
 
   var timeline: ecs.Entity = undefined;
   if (params.timeline.len == 0) {
-    timeline = entity.world.entity("timeline"); // Use main timeline by default
+    timeline = entity.world.entity("timeline"); // Use default timeline
   } else {
     timeline = entity.world.entity(params.timeline); // May not exists yet
   }

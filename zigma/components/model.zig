@@ -23,7 +23,7 @@ pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
 
   var material: ecs.Entity = undefined;
   if (params.material.len == 0) {
-    material = entity.world.entity("material"); // Use main material by default
+    material = entity.world.entity("material"); // Use default material
   } else {
     material = entity.world.entity(params.material); // May not exists yet
   }
@@ -116,10 +116,8 @@ test "Component should set mesh" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.model.get(entity.id)) |model| {
-    if (!std.mem.eql(u8, model.type, "cube"))
-      return error.TestExpectedName;
-
     try tst.expectEqual("cube", model.type);
+    try tst.expectEqual(1, model.model.meshCount);
   }
 
   if (world.components.position.get(entity.id)) |position|

@@ -25,6 +25,7 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
+  pub const material = Components.Material.init;
   pub const model = Components.Model.init;
   pub const text = Components.Text.set;
 };
@@ -43,6 +44,7 @@ pub const Components = struct {
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
+  pub const Material = @import("components/material.zig");
   pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
 };
@@ -280,6 +282,16 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
     return switch (cond) {
       .eq => std.mem.eql(u8, actual, cond.eq),
       .not => !std.mem.eql(u8, actual, cond.not),
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (T == bool)
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
       .lt => false,
       .lte => false,
       .gt => false,

@@ -44,13 +44,16 @@ fn intro() void {
   .scale(10, 0, 10)
   .position(0, 0, 0);
 
+  _ = world.entity("ball material")
+  .material(.{ .metalness = 0.25, .alpha_blend = true, .double_sided = true});
+
   _ = world.entity("balls")
-  .model(.{.type = "sphere"})
+  .model(.{.type = "sphere", .material = "ball material"})
   .color(100, 255, 255, 255)
   .position(0, 2, 0)
   .scale(1, 1, 1)
   .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
-    .color(100, 255, 100, 255)
+    .color(100, 255, 100, 150)
     .position(0, 0.5, 0)
     .scale(1, 0.5, 1);
 
