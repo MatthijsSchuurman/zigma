@@ -13,12 +13,11 @@ pub const System = struct {
 
   pub fn render(self: *System) void {
     var it = self.world.components.model.iterator();
-
     while (it.next()) |entry| {
       const id = entry.key_ptr.*;
       const model = entry.value_ptr.*;
 
-      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text component
+      const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
       const rotation = self.world.components.rotation.get(id) orelse unreachable;
       const scale = self.world.components.scale.get(id) orelse unreachable;
       const color = self.world.components.color.get(id) orelse unreachable;

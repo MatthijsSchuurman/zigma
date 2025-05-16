@@ -13,7 +13,6 @@ pub const System = struct {
 
   pub fn start(self: *System) void {
     var it = self.world.components.camera.iterator();
-
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
 
@@ -46,7 +45,6 @@ pub const System = struct {
 
   pub fn stop(self: *System) void {
     var it = self.world.components.camera.iterator();
-
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
 

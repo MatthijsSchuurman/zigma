@@ -43,7 +43,6 @@ pub fn init(entity: ecs.Entity, params: Camera) ecs.Entity {
 
 pub fn activate(entity: ecs.Entity) ecs.Entity {
   var it = entity.world.components.camera.iterator();
-
   while(it.next()) |entry| //Ensure only this camera is active
     entry.value_ptr.*.active = entry.key_ptr.* == entity.id;
 

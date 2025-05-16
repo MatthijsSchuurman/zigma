@@ -69,6 +69,7 @@ pub const Systems = struct {
 
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
+  pub const Render_Light = @import("systems/render/light.zig");
   pub const Render_Model = @import("systems/render/model.zig");
   pub const Render_Text = @import("systems/render/text.zig");
   pub const FPS = @import("systems/render/fps.zig");
@@ -170,6 +171,7 @@ pub const World = struct {
     self.systems.render_background.render();
 
     self.systems.camera.start();
+    self.systems.render_light.render();
     self.systems.render_model.render();
     self.systems.camera.stop();
 

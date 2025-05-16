@@ -2,12 +2,13 @@ const std = @import("std");
 const ecs = @import("../ecs.zig");
 const rl = @cImport(@cInclude("raylib.h"));
 
+pub const MAX_LIGHTS = 16;
+
 pub const Component = struct {
   active: bool,
 
   type: LightType = .point,
-  intensity: f32,
-  range: f32,
+  radius: f32,
 
   target: struct {
     x: f32,
@@ -32,8 +33,7 @@ const Light = struct {
   active: bool = true,
 
   type: LightType = .point,
-  intensity: f32 = 1.0,
-  range: f32 = 10.0,
+  radius: f32 = 10.0,
 
   target: struct {
     x: f32 = 0,
@@ -46,11 +46,13 @@ pub fn init(entity: ecs.Entity, params: Light) ecs.Entity {
   if (entity.world.components.light.getPtr(entity.id)) |_|
     return entity;
 
+  if (entity.world.components.light.count() >= MAX_LIGHTS)
+    @panic("Max lights reached");
+
   const new = .{
     .active = params.active,
     .type = params.type,
-    .intensity = params.intensity,
-    .range = params.range,
+    .radius = params.radius,
     .target = .{.x = params.target.x, .y = params.target.y, .z = params.target.z},
   };
   entity.world.components.light.put(entity.id, new) catch @panic("Failed to store light");
@@ -78,16 +80,9 @@ pub fn deactivate(entity: ecs.Entity) ecs.Entity {
   return entity;
 }
 
-pub fn intensity(entity: ecs.Entity, value: f32) ecs.Entity {
+pub fn radius(entity: ecs.Entity, value: f32) ecs.Entity {
   if (entity.world.components.light.getPtr(entity.id)) |light|
-    light.intensity = value;
-
-  return entity;
-}
-
-pub fn range(entity: ecs.Entity, value: f32) ecs.Entity {
-  if (entity.world.components.light.getPtr(entity.id)) |light|
-    light.range = value;
+    light.radius = value;
 
   return entity;
 }
@@ -117,7 +112,7 @@ test "Component should init light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 1.0, .range = 10.0}, light)
+    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .radius = 10.0}, light)
   else
     return error.TestExpectedCamera;
 
@@ -140,7 +135,7 @@ test "Component should activate light" {
   const entity = world.entity("test").light(.{.active = false});
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 1.0, .range = 10.0}, light)
+    try tst.expectEqual(Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .radius = 10.0}, light)
   else
     return error.TestExpectedCamera;
 
@@ -152,7 +147,7 @@ test "Component should activate light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 1.0, .range = 10.0}, light)
+    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .radius = 10.0}, light)
   else
     return error.TestExpectedCamera;
 }
@@ -172,12 +167,12 @@ test "Component should deactivate light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 1.0, .range = 10.0}, light)
+    try tst.expectEqual(Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .radius = 10.0}, light)
   else
     return error.TestExpectedCamera;
 }
 
-test "Component should set intensity" {
+test "Component should set radius" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
@@ -185,34 +180,14 @@ test "Component should set intensity" {
   const entity = world.entity("test").light(.{});
 
   // When
-  const result = intensity(entity, 0.5);
+  const result = radius(entity, 90);
 
   // Then
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 0.5, .range = 10.0}, light)
-  else
-    return error.TestExpectedCamera;
-}
-
-test "Component should set range" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test").light(.{});
-
-  // When
-  const result = range(entity, 90);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .intensity = 1.0, .range = 90.0}, light)
+    try tst.expectEqual(Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .radius = 90.0}, light)
   else
     return error.TestExpectedCamera;
 }
@@ -232,7 +207,7 @@ test "Component should set target" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(Component{.active = true, .target = .{.x = 1, .y = 2, .z = 3}, .intensity = 1.0, .range = 10.0}, light)
+    try tst.expectEqual(Component{.active = true, .target = .{.x = 1, .y = 2, .z = 3}, .radius = 10.0}, light)
   else
     return error.TestExpectedCamera;
 }

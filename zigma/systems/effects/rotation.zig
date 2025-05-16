@@ -21,7 +21,6 @@ pub const System = struct {
 
   pub fn update(self: *System) void {
     var it = self.world.components.timelineeventprogress.iterator();
-
     while(it.next()) |entry| {
       const id = entry.key_ptr.*;
       const event = entry.value_ptr.*;
