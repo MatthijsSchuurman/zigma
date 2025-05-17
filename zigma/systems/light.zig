@@ -68,9 +68,6 @@ const SystemRenderModel = @import("render/model.zig");
 
 test "System should update light" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -81,7 +78,7 @@ test "System should update light" {
 
   _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
-  _ = world.entity("test").light(.{.type = .point});
+  _ = world.entity("test").light(.{.type = .Point}).color(128, 200, 128, 128);
   _ = world.entity("material").material(.{.shader = "shader"});
   _ = world.entity("cube").model(.{.type = "cube", .material = "material"});
 
@@ -91,6 +88,7 @@ test "System should update light" {
   system.update();
 
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system_camera.start();
   system_model.render();
   system_camera.stop();

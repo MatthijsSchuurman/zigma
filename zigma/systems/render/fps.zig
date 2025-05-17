@@ -46,9 +46,7 @@ const tst = std.testing;
 
 test "System should render fps" {
   // Given
-  rl.InitWindow(320, 200, "test");
   rl.SetTargetFPS(10);
-  defer rl.CloseWindow();
 
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
@@ -61,6 +59,7 @@ test "System should render fps" {
   rl.BeginDrawing(); // Ensure consistent FPS
   rl.EndDrawing();
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system.render();
   rl.EndDrawing();
 

@@ -41,9 +41,6 @@ const SystemCamera = @import("../camera.zig");
 
 test "System should render model" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -55,6 +52,7 @@ test "System should render model" {
 
   // When
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system_camera.start();
   system.render();
   system_camera.stop();

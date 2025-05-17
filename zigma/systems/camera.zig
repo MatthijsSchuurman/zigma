@@ -87,9 +87,6 @@ const SystemRenderModel = @import("render/model.zig");
 
 test "System should update camera" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -101,9 +98,6 @@ test "System should update camera" {
 
 test "System should start / stop camera" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -115,6 +109,7 @@ test "System should start / stop camera" {
 
   // When
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system.start();
   system_model.render();
   system.stop();

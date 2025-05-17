@@ -106,9 +106,6 @@ const zigma = @import("../ma.zig");
 
 test "Component should set mesh" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -155,9 +152,6 @@ test "Component should set mesh" {
 
 test "Query should filter" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 

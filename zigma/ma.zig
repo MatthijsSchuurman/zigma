@@ -124,29 +124,14 @@ test { // Before
   rl.SetTraceLogLevel(rl.LOG_NONE);
   rl.SetWindowState(rl.FLAG_WINDOW_HIDDEN);
 
+  init(.{.title = "test", .width = 320, .height = 200}); //open raylib window once otherwise segfaulty
+  //defer deinit(); // Can't do post test cleanup
+
   std.testing.refAllDecls(@This()); // Export tests in imported files
-}
-
-test "Zigma should init" {
-  // Given
-  const config = .{
-    .title = "test",
-    .width = 320,
-    .height = 200,
-  };
-
-  // When
-  init(config);
-  defer deinit();
-
-  // Then
-  try tst.expectEqual(true, rl.IsWindowReady());
 }
 
 test "Zigma should create world" {
   // Given
-  init(.{.title = "test", .width = 320, .height = 200});
-  defer deinit();
 
   // When
   const world = create();
@@ -158,17 +143,15 @@ test "Zigma should create world" {
 
 test "Zigma should render world" {
   // Given
-  init(.{.title = "test", .width = 320, .height = 200});
-  defer deinit();
-
   const world = create();
   defer destroy(world);
 
   _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
-  _ = world.entity("light").light(.{.type = .directional});
+  _ = world.entity("light").light(.{.type = .Directional});
   _ = world.entity("material").material(.{.shader = "shader"});
   _ = world.entity("ball").model(.{.type = "sphere", .material = "material"});
+  _ = world.entity("background").color(0, 0, 0, 255); // Wipe previous test data
 
   // When
   const result = render(world);
