@@ -62,7 +62,9 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const model_system = @import("render/model.zig");
+const SystemCamera = @import("camera.zig");
+const SystemShader = @import("shader.zig");
+const SystemRenderModel = @import("render/model.zig");
 
 test "System should update light" {
   // Given
@@ -70,25 +72,28 @@ test "System should update light" {
   defer rl.CloseWindow();
 
   var world = ecs.World.init(tst.allocator);
-  world.initSystems();
   defer world.deinit();
 
   var system = System.init(&world);
+  var system_camera = SystemCamera.System.init(&world);
+  var system_shader = SystemShader.System.init(&world);
+  var system_model = SystemRenderModel.System.init(&world);
 
   _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
   _ = world.entity("test").light(.{.type = .point});
-  _ = world.entity("test2").model(.{.type = "cube"});
+  _ = world.entity("material").material(.{.shader = "shader"});
+  _ = world.entity("cube").model(.{.type = "cube", .material = "material"});
 
   // When
-  world.systems.camera.update();
-  world.systems.shader.update();
+  system_camera.update();
+  system_shader.update();
   system.update();
 
   rl.BeginDrawing();
-  world.systems.camera.start();
-  world.systems.render_model.render();
-  world.systems.camera.stop();
+  system_camera.start();
+  system_model.render();
+  system_camera.stop();
   rl.EndDrawing();
 
   // Then

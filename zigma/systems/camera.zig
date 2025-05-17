@@ -83,6 +83,21 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
+const SystemRenderModel = @import("render/model.zig");
+
+test "System should update camera" {
+  // Given
+  rl.InitWindow(320, 200, "test");
+  defer rl.CloseWindow();
+
+  var world = ecs.World.init(tst.allocator);
+  defer world.deinit();
+
+  var system = System.init(&world);
+
+  // When
+  system.update();
+}
 
 test "System should start / stop camera" {
   // Given
@@ -93,12 +108,15 @@ test "System should start / stop camera" {
   defer world.deinit();
 
   var system = System.init(&world);
+  var system_model = SystemRenderModel.System.init(&world);
 
-  _ = world.entity("shader").shader(.{});
+  _ = world.entity("test").camera(.{});
+  _ = world.entity("cube").model(.{.type = "cube"});
 
   // When
   rl.BeginDrawing();
   system.start();
+  system_model.render();
   system.stop();
   rl.EndDrawing();
 

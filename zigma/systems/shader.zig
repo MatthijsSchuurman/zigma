@@ -34,6 +34,9 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
+const SystemCamera = @import("camera.zig");
+const SystemLight= @import("light.zig");
+const SystemRenderModel = @import("render/model.zig");
 
 test "System should update shader" {
   // Given
@@ -44,12 +47,25 @@ test "System should update shader" {
   defer world.deinit();
 
   var system = System.init(&world);
+  var system_camera = SystemCamera.System.init(&world);
+  var system_light= SystemLight.System.init(&world);
+  var system_model = SystemRenderModel.System.init(&world);
 
+  _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
+  _ = world.entity("test").light(.{.type = .point});
+  _ = world.entity("material").material(.{.shader = "shader"});
+  _ = world.entity("cube").model(.{.type = "cube", .material = "material"});
 
   // When
-  rl.BeginDrawing();
+  system_camera.update();
   system.update();
+  system_light.update();
+
+  rl.BeginDrawing();
+  system_camera.start();
+  system_model.render();
+  system_camera.stop();
   rl.EndDrawing();
 
   // Then

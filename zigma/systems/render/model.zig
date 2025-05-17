@@ -37,6 +37,7 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
+const SystemCamera = @import("../camera.zig");
 
 test "System should render model" {
   // Given
@@ -44,20 +45,19 @@ test "System should render model" {
   defer rl.CloseWindow();
 
   var world = ecs.World.init(tst.allocator);
-  world.initSystems();
   defer world.deinit();
 
   var system = System.init(&world);
+  var system_camera = SystemCamera.System.init(&world);
 
   _ = world.entity("camera").camera(.{});
-  _ = world.entity("shader").shader(.{});
   _ = world.entity("test").model(.{.type = "cube"});
 
   // When
   rl.BeginDrawing();
-  world.systems.camera.start();
+  system_camera.start();
   system.render();
-  world.systems.camera.stop();
+  system_camera.stop();
   rl.EndDrawing();
 
   // Then
