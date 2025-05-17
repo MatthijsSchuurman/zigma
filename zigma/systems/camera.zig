@@ -11,10 +11,30 @@ pub const System = struct {
     };
   }
 
-  pub fn start(self: *System) void {
-    const shader_entity = self.world.entity("shader"); // Use default for now
-    const shader = self.world.components.shader.get(shader_entity.id) orelse unreachable;
+  pub fn update(self: *System) void {
+    var it = self.world.components.camera.iterator();
+    while (it.next()) |entry| {
+      if (!entry.value_ptr.*.active) continue;
 
+      const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
+      const camera_position = rl.Vector3{
+        .x = position.x,
+        .y = position.y,
+        .z = position.z,
+      };
+
+      var it2 = self.world.components.shader.iterator();
+      while (it2.next()) |entry2| {
+        const shader = entry2.value_ptr.*;
+
+        rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &camera_position, rl.SHADER_UNIFORM_VEC3);
+      }
+
+      break; // Only one camera for now
+    }
+  }
+
+  pub fn start(self: *System) void {
     var it = self.world.components.camera.iterator();
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
@@ -42,14 +62,9 @@ pub const System = struct {
         .projection = rl.CAMERA_PERSPECTIVE,
       };
 
-      std.debug.print("Camera shader id: {}\n", .{shader.shader.id});
-      const asdf = rl.Vector4{.x = 0.3, .y = 0.3, .z = 0.3, .w = 1};
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "ambient"), &asdf, rl.SHADER_UNIFORM_VEC4); //DO ONCE
-
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &camera.position, rl.SHADER_UNIFORM_VEC3);
-
       rl.BeginMode3D(camera);
-      break;
+
+      break; // Only one camera for now
     }
   }
 
@@ -59,7 +74,8 @@ pub const System = struct {
       if (!entry.value_ptr.*.active) continue;
 
       rl.EndMode3D();
-      break;
+
+      break; // Only one camera for now
     }
   }
 };

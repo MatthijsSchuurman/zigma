@@ -11,22 +11,41 @@ fn intro() void {
   var world = zigma.create();
   defer zigma.destroy(world);
 
-  // _ = world.entity("camera").camera(.{});
-  // _ = world.entity("shader").shader(.{});
-  // _ = world.entity("light").light(.{});
+  _ = world.entity("light shader").shader(.{.type = "lighting"});
 
-  _ = world.entity("background")
-  .color(50, 50, 50, 255);
-
-  _ = world.entity("camera")
+  _ = world.entity("camera").camera(.{})
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
     .position(-5, 0.5, 2);
 
-  _ = world.entity("light")
+  _ = world.entity("light").light(.{.type = .point})
   .color(0, 0, 255, 255)
   .event(.{.start = 0, .end = 10, .motion = .Smooth})
     .color(255, 0, 0, 255)
     .position(5, 0.5, 2);
+
+
+  _ = world.entity("background")
+  .color(50, 50, 50, 255);
+
+
+  _ = world.entity("floor")
+  .model(.{.type = "plane"})
+  .color(200, 200, 200, 255)
+  .scale(10, 0, 10)
+  .position(0, 0, 0);
+
+  _ = world.entity("ball material").material(.{.shader = "light shader"});
+
+  _ = world.entity("balls")
+  .model(.{.type = "sphere", .material = "ball material"})
+  .color(100, 255, 255, 255)
+  .position(0, 2, 0)
+  .scale(1, 1, 1)
+  .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
+    .color(100, 255, 100, 150)
+    .position(0, 0.5, 0)
+    .scale(1, 0.5, 1);
+
 
   _ = world.entity("zigma balls")
   .text("Zigma Balls!!!")
@@ -49,24 +68,6 @@ fn intro() void {
     .scale(20, 0, 0)
     .position(0, 0, 0);
 
-  _ = world.entity("floor")
-  .model(.{.type = "plane"})
-  .color(200, 200, 200, 255)
-  .scale(10, 0, 10)
-  .position(0, 0, 0);
-
-  _ = world.entity("ball material")
-  .material(.{ .metalness = 0.25, .alpha_blend = true, .double_sided = true});
-
-  _ = world.entity("balls")
-  .model(.{.type = "sphere", .material = "ball material"})
-  .color(100, 255, 255, 255)
-  .position(0, 2, 0)
-  .scale(1, 1, 1)
-  .event(.{.start = 0, .duration = 10, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
-    .color(100, 255, 100, 150)
-    .position(0, 0.5, 0)
-    .scale(1, 0.5, 1);
 
   while(zigma.render(world)){}
 }

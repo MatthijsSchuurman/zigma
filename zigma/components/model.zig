@@ -34,6 +34,8 @@ pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
       for (0..@as(usize, @intCast(new.model.materialCount))) |i| {
         new.model.materials[i] = material.material;
       }
+    } else {
+      std.debug.print("Material not found: {s}\n", .{params.material});
     }
   }
 
@@ -122,6 +124,12 @@ test "Component should set mesh" {
   if (world.components.model.get(entity.id)) |model| {
     try tst.expectEqual("cube", model.type);
     try tst.expectEqual(1, model.model.meshCount);
+    try tst.expectEqual(1, model.model.materialCount);
+    try tst.expectEqual(24, model.model.meshes[0].vertexCount);
+    try tst.expectEqual(0, model.material_id);
+    try tst.expectEqual(3, model.model.materials[0].shader.id);
+    try tst.expectEqual(1, model.model.materials[0].maps[0].texture.id);
+    try tst.expectEqual(0, model.model.materials[0].maps[1].texture.id);
   }
 
   if (world.components.position.get(entity.id)) |position|

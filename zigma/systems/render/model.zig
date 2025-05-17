@@ -22,17 +22,6 @@ pub const System = struct {
       const scale = self.world.components.scale.get(id) orelse unreachable;
       const color = self.world.components.color.get(id) orelse unreachable;
 
-      const model_matrix = rl.MatrixMultiply(
-        rl.MatrixRotateXYZ(rl.Vector3{ .x = rotation.x, .y = rotation.y, .z = rotation.z }),
-        rl.MatrixTranslate(position.x, position.y, position.z));
-
-      const shader = model.model.materials[0].shader;
-      const normal_matrix = rl.MatrixTranspose(rl.MatrixInvert(model_matrix));
-      const matNormal_location = rl.GetShaderLocation(shader, "matNormal");
-
-      std.debug.print("Model Shader id: {}\n", .{shader.id});
-      rl.SetShaderValueMatrix(shader, matNormal_location, normal_matrix);
-
       rl.DrawModelEx(
         model.model,
         rl.Vector3{ .x = position.x, .y = position.y, .z = position.z },

@@ -25,6 +25,9 @@ pub fn init(entity: ecs.Entity, params: Shader) ecs.Entity {
   };
   entity.world.components.shader.put(entity.id, new) catch @panic("Failed to store shader");
 
+  _ = entity
+  .color(255, 255, 255, 255);
+
   return entity;
 }
 
@@ -99,6 +102,11 @@ test "Component should set mesh" {
   if (world.components.shader.get(entity.id)) |shader| {
     try tst.expectEqual("lighting", shader.type);
   }
+
+  if (world.components.color.get(entity.id)) |color|
+    try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
+  else
+    return error.TestExpectedColor;
 }
 
 test "Query should filter" {

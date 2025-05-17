@@ -69,6 +69,8 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
   pub const Camera = @import("systems/camera.zig");
+  pub const Shader = @import("systems/shader.zig");
+  pub const Light = @import("systems/light.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -78,7 +80,6 @@ pub const Systems = struct {
 
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
-  pub const Render_Light = @import("systems/render/light.zig");
   pub const Render_Model = @import("systems/render/model.zig");
   pub const Render_Text = @import("systems/render/text.zig");
   pub const FPS = @import("systems/render/fps.zig");
@@ -176,10 +177,14 @@ pub const World = struct {
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
 
+    self.systems.camera.update();
+    self.systems.shader.update();
+    self.systems.light.update();
+
     // Render
     self.systems.render_background.render();
+
     self.systems.camera.start();
-    self.systems.render_light.render();
     self.systems.render_model.render();
     self.systems.camera.stop();
 
