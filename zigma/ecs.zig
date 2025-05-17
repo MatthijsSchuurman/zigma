@@ -1,5 +1,14 @@
 const std = @import("std");
-const rl = @cImport(@cInclude("raylib.h"));
+pub const raylib = @cImport({
+  @cInclude("raylib.h");
+  @cInclude("raymath.h");
+
+  // Redefine based on lighting.fs
+  @cDefine("MAX_LIGHTS", "4");
+  @cDefine("LIGHT_DIRECTIONAL", "0");
+  @cDefine("LIGHT_POINT", "1");
+});
+const rl = raylib;
 
 //Entity
 pub const EntityID = u32;
@@ -8,12 +17,12 @@ pub const Entity = struct {
   parent_id: EntityID = 0,
   world: *World,
 
-  pub const timeline_init = Components.Timeline.init;
+  pub const timeline = Components.Timeline.init;
   pub const timeline_speed = Components.Timeline.setSpeed;
   pub const timeline_offset = Components.Timeline.setOffset;
   pub const event = Components.TimelineEvent.add;
 
-  pub const camera_init = Components.Camera.init;
+  pub const camera = Components.Camera.init;
   pub const camera_activate = Components.Camera.activate;
   pub const camera_deactivate = Components.Camera.deactivate;
   pub const camera_target = Components.Camera.target;
@@ -25,7 +34,10 @@ pub const Entity = struct {
 
   pub const color = Components.Color.set;
 
-  pub const model = Components.Model.set;
+  pub const shader = Components.Shader.init;
+  pub const light = Components.Light.init;
+  pub const material = Components.Material.init;
+  pub const model = Components.Model.init;
   pub const text = Components.Text.set;
 };
 
@@ -43,6 +55,9 @@ pub const Components = struct {
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
 
+  pub const Shader = @import("components/shader.zig");
+  pub const Light = @import("components/light.zig");
+  pub const Material = @import("components/material.zig");
   pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
 };
@@ -54,6 +69,8 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
   pub const Camera = @import("systems/camera.zig");
+  pub const Shader = @import("systems/shader.zig");
+  pub const Light = @import("systems/light.zig");
 
   // Effects
   pub const Effects_Position = @import("systems/effects/position.zig");
@@ -159,6 +176,10 @@ pub const World = struct {
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
+
+    self.systems.camera.update();
+    self.systems.shader.update();
+    self.systems.light.update();
 
     // Render
     self.systems.render_background.render();
@@ -280,6 +301,16 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
     return switch (cond) {
       .eq => std.mem.eql(u8, actual, cond.eq),
       .not => !std.mem.eql(u8, actual, cond.not),
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (T == bool)
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
       .lt => false,
       .lte => false,
       .gt => false,
@@ -454,7 +485,7 @@ test "ECS World should query timeline events" {
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
-  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("timeline").timeline();
   _ = world.entity("test").event(.{ .start = 0, .end = 1 });
 
   // When

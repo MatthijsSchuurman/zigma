@@ -14,7 +14,7 @@ pub fn init(entity: ecs.Entity) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |_|
     return entity;
 
-  const new = .{};
+  const new = Component{};
   entity.world.components.timeline.put(entity.id, new) catch @panic("Failed to store timeline");
 
   return entity;

@@ -1,5 +1,4 @@
 const std = @import("std");
-const rl = @cImport(@cInclude("raylib.h"));
 
 // Setup memory management
 const builtin = @import("builtin");
@@ -15,17 +14,25 @@ pub const allocator =
 
 // ECS
 pub const ecs = @import("ecs.zig");
+const rl = ecs.raylib;
 
 // Init & Deinit
 const Config = struct {
   title: [*:0]const u8,
   width: i32,
   height: i32,
+
+  fps: i32 = 200,
+  msaa: bool = true,
 };
 
 pub fn init(config: Config) void {
   rl.InitWindow(config.width, config.height, config.title);
-  rl.SetTargetFPS(200);
+
+  if (config.fps > 0)
+    rl.SetTargetFPS(config.fps);
+  if (config.msaa)
+    rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT);
 }
 
 pub fn create() *ecs.World {
@@ -33,8 +40,7 @@ pub fn create() *ecs.World {
   world.* = ecs.World.init(allocator);
   world.initSystems();
 
-  _ = world.entity("timeline").timeline_init();
-  _ = world.entity("camera").camera_init();
+  _ = world.entity("timeline").timeline();
 
   return world;
 }
@@ -124,29 +130,14 @@ test { // Before
   rl.SetTraceLogLevel(rl.LOG_NONE);
   rl.SetWindowState(rl.FLAG_WINDOW_HIDDEN);
 
+  init(.{.title = "test", .width = 320, .height = 200, .fps = 10}); //open raylib window once otherwise segfaulty
+  //defer deinit(); // Can't do post test cleanup
+
   std.testing.refAllDecls(@This()); // Export tests in imported files
-}
-
-test "Zigma should init" {
-  // Given
-  const config = .{
-    .title = "test",
-    .width = 320,
-    .height = 200,
-  };
-
-  // When
-  init(config);
-  defer deinit();
-
-  // Then
-  try tst.expectEqual(true, rl.IsWindowReady());
 }
 
 test "Zigma should create world" {
   // Given
-  init(.{.title = "test", .width = 320, .height = 200});
-  defer deinit();
 
   // When
   const world = create();
@@ -158,11 +149,15 @@ test "Zigma should create world" {
 
 test "Zigma should render world" {
   // Given
-  init(.{.title = "test", .width = 320, .height = 200});
-  defer deinit();
-
   const world = create();
   defer destroy(world);
+
+  _ = world.entity("camera").camera(.{});
+  _ = world.entity("shader").shader(.{});
+  _ = world.entity("light").light(.{.type = .Directional});
+  _ = world.entity("material").material(.{.shader = "shader"});
+  _ = world.entity("ball").model(.{.type = "sphere", .material = "material"});
+  _ = world.entity("background").color(0, 0, 0, 255); // Wipe previous test data
 
   // When
   const result = render(world);

@@ -11,7 +11,7 @@ pub fn activate(entity: ecs.Entity, target_id: ?ecs.EntityID) void {
     return;
   }
 
-  const new = .{.target_id = target_id};
+  const new = Component{.target_id = target_id};
   entity.world.components.timelineeventprogress.put(entity.id, new) catch @panic("Failed to store timeline event progress");
 }
 

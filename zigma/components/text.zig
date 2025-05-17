@@ -7,11 +7,11 @@ pub const Component = struct {
 
 pub fn set(entity: ecs.Entity, text: []const u8) ecs.Entity {
   if (entity.world.components.text.getPtr(entity.id)) |existing| {
-    existing.* = .{.text = text};
+    existing.* = Component{.text = text};
     return entity;
   }
 
-  const new = .{.text = text};
+  const new = Component{.text = text};
   entity.world.components.text.put(entity.id, new) catch @panic("Failed to store text");
 
   _ = entity

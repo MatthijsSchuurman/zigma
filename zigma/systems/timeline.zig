@@ -185,7 +185,7 @@ test "System should determine time" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("timeline").timeline_init();
+  const entity = world.entity("timeline").timeline();
 
   var system = System.init(&world);
 
@@ -239,7 +239,7 @@ test "System should determine offset" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("timeline").timeline_init();
+  const entity = world.entity("timeline").timeline();
 
   var system = System.init(&world);
 
@@ -269,7 +269,7 @@ test "System should determine Tenet time" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("timeline").timeline_init()
+  const entity = world.entity("timeline").timeline()
     .timeline_speed(-1.0);
 
   var system = System.init(&world);
@@ -302,7 +302,7 @@ test "System should process events" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("timeline").timeline_init()
+  const entity = world.entity("timeline").timeline()
   .timeline_offset(0.5);
 
   var system = System.init(&world);

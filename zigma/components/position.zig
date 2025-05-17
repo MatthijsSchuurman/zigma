@@ -9,11 +9,11 @@ pub const Component = struct {
 
 pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   if (entity.world.components.position.getPtr(entity.id)) |existing| {
-    existing.* = .{.x = x, .y = y, .z = z};
+    existing.* = Component{.x = x, .y = y, .z = z};
     return entity;
   }
 
-  const new = .{.x = x, .y = y, .z = z };
+  const new = Component{.x = x, .y = y, .z = z };
   entity.world.components.position.put(entity.id, new) catch @panic("Failed to store position");
 
   return entity;

@@ -1,6 +1,6 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const rl = @cImport(@cInclude("raylib.h"));
+const rl = ecs.raylib;
 
 pub const System = struct {
   world: *ecs.World,
@@ -46,21 +46,18 @@ const tst = std.testing;
 
 test "System should render fps" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  rl.SetTargetFPS(10);
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
   var system = System.init(&world);
 
-  _ = world.entity("timeline").timeline_init();
+  _ = world.entity("timeline").timeline();
 
   // When
   rl.BeginDrawing(); // Ensure consistent FPS
   rl.EndDrawing();
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system.render();
   rl.EndDrawing();
 

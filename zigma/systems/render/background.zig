@@ -1,6 +1,6 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const rl = @cImport(@cInclude("raylib.h"));
+const rl = ecs.raylib;
 
 pub const System = struct {
   world: *ecs.World,
@@ -30,9 +30,6 @@ const tst = std.testing;
 
 test "System should render background" {
   // Given
-  rl.InitWindow(320, 200, "test");
-  defer rl.CloseWindow();
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -42,6 +39,7 @@ test "System should render background" {
 
   // When
   rl.BeginDrawing();
+  rl.ClearBackground(rl.BLACK); // Wipe previous test data
   system.render();
   rl.EndDrawing();
 
