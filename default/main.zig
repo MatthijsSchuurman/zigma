@@ -47,7 +47,7 @@ fn intro() void {
 
   _ = world.entity("floor")
   .model(.{.type = "plane"})
-  .color(255, 255, 255, 255)
+  .color(200, 200, 200, 255)
   .scale(10, 0, 10)
   .position(0, 0, 0);
 

@@ -25,6 +25,7 @@ const Config = struct {
 
 pub fn init(config: Config) void {
   rl.InitWindow(config.width, config.height, config.title);
+  rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT);
   rl.SetTargetFPS(200);
 }
 
@@ -35,10 +36,9 @@ pub fn create() *ecs.World {
 
   // Default entities
   _ = world.entity("timeline").timeline();
-  _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
+  _ = world.entity("camera").camera(.{});
   _ = world.entity("light").light(.{});
-  _ = world.entity("material").material(.{});
 
   return world;
 }

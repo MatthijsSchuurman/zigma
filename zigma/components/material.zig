@@ -34,7 +34,7 @@ pub fn init(entity: ecs.Entity, params: Material) ecs.Entity {
     shader = entity.world.entity(params.shader); // May not exists yet
   }
 
-  const new = .{
+  var new = .{
     .material = rl.LoadMaterialDefault(),
     .shader_id = shader.id,
 
@@ -44,6 +44,10 @@ pub fn init(entity: ecs.Entity, params: Material) ecs.Entity {
     .alpha_blend = params.alpha_blend,
     .double_sided = params.double_sided,
   };
+
+  if (entity.world.components.shader.get(shader.id)) |shader2|
+    new.material.shader = shader2.lighting;
+
   entity.world.components.material.put(entity.id, new) catch @panic("Failed to store material");
 
   _ = entity

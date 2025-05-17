@@ -2,6 +2,11 @@ const std = @import("std");
 pub const raylib = @cImport({
   @cInclude("raylib.h");
   @cInclude("raymath.h");
+
+  // Redefine based on lighting.fs
+  @cDefine("MAX_LIGHTS", "4");
+  @cDefine("LIGHT_DIRECTIONAL", "0");
+  @cDefine("LIGHT_POINT", "1");
 });
 const rl = raylib;
 
@@ -173,7 +178,6 @@ pub const World = struct {
 
     // Render
     self.systems.render_background.render();
-
     self.systems.camera.start();
     self.systems.render_light.render();
     self.systems.render_model.render();

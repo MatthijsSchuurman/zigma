@@ -21,22 +21,20 @@ pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |_|
     return entity;
 
-  var material_entity: ecs.Entity = undefined;
-  if (params.material.len == 0) {
-    material_entity = entity.world.entity("material"); // Use default material
-  } else {
-    material_entity = entity.world.entity(params.material); // May not exists yet
-  }
-
-  const new = .{
+  var new = Component{
     .type = params.type,
     .model = rl.LoadModelFromMesh(loadMesh(params.type)),
-    .material_id = material_entity.id,
+    .material_id = 0,
   };
 
-  if (entity.world.components.material.get(material_entity.id)) |material| {
-    for (0..@as(usize, @intCast(new.model.materialCount))) |i| {
-      new.model.materials[i] = material.material;
+  if (params.material.len > 0) {
+    const material_entity = entity.world.entity(params.material); // May not exists yet
+    new.material_id = material_entity.id;
+
+    if (entity.world.components.material.get(material_entity.id)) |material| {
+      for (0..@as(usize, @intCast(new.model.materialCount))) |i| {
+        new.model.materials[i] = material.material;
+      }
     }
   }
 

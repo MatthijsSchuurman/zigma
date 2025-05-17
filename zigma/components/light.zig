@@ -2,7 +2,6 @@ const std = @import("std");
 const ecs = @import("../ecs.zig");
 const rl = ecs.raylib;
 
-pub const MAX_LIGHTS = 4;
 const LIGHT_DIRECTIONAL = 0; // Redefined from lighting.fs
 const LIGHT_POINT = 1; // Redefined from lighting.fs
 
@@ -48,7 +47,7 @@ pub fn init(entity: ecs.Entity, params: Light) ecs.Entity {
   if (entity.world.components.light.getPtr(entity.id)) |_|
     return entity;
 
-  if (entity.world.components.light.count() >= MAX_LIGHTS)
+  if (entity.world.components.light.count() >= rl.MAX_LIGHTS)
     @panic("Max lights reached");
 
   const new = .{
