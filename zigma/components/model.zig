@@ -5,7 +5,7 @@ const rl = ecs.raylib;
 pub const Component = struct {
   type: []const u8,
   model: rl.Model,
-  material_id: ecs.EntityID,
+  material_id: ecs.EntityID = 0,
 
   pub fn deinit(self: *Component) void{
     rl.UnloadModel(self.model);
@@ -24,7 +24,6 @@ pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
   var new = Component{
     .type = params.type,
     .model = rl.LoadModelFromMesh(loadMesh(params.type)),
-    .material_id = 0,
   };
 
   if (params.material.len > 0) {

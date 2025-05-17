@@ -11,6 +11,10 @@ fn intro() void {
   var world = zigma.create();
   defer zigma.destroy(world);
 
+  // _ = world.entity("camera").camera(.{});
+  // _ = world.entity("shader").shader(.{});
+  // _ = world.entity("light").light(.{});
+
   _ = world.entity("background")
   .color(50, 50, 50, 255);
 

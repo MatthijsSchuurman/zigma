@@ -27,7 +27,7 @@ pub fn init(entity: ecs.Entity, params: Camera) ecs.Entity {
     return entity;
 
   const is_first = entity.world.components.camera.count() == 0;
-  const new = .{
+  const new = Component{
     .active = is_first,
     .target = .{.x = params.target.x, .y = params.target.y, .z = params.target.z},
     .fovy = params.fovy,

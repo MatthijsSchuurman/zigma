@@ -10,11 +10,11 @@ pub const Component = struct {
 
 pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
   if (entity.world.components.color.getPtr(entity.id)) |existing| {
-    existing.* = .{.r = r, .g = g, .b = b, .a = a };
+    existing.* = Component{.r = r, .g = g, .b = b, .a = a };
     return entity;
   }
 
-  const new = .{.r = r, .g = g, .b = b, .a = a };
+  const new = Component{.r = r, .g = g, .b = b, .a = a };
   entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
 
   return entity;

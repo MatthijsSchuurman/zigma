@@ -42,11 +42,11 @@ pub const System = struct {
         .projection = rl.CAMERA_PERSPECTIVE,
       };
 
-      std.debug.print("Camera shader id: {}\n", .{shader.lighting.id});
+      std.debug.print("Camera shader id: {}\n", .{shader.shader.id});
       const asdf = rl.Vector4{.x = 0.3, .y = 0.3, .z = 0.3, .w = 1};
-      rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "ambient"), &asdf, rl.SHADER_UNIFORM_VEC4); //DO ONCE
+      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "ambient"), &asdf, rl.SHADER_UNIFORM_VEC4); //DO ONCE
 
-      rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "viewPos"), &camera.position, rl.SHADER_UNIFORM_VEC3);
+      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &camera.position, rl.SHADER_UNIFORM_VEC3);
 
       rl.BeginMode3D(camera);
       break;

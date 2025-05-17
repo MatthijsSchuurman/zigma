@@ -471,8 +471,6 @@ test "ECS World should render" {
   world.initSystems();
   defer world.deinit();
 
-  _ = world.entity("shader").shader(.{});
-
   // When
   const result = world.render();
 

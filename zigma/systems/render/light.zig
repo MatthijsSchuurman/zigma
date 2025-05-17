@@ -41,7 +41,7 @@ pub const System = struct {
       target_buffer[count] = rl.Vector3{ .x = light.target.x, .y = light.target.y, .z = light.target.z };
       color_buffer[count] = rl.Vector4{ .x = (@as(f32, @floatFromInt(color.r)) / 255.0), .y = (@as(f32, @floatFromInt(color.g)) / 255.0), .z = (@as(f32, @floatFromInt(color.b)) / 255.0), .w = (@as(f32, @floatFromInt(color.a)) / 255.0) };
 
-      std.debug.print("Light shader id: {}\n", .{shader.lighting.id});
+      std.debug.print("Light shader id: {}\n", .{shader.shader.id});
       std.debug.print("Light {}: enabled: {}, type: {}, position: ({}, {}, {}), target: ({}, {}, {}), color: ({}, {}, {}, {})\n",.{
         count,
         enabled_buffer[count],
@@ -53,13 +53,13 @@ pub const System = struct {
       count += 1;
     }
 
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lightCount"), &count, rl.SHADER_UNIFORM_INT);
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].enabled"), &enabled_buffer, rl.SHADER_UNIFORM_INT);
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].type"), &type_buffer, rl.SHADER_UNIFORM_INT);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lightCount"), &count, rl.SHADER_UNIFORM_INT);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].enabled"), &enabled_buffer, rl.SHADER_UNIFORM_INT);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].type"), &type_buffer, rl.SHADER_UNIFORM_INT);
 
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].position"), &position_buffer, rl.SHADER_UNIFORM_VEC3);
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].target"), &target_buffer, rl.SHADER_UNIFORM_VEC3);
-    rl.SetShaderValue(shader.lighting, rl.GetShaderLocation(shader.lighting, "lights[0].color"), &color_buffer, rl.SHADER_UNIFORM_VEC4);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].position"), &position_buffer, rl.SHADER_UNIFORM_VEC3);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].target"), &target_buffer, rl.SHADER_UNIFORM_VEC3);
+    rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].color"), &color_buffer, rl.SHADER_UNIFORM_VEC4);
   }
 };
 

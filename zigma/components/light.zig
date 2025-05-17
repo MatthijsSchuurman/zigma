@@ -50,7 +50,7 @@ pub fn init(entity: ecs.Entity, params: Light) ecs.Entity {
   if (entity.world.components.light.count() >= rl.MAX_LIGHTS)
     @panic("Max lights reached");
 
-  const new = .{
+  const new = Component{
     .active = params.active,
     .type = params.type,
     .radius = params.radius,
