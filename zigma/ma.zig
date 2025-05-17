@@ -167,7 +167,7 @@ test "Zigma should render world" {
   _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
   _ = world.entity("light").light(.{.type = .directional});
-  _ = world.entity("material").material(.{.shader= "shader"});
+  _ = world.entity("material").material(.{.shader = "shader"});
   _ = world.entity("ball").model(.{.type = "sphere", .material = "material"});
 
   // When
