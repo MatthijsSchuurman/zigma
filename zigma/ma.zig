@@ -21,12 +21,18 @@ const Config = struct {
   title: [*:0]const u8,
   width: i32,
   height: i32,
+
+  fps: i32 = 200,
+  msaa: bool = true,
 };
 
 pub fn init(config: Config) void {
   rl.InitWindow(config.width, config.height, config.title);
-  rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT);
-  rl.SetTargetFPS(200);
+
+  if (config.fps > 0)
+    rl.SetTargetFPS(config.fps);
+  if (config.msaa)
+    rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT);
 }
 
 pub fn create() *ecs.World {
@@ -124,7 +130,7 @@ test { // Before
   rl.SetTraceLogLevel(rl.LOG_NONE);
   rl.SetWindowState(rl.FLAG_WINDOW_HIDDEN);
 
-  init(.{.title = "test", .width = 320, .height = 200}); //open raylib window once otherwise segfaulty
+  init(.{.title = "test", .width = 320, .height = 200, .fps = 10}); //open raylib window once otherwise segfaulty
   //defer deinit(); // Can't do post test cleanup
 
   std.testing.refAllDecls(@This()); // Export tests in imported files

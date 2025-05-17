@@ -46,8 +46,6 @@ const tst = std.testing;
 
 test "System should render fps" {
   // Given
-  rl.SetTargetFPS(10);
-
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
