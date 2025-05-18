@@ -77,7 +77,6 @@ pub const System = struct {
   }
 
   fn renderModel(self: *System, id: ecs.EntityID, model: ecs.Components.Model.Component) void {
-    std.debug.print("Rendering model: {d} {s}\n", .{id, model.type});
     const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
     const rotation = self.world.components.rotation.get(id) orelse unreachable;
     const scale = self.world.components.scale.get(id) orelse unreachable;

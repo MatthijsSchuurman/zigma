@@ -8,6 +8,20 @@ pub const Component = struct {
   material_id: ecs.EntityID = 0,
 
   pub fn deinit(self: *Component) void{
+    if (self.material_id == 0) { // Default material
+      if (self.model.materials) |materials| {
+        for (0..@as(usize, @intCast(self.model.materialCount))) |i| {
+          materials[i].shader = rl.Shader{}; // Unlink shader
+        }
+      }
+    } else { // Custom material
+      if (self.model.materials) |materials| {
+        for (0..@as(usize, @intCast(self.model.materialCount))) |i| {
+          materials[i] = rl.Material{}; // Unlink marterial, cleaned up by the material component
+        }
+      }
+    }
+
     rl.UnloadModel(self.model);
   }
 };
