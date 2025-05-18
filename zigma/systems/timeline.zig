@@ -148,8 +148,8 @@ pub const System = struct {
     progress = switch (event.pattern) {
       .Forward => progress,
       .Reverse => 1 - progress,
-      .PingPong => if (@mod(iteration_index, 2) == 0) progress else 1 - progress,
-      .PongPing => if (@mod(iteration_index, 2) == 0) 1 - progress else progress,
+      .PingPong => 1.0 - @abs(progress * 2.0 - 1.0),
+      .PongPing => @abs(progress * 2.0 - 1.0),
       .Random => {
         var prng = std.rand.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
         return prng.random().float(f32);

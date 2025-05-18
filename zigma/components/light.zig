@@ -9,11 +9,7 @@ pub const Component = struct {
   active: bool,
   type: LightType = .Point,
 
-  target: struct {
-    x: f32,
-    y: f32,
-    z: f32,
-  },
+  target: rl.Vector3,
 };
 
 pub const LightType = enum(u8) {

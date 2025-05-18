@@ -2,6 +2,7 @@ const std = @import("std");
 pub const raylib = @cImport({
   @cInclude("raylib.h");
   @cInclude("raymath.h");
+  @cInclude("rlgl.h");
 
   // Redefine based on lighting.fs
   @cDefine("MAX_LIGHTS", "4");

@@ -70,9 +70,11 @@ void main()
         }
     }
 
-    finalColor = (texelColor*((tint + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
-    finalColor += texelColor*(ambient/10.0)*tint;
+    // compute lit RGB and combined alpha
+    vec3 litColor = texelColor.rgb * ((tint.rgb + specular) * lightDot)
+                  + texelColor.rgb * (ambient.rgb/10.0) * tint.rgb;
+    float outAlpha = texelColor.a * tint.a;
 
-    // Gamma correction
-    finalColor = pow(finalColor, vec4(1.0/2.2));
+    // gamma‐correct RGB, preserve alpha
+    finalColor = vec4(pow(litColor, vec3(1.0/2.2)), outAlpha);
 }

@@ -11,72 +11,53 @@ pub const System = struct {
     };
   }
 
-  pub fn update(self: *System) void {
+  pub fn active(self: *System) ecs.EntityID {
     var it = self.world.components.camera.iterator();
-    while (it.next()) |entry| {
-      if (!entry.value_ptr.*.active) continue;
+    while (it.next()) |entry|
+      if (entry.value_ptr.*.active) return entry.key_ptr.*;
 
-      const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
-      const camera_position = rl.Vector3{
-        .x = position.x,
-        .y = position.y,
-        .z = position.z,
-      };
+    return 0;
+  }
 
-      var it2 = self.world.components.shader.iterator();
-      while (it2.next()) |entry2| {
-        const shader = entry2.value_ptr.*;
+  pub fn update(self: *System) void {
+    const camera_id = self.active();
+    if (camera_id == 0) return;
 
-        rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &camera_position, rl.SHADER_UNIFORM_VEC3);
-      }
+    const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera component
 
-      break; // Only one camera for now
+    var it2 = self.world.components.shader.iterator();
+    while (it2.next()) |entry2| {
+      const shader = entry2.value_ptr.*;
+
+      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &position, rl.SHADER_UNIFORM_VEC3);
     }
   }
 
   pub fn start(self: *System) void {
-    var it = self.world.components.camera.iterator();
-    while (it.next()) |entry| {
-      if (!entry.value_ptr.*.active) continue;
+    const camera_id = self.active();
+    if (camera_id == 0) return;
 
-      const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
-      const rotation = self.world.components.rotation.get(entry.key_ptr.*) orelse unreachable;
+    if (self.world.components.camera.get(camera_id)) |entry| {
+      const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera component
+      const rotation = self.world.components.rotation.get(camera_id) orelse unreachable;
 
       const camera = rl.Camera3D{
-        .target = rl.Vector3{
-          .x = entry.value_ptr.*.target.x,
-          .y = entry.value_ptr.*.target.y,
-          .z = entry.value_ptr.*.target.z,
-        },
-        .position = rl.Vector3{
-          .x = position.x,
-          .y = position.y,
-          .z = position.z,
-        },
-        .up = rl.Vector3{
-          .x = rotation.x,
-          .y = rotation.y,
-          .z = rotation.z,
-        },
-        .fovy = entry.value_ptr.*.fovy,
+        .target = entry.target,
+        .position = position,
+        .up = rotation,
+        .fovy = entry.fovy,
         .projection = rl.CAMERA_PERSPECTIVE,
       };
 
       rl.BeginMode3D(camera);
-
-      break; // Only one camera for now
     }
   }
 
   pub fn stop(self: *System) void {
-    var it = self.world.components.camera.iterator();
-    while (it.next()) |entry| {
-      if (!entry.value_ptr.*.active) continue;
+    const camera_id = self.active();
+    if (camera_id == 0) return;
 
-      rl.EndMode3D();
-
-      break; // Only one camera for now
-    }
+    rl.EndMode3D();
   }
 };
 
@@ -102,7 +83,9 @@ test "System should start / stop camera" {
   defer world.deinit();
 
   var system = System.init(&world);
+  world.systems.camera = system; // Needed by model system
   var system_model = SystemRenderModel.System.init(&world);
+  defer system_model.deinit();
 
   _ = world.entity("test").camera(.{});
   _ = world.entity("cube").model(.{.type = "cube"});

@@ -1,15 +1,12 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const rl = ecs.raylib;
 
 pub const Component = struct {
   active: bool,
   fovy: f32,
 
-  target: struct {
-    x: f32,
-    y: f32,
-    z: f32,
-  },
+  target: rl.Vector3,
 };
 
 const Camera = struct {

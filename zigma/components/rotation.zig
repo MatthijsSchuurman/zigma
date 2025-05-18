@@ -1,11 +1,8 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const rl = ecs.raylib;
 
-pub const Component = struct {
-  x: f32,
-  y: f32,
-  z: f32,
-};
+pub const Component = rl.Vector3;
 
 pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   if (entity.world.components.rotation.getPtr(entity.id)) |existing| {

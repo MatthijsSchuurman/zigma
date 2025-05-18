@@ -20,9 +20,25 @@ pub const System = struct {
     var target_buffer: [rl.MAX_LIGHTS]rl.Vector3 = undefined;
     var color_buffer: [rl.MAX_LIGHTS]rl.Vector4 = undefined;
 
+    var loc_light_count: c_int = undefined;
+    var loc_light_enabled: c_int = undefined;
+    var loc_light_type: c_int = undefined;
+
+    var loc_light_position: c_int = undefined;
+    var loc_light_target: c_int = undefined;
+    var loc_light_color: c_int = undefined;
+
     var it = self.world.components.shader.iterator();
     while (it.next()) |entry| {
       const shader = entry.value_ptr.*;
+
+      loc_light_count = rl.GetShaderLocation(shader.shader, "lightCount");
+      loc_light_enabled = rl.GetShaderLocation(shader.shader, "lights[0].enabled");
+      loc_light_type = rl.GetShaderLocation(shader.shader, "lights[0].type");
+
+      loc_light_position = rl.GetShaderLocation(shader.shader, "lights[0].position");
+      loc_light_target = rl.GetShaderLocation(shader.shader, "lights[0].target");
+      loc_light_color = rl.GetShaderLocation(shader.shader, "lights[0].color");
 
       count = 0;
       var it2 = self.world.components.light.iterator();
@@ -41,20 +57,25 @@ pub const System = struct {
         enabled_buffer[count] = 1;
         type_buffer[count] = light.type.raylibType();
 
-        position_buffer[count] = rl.Vector3{ .x = position.x, .y = position.y, .z = position.z };
-        target_buffer[count] = rl.Vector3{ .x = light.target.x, .y = light.target.y, .z = light.target.z };
-        color_buffer[count] = rl.Vector4{ .x = (@as(f32, @floatFromInt(color.r)) / 255.0), .y = (@as(f32, @floatFromInt(color.g)) / 255.0), .z = (@as(f32, @floatFromInt(color.b)) / 255.0), .w = (@as(f32, @floatFromInt(color.a)) / 255.0) };
+        position_buffer[count] = position;
+        target_buffer[count] = light.target;
+        color_buffer[count] = rl.Vector4{
+          .x = (@as(f32, @floatFromInt(color.r)) / 255.0),
+          .y = (@as(f32, @floatFromInt(color.g)) / 255.0),
+          .z = (@as(f32, @floatFromInt(color.b)) / 255.0),
+          .w = (@as(f32, @floatFromInt(color.a)) / 255.0)
+        };
 
         count += 1;
       }
 
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lightCount"), &count, rl.SHADER_UNIFORM_INT);
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].enabled"), &enabled_buffer, rl.SHADER_UNIFORM_INT);
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].type"), &type_buffer, rl.SHADER_UNIFORM_INT);
+      rl.SetShaderValue(shader.shader, loc_light_count, &count, rl.SHADER_UNIFORM_INT);
+      rl.SetShaderValue(shader.shader, loc_light_enabled, &enabled_buffer, rl.SHADER_UNIFORM_INT);
+      rl.SetShaderValue(shader.shader, loc_light_type, &type_buffer, rl.SHADER_UNIFORM_INT);
 
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].position"), &position_buffer, rl.SHADER_UNIFORM_VEC3);
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].target"), &target_buffer, rl.SHADER_UNIFORM_VEC3);
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "lights[0].color"), &color_buffer, rl.SHADER_UNIFORM_VEC4);
+      rl.SetShaderValue(shader.shader, loc_light_position, &position_buffer, rl.SHADER_UNIFORM_VEC3);
+      rl.SetShaderValue(shader.shader, loc_light_target, &target_buffer, rl.SHADER_UNIFORM_VEC3);
+      rl.SetShaderValue(shader.shader, loc_light_color, &color_buffer, rl.SHADER_UNIFORM_VEC4);
     }
   }
 };
@@ -73,8 +94,10 @@ test "System should update light" {
 
   var system = System.init(&world);
   var system_camera = SystemCamera.System.init(&world);
+  world.systems.camera = system_camera; // Needed by model system
   var system_shader = SystemShader.System.init(&world);
   var system_model = SystemRenderModel.System.init(&world);
+  defer system_model.deinit();
 
   _ = world.entity("camera").camera(.{});
   _ = world.entity("shader").shader(.{});
