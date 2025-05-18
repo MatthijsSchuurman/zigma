@@ -17,17 +17,12 @@ pub const System = struct {
       if (!entry.value_ptr.*.active) continue;
 
       const position = self.world.components.position.get(entry.key_ptr.*) orelse unreachable; // Defined in camera component
-      const camera_position = rl.Vector3{
-        .x = position.x,
-        .y = position.y,
-        .z = position.z,
-      };
 
       var it2 = self.world.components.shader.iterator();
       while (it2.next()) |entry2| {
         const shader = entry2.value_ptr.*;
 
-        rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &camera_position, rl.SHADER_UNIFORM_VEC3);
+        rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &position, rl.SHADER_UNIFORM_VEC3);
       }
 
       break; // Only one camera for now
@@ -43,21 +38,9 @@ pub const System = struct {
       const rotation = self.world.components.rotation.get(entry.key_ptr.*) orelse unreachable;
 
       const camera = rl.Camera3D{
-        .target = rl.Vector3{
-          .x = entry.value_ptr.*.target.x,
-          .y = entry.value_ptr.*.target.y,
-          .z = entry.value_ptr.*.target.z,
-        },
-        .position = rl.Vector3{
-          .x = position.x,
-          .y = position.y,
-          .z = position.z,
-        },
-        .up = rl.Vector3{
-          .x = rotation.x,
-          .y = rotation.y,
-          .z = rotation.z,
-        },
+        .target = entry.value_ptr.*.target,
+        .position = position,
+        .up = rotation,
         .fovy = entry.value_ptr.*.fovy,
         .projection = rl.CAMERA_PERSPECTIVE,
       };

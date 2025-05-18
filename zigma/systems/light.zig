@@ -41,9 +41,14 @@ pub const System = struct {
         enabled_buffer[count] = 1;
         type_buffer[count] = light.type.raylibType();
 
-        position_buffer[count] = rl.Vector3{ .x = position.x, .y = position.y, .z = position.z };
-        target_buffer[count] = rl.Vector3{ .x = light.target.x, .y = light.target.y, .z = light.target.z };
-        color_buffer[count] = rl.Vector4{ .x = (@as(f32, @floatFromInt(color.r)) / 255.0), .y = (@as(f32, @floatFromInt(color.g)) / 255.0), .z = (@as(f32, @floatFromInt(color.b)) / 255.0), .w = (@as(f32, @floatFromInt(color.a)) / 255.0) };
+        position_buffer[count] = position;
+        target_buffer[count] = light.target;
+        color_buffer[count] = rl.Vector4{
+          .x = (@as(f32, @floatFromInt(color.r)) / 255.0),
+          .y = (@as(f32, @floatFromInt(color.g)) / 255.0),
+          .z = (@as(f32, @floatFromInt(color.b)) / 255.0),
+          .w = (@as(f32, @floatFromInt(color.a)) / 255.0)
+        };
 
         count += 1;
       }

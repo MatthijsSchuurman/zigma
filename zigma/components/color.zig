@@ -1,12 +1,8 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const rl = ecs.raylib;
 
-pub const Component = struct {
-  r: u8,
-  g: u8,
-  b: u8,
-  a: u8,
-};
+pub const Component = rl.Color;
 
 pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
   if (entity.world.components.color.getPtr(entity.id)) |existing| {

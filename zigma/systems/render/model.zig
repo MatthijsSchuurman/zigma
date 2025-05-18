@@ -24,11 +24,11 @@ pub const System = struct {
 
       rl.DrawModelEx(
         model.model,
-        rl.Vector3{ .x = position.x, .y = position.y, .z = position.z },
-        rl.Vector3{ .x = rotation.x, .y = rotation.y, .z = rotation.z }, // rotation axis
+        position,
+        rotation, // rotation axis
         0.0, // rotation angle
-        rl.Vector3{ .x = scale.x, .y = scale.y, .z = scale.z },
-        rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = color.a },
+        scale,
+        color,
       );
     }
   }
