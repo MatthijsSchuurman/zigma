@@ -46,8 +46,6 @@ pub const System = struct {
       };
 
       rl.BeginMode3D(camera);
-      rl.BeginBlendMode(rl.BLEND_ALPHA);
-      rl.rlDisableDepthMask();
 
       break; // Only one camera for now
     }
@@ -58,8 +56,6 @@ pub const System = struct {
     while (it.next()) |entry| {
       if (!entry.value_ptr.*.active) continue;
 
-      rl.rlEnableDepthMask();
-      rl.EndBlendMode();
       rl.EndMode3D();
 
       break; // Only one camera for now

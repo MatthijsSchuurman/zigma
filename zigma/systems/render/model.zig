@@ -50,34 +50,38 @@ pub const System = struct {
     // Draw models for all defined shaders
     var it2 = self.world.components.shader.iterator();
     while (it2.next()) |shader| {
+      const loc_color_diffuse = rl.GetShaderLocation(shader.value_ptr.shader, "colDiffuse");
+
+      rl.rlDisableDepthMask();
+      rl.BeginBlendMode(rl.BLEND_ALPHA);
       rl.BeginShaderMode(shader.value_ptr.shader);
 
       it.index = 0; // Reset iterator
-      while (it.next()) |model|
-        if (model.value_ptr.material_id > 0)
-          if (self.world.components.material.get(model.value_ptr.material_id)) |material|
-            if (material.shader_id == shader.key_ptr.*)
-             self.renderModel(model.key_ptr.*, model.value_ptr.*);
+      while (it.next()) |model| {
+        if (model.value_ptr.material_id > 0) {
+          if (self.world.components.material.get(model.value_ptr.material_id)) |material| {
+            if (material.shader_id == shader.key_ptr.*) {
+              const color = self.world.components.color.get(model.key_ptr.*) orelse unreachable;
+              rl.SetShaderValue(shader.value_ptr.shader, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
+
+              self.renderModel(model.key_ptr.*, model.value_ptr.*);
+            }
+          }
+        }
+      }
 
       rl.EndShaderMode();
+      rl.EndBlendMode();
+      rl.rlEnableDepthMask();
     }
   }
 
   fn renderModel(self: *System, id: ecs.EntityID, model: ecs.Components.Model.Component) void {
+    std.debug.print("Rendering model: {d} {s}\n", .{id, model.type});
     const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
     const rotation = self.world.components.rotation.get(id) orelse unreachable;
     const scale = self.world.components.scale.get(id) orelse unreachable;
-    var color = self.world.components.color.get(id) orelse unreachable;
-
-    if (model.material_id > 0) { // Set alpha on material instead of model color
-      model.model.materials[0].maps[rl.MATERIAL_MAP_ALBEDO].color = rl.Color{
-        .r = 255,
-        .g = 255,
-        .b = 255,
-        .a = color.a
-      };
-      color.a = 255;
-    }
+    const color = self.world.components.color.get(id) orelse unreachable;
 
     rl.DrawModelEx(
       model.model,
