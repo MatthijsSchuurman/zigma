@@ -1,7 +1,7 @@
 const zigma = @import("zigma");
 
 pub fn main() void {
-  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080});
+  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 30});
   defer zigma.deinit();
 
   var world = zigma.create();
