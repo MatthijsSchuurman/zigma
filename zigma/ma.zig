@@ -78,6 +78,11 @@ pub fn render(world: *ecs.World) bool {
     rl.SetWindowPosition(@intFromFloat(xpos), @intFromFloat(ypos));
   }
 
+  if (rl.IsKeyPressed(rl.KEY_SPACE)) {
+    var timeline = world.entity("timeline");
+    if (world.components.timeline.get(timeline.id)) |_|
+      _ = timeline.timeline_speed(0.0);
+  }
   if (rl.IsKeyPressed(rl.KEY_KP_ADD) or rl.IsKeyPressed(rl.KEY_EQUAL)) {
     var timeline = world.entity("timeline");
     if (world.components.timeline.get(timeline.id)) |current| {

@@ -16,7 +16,7 @@ fn intro() void {
 
   _ = world.entity("camera").camera(.{})
   .event(.{.start = 0, .duration = 5, .motion = .EaseIn})
-    .position(-5, 0.5, 2)
+    .position(-5, 3, 2)
   .event(.{.duration = 10, .motion = .EaseOut})
     .position(-10, 0.0, -2);
 

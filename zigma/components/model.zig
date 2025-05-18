@@ -79,11 +79,16 @@ pub const Query = struct {
 
   pub const Filter = struct {
     type: ?ecs.FieldFilter([]const u8) = null,
+    material_id: ?ecs.FieldFilter(ecs.EntityID) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.type) |cond|
       if (!ecs.matchField([]const u8, self.type, cond))
+        return false;
+
+    if (f.material_id) |cond|
+      if (!ecs.matchField(ecs.EntityID, self.material_id, cond))
         return false;
 
     return true;
@@ -92,6 +97,8 @@ pub const Query = struct {
   pub const Sort = enum {
     type_asc,
     type_desc,
+    material_id_asc,
+    material_id_desc,
   };
 
   pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
@@ -99,6 +106,8 @@ pub const Query = struct {
       const order = switch (field) {
         .type_asc => std.mem.order(u8, a.type, b.type),
         .type_desc => std.mem.order(u8, b.type, a.type),
+        .material_id_asc => std.math.order(a.material_id, b.material_id),
+        .material_id_desc => std.math.order(b.material_id, a.material_id),
       };
 
       if(order != .eq) // lt/qt not further comparison needed
