@@ -83,6 +83,7 @@ test "System should start / stop camera" {
   defer world.deinit();
 
   var system = System.init(&world);
+  world.systems.camera = system; // Needed by model system
   var system_model = SystemRenderModel.System.init(&world);
   defer system_model.deinit();
 

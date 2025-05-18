@@ -64,13 +64,42 @@ pub const System = struct {
     };
   }
 
+  const Comparator = struct {
+    world: *ecs.World,
+    camera_position: rl.Vector3,
+
+    pub fn lessThan(
+        self: *const Comparator,
+        a: ecs.EntityID,
+        b: ecs.EntityID,
+    ) bool {
+        const pa = self.world.components.position.get(a).?;
+        const pb = self.world.components.position.get(b).?;
+        return rl.Vector3DistanceSqr(pa, self.camera_position)
+             > rl.Vector3DistanceSqr(pb, self.camera_position);
+    }
+  };
+
   pub fn render(self: *System) void {
+    const camera_id = self.world.systems.camera.active();
+    if (camera_id == 0) return; // What's even the point...
+
     const ids = self.splitByAlpha();
 
+    // Determine transparent models order
+    const camera_position = self.world.components.position.get(camera_id) orelse unreachable;
+    const comparator = Comparator{
+      .world = self.world,
+      .camera_position = camera_position,
+    };
+    std.sort.pdq(ecs.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
+
+    // Render opaque models
     for (ids.opaques) |id|
       if (self.world.components.model.get(id)) |model|
         self.renderModel(id, model);
 
+    // Render transparent models
     rl.rlDisableDepthMask();
     rl.BeginBlendMode(rl.BLEND_ALPHA);
     for (ids.transparent) |id| {
@@ -132,6 +161,7 @@ test "System should render model" {
   var system = System.init(&world);
   defer system.deinit();
   var system_camera = SystemCamera.System.init(&world);
+  world.systems.camera = system_camera; // Needed by model system
 
   _ = world.entity("camera").camera(.{});
   _ = world.entity("test").model(.{.type = "cube"});

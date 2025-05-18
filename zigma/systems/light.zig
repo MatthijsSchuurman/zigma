@@ -94,6 +94,7 @@ test "System should update light" {
 
   var system = System.init(&world);
   var system_camera = SystemCamera.System.init(&world);
+  world.systems.camera = system_camera; // Needed by model system
   var system_shader = SystemShader.System.init(&world);
   var system_model = SystemRenderModel.System.init(&world);
   defer system_model.deinit();
