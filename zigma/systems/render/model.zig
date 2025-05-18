@@ -5,75 +5,101 @@ const rl = ecs.raylib;
 pub const System = struct {
   world: *ecs.World,
 
+  opaques: std.ArrayList(ecs.EntityID), // Use preallocated lists for splitByAlpha
+  transparent: std.ArrayList(ecs.EntityID),
+
   pub fn init(world: *ecs.World) System {
     return System{
       .world = world,
+
+      .opaques = std.ArrayList(ecs.EntityID).init(world.allocator),
+      .transparent = std.ArrayList(ecs.EntityID).init(world.allocator),
+    };
+  }
+
+  pub fn deinit(self: *System) void {
+    self.opaques.deinit();
+    self.transparent.deinit();
+  }
+
+
+  const SplitByAlphaIDs = struct {
+    opaques: []const ecs.EntityID,
+    transparent: []const ecs.EntityID,
+  };
+  fn splitByAlpha(self: *System) SplitByAlphaIDs {
+    self.opaques.clearRetainingCapacity(); // Clear previous data
+    self.transparent.clearRetainingCapacity();
+
+    var it = self.world.components.model.iterator();
+    while (it.next()) |model| {
+      if (model.value_ptr.material_id == 0) { // No material (no shader)
+        self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+        continue;
+      }
+
+      if (self.world.components.material.get(model.value_ptr.material_id)) |material| {
+        if (material.shader_id == 0) { // Default shader
+          self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+          continue;
+        }
+      }
+
+      if (self.world.components.color.get(model.key_ptr.*)) |color| {
+        if (color.a == 255) { // Opaque
+          self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+          continue;
+        }
+      } else {
+        self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+        continue;
+      }
+
+      self.transparent.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+    }
+
+    return SplitByAlphaIDs{
+      .opaques = self.opaques.items,
+      .transparent = self.transparent.items,
     };
   }
 
   pub fn render(self: *System) void {
-    var it = self.world.components.model.iterator();
+    const ids = self.splitByAlpha();
 
-    // Draw models without material
-    while (it.next()) |model|
-      if (model.value_ptr.material_id == 0)
-        self.renderModel(model.key_ptr.*, model.value_ptr.*);
+    for (ids.opaques) |id|
+      if (self.world.components.model.get(id)) |model|
+        self.renderModel(id, model);
 
-    // Draw models with default shader
-    var shaderUsed: ?rl.Shader = null;
+    rl.rlDisableDepthMask();
+    rl.BeginBlendMode(rl.BLEND_ALPHA);
+    for (ids.transparent) |id| {
+      var shader: ?rl.Shader = null;
+      var loc_color_diffuse: c_int = 0;
 
-    it.index = 0; // Reset iterator
-    while (it.next()) |model| { // Find models that use shader
-      if (model.value_ptr.material_id > 0) {
-        if (self.world.components.material.get(model.value_ptr.material_id)) |material| {
-          if (material.shader_id == 0) {
-            shaderUsed = material.material.shader;
-            break;
+      if (self.world.components.model.get(id)) |model| {
+        if (self.world.components.material.get(model.material_id)) |material| {
+          if (shader == null or shader.?.id != material.material.shader.id) { // Different shader
+            if (shader != null) // Unload previous shader
+              rl.EndBlendMode();
+
+            // Load new shader
+            shader = material.material.shader;
+            rl.BeginShaderMode(shader.?);
+            loc_color_diffuse = rl.GetShaderLocation(shader.?, "colDiffuse");
           }
+
+          if (self.world.components.color.get(id)) |color|
+            rl.SetShaderValue(shader.?, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
+
+          self.renderModel(id, model);
         }
       }
     }
 
-    if (shaderUsed) |shader| {
-      rl.BeginShaderMode(shader);
-
-      it.index = 0; // Reset iterator
-      while (it.next()) |model|
-        if (model.value_ptr.material_id > 0)
-          if (self.world.components.material.get(model.value_ptr.material_id)) |material|
-            if (material.shader_id == 0)
-             self.renderModel(model.key_ptr.*, model.value_ptr.*);
-
-      rl.EndShaderMode();
-    }
-
-    // Draw models for all defined shaders
-    var it2 = self.world.components.shader.iterator();
-    while (it2.next()) |shader| {
-      const loc_color_diffuse = rl.GetShaderLocation(shader.value_ptr.shader, "colDiffuse");
-
-      rl.rlDisableDepthMask();
-      rl.BeginBlendMode(rl.BLEND_ALPHA);
-      rl.BeginShaderMode(shader.value_ptr.shader);
-
-      it.index = 0; // Reset iterator
-      while (it.next()) |model| {
-        if (model.value_ptr.material_id > 0) {
-          if (self.world.components.material.get(model.value_ptr.material_id)) |material| {
-            if (material.shader_id == shader.key_ptr.*) {
-              const color = self.world.components.color.get(model.key_ptr.*) orelse unreachable;
-              rl.SetShaderValue(shader.value_ptr.shader, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
-
-              self.renderModel(model.key_ptr.*, model.value_ptr.*);
-            }
-          }
-        }
-      }
-
-      rl.EndShaderMode();
-      rl.EndBlendMode();
-      rl.rlEnableDepthMask();
-    }
+    rl.EndShaderMode();
+    rl.EndBlendMode();
+    rl.rlEnableDepthMask();
   }
 
   fn renderModel(self: *System, id: ecs.EntityID, model: ecs.Components.Model.Component) void {
@@ -104,6 +130,7 @@ test "System should render model" {
   defer world.deinit();
 
   var system = System.init(&world);
+  defer system.deinit();
   var system_camera = SystemCamera.System.init(&world);
 
   _ = world.entity("camera").camera(.{});
