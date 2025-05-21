@@ -116,7 +116,7 @@ pub const World = struct {
     }
   }
 
-  // ent.Entity
+  // Entity
   pub fn entityNextID(self: *World) ent.EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
@@ -146,6 +146,19 @@ pub const World = struct {
       .parent_id = 0,
       .world = self,
     };
+  }
+
+  pub fn entityDelete(self: *World, id: ent.EntityID) void {
+    inline for (ComponentDeclarations) |declaration| {
+      const T = @field(Components, declaration.name).Component;
+      var components = &@field(self.components, toLower(declaration.name));
+
+      if (@hasDecl(T, "deinit"))  // Deinit component
+        if (components.getPtr(id)) |entry|
+          entry.deinit();
+
+      _ = components.remove(id);
+    }
   }
 
   // Render
@@ -445,6 +458,38 @@ test "ECS World should add entity" {
   try tst.expectEqual(0, entity2.parent_id);
   try tst.expectEqual(&world, entity.world);
   try tst.expectEqual(&world, entity2.world);
+}
+
+test "ECS World should delete entity" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").position(1, 2, 3).scale(4, 5, 6);
+  const entity2 = world.entity("test2").position(1, 2, 3).scale(4, 5, 6);
+
+  // When
+  world.entityDelete(entity.id);
+
+  // Then
+  try tst.expectEqual(1, world.components.position.count());
+  try tst.expectEqual(1, world.components.scale.count());
+  try tst.expectEqual(0, world.components.timeline.count());
+
+  if (world.components.position.get(entity.id)) |_|
+    return error.TestEntityNotDeleted;
+  if (world.components.scale.get(entity.id)) |_|
+    return error.TestEntityNotDeleted;
+
+  if (world.components.position.get(entity2.id)) |position|
+    try tst.expectEqual(Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
+  else
+    return error.TestEntityNotFound;
+
+  if (world.components.scale.get(entity2.id)) |scale|
+    try tst.expectEqual(Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
+  else
+    return error.TestEntityNotFound;
 }
 
 test "ECS World should render" {
