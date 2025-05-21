@@ -117,9 +117,18 @@ pub const World = struct {
   }
 
   // ent.Entity
-  pub fn entityNext(self: *World) ent.EntityID {
+  pub fn entityNextID(self: *World) ent.EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
+  }
+
+  pub fn entityNext(self: *World) ent.Entity {
+    const id = self.entityNext();
+    return ent.Entity{
+      .id = id,
+      .parent_id = 0,
+      .world = self,
+    };
   }
 
   pub fn entity(self: *World, name: []const u8) ent.Entity {
@@ -130,7 +139,7 @@ pub const World = struct {
         .world = self,
       };
 
-    const id = self.entityNext();
+    const id = self.entityNextID();
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
     return ent.Entity{
       .id = id,
@@ -411,8 +420,8 @@ test "ECS World should get next entity" {
   defer world.deinit();
 
   // When
-  const id = world.entityNext();
-  const id2 = world.entityNext();
+  const id = world.entityNextID();
+  const id2 = world.entityNextID();
 
   // Then
   try tst.expectEqual(1, id);

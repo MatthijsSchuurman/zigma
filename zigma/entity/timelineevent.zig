@@ -32,7 +32,7 @@ pub fn add(entity: ent.Entity, params: Event) ent.Entity {
   }
 
   var event = entity;
-  event.id = entity.world.entityNext();
+  event.id = entity.world.entityNextID();
   if (entity.parent_id == 0) // Set original entry id as parent for event entries only the first time (subsequent will receive it from this event entry)
     event.parent_id = entity.id;
 
