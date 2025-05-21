@@ -1,11 +1,12 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const ent = @import("../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = struct {
   type: []const u8,
   model: rl.Model,
-  material_id: ecs.EntityID = 0,
+  material_id: ent.EntityID = 0,
 
   pub fn deinit(self: *Component) void{
     if (self.material_id == 0) { // Default material
@@ -36,7 +37,7 @@ pub const Query = struct {
 
   pub const Filter = struct {
     type: ?ecs.FieldFilter([]const u8) = null,
-    material_id: ?ecs.FieldFilter(ecs.EntityID) = null,
+    material_id: ?ecs.FieldFilter(ent.EntityID) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
@@ -45,7 +46,7 @@ pub const Query = struct {
         return false;
 
     if (f.material_id) |cond|
-      if (!ecs.matchField(ecs.EntityID, self.material_id, cond))
+      if (!ecs.matchField(ent.EntityID, self.material_id, cond))
         return false;
 
     return true;
@@ -74,7 +75,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
     return world.query(Query, &world.components.model, f, sort);
   }
 };

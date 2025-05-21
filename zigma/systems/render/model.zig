@@ -1,19 +1,20 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
+const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
   world: *ecs.World,
 
-  opaques: std.ArrayList(ecs.EntityID), // Use preallocated lists for splitByAlpha
-  transparent: std.ArrayList(ecs.EntityID),
+  opaques: std.ArrayList(ent.EntityID), // Use preallocated lists for splitByAlpha
+  transparent: std.ArrayList(ent.EntityID),
 
   pub fn init(world: *ecs.World) System {
     return System{
       .world = world,
 
-      .opaques = std.ArrayList(ecs.EntityID).init(world.allocator),
-      .transparent = std.ArrayList(ecs.EntityID).init(world.allocator),
+      .opaques = std.ArrayList(ent.EntityID).init(world.allocator),
+      .transparent = std.ArrayList(ent.EntityID).init(world.allocator),
     };
   }
 
@@ -24,8 +25,8 @@ pub const System = struct {
 
 
   const SplitByAlphaIDs = struct {
-    opaques: []const ecs.EntityID,
-    transparent: []const ecs.EntityID,
+    opaques: []const ent.EntityID,
+    transparent: []const ent.EntityID,
   };
   fn splitByAlpha(self: *System) SplitByAlphaIDs {
     self.opaques.clearRetainingCapacity(); // Clear previous data
@@ -70,8 +71,8 @@ pub const System = struct {
 
     pub fn lessThan(
         self: *const Comparator,
-        a: ecs.EntityID,
-        b: ecs.EntityID,
+        a: ent.EntityID,
+        b: ent.EntityID,
     ) bool {
         const pa = self.world.components.position.get(a).?;
         const pb = self.world.components.position.get(b).?;
@@ -92,7 +93,7 @@ pub const System = struct {
       .world = self.world,
       .camera_position = camera_position,
     };
-    std.sort.pdq(ecs.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
+    std.sort.pdq(ent.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
 
     // Render opaque models
     for (ids.opaques) |id|
@@ -131,7 +132,7 @@ pub const System = struct {
     rl.rlEnableDepthMask();
   }
 
-  fn renderModel(self: *System, id: ecs.EntityID, model: ecs.Components.Model.Component) void {
+  fn renderModel(self: *System, id: ent.EntityID, model: ecs.Components.Model.Component) void {
     const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
     const rotation = self.world.components.rotation.get(id) orelse unreachable;
     const scale = self.world.components.scale.get(id) orelse unreachable;

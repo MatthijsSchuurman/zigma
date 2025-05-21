@@ -1,9 +1,10 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const ent = @import("../entity.zig");
 
 pub const Component = struct {
-  timeline_id: ecs.EntityID,
-  target_id: ?ecs.EntityID,
+  timeline_id: ent.EntityID,
+  target_id: ?ent.EntityID,
 
   start: f32 = 0,
   end: f32,
@@ -46,8 +47,8 @@ pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    timeline_id: ?ecs.FieldFilter(ecs.EntityID) = null,
-    target_id: ?ecs.FieldFilter(?ecs.EntityID) = null,
+    timeline_id: ?ecs.FieldFilter(ent.EntityID) = null,
+    target_id: ?ecs.FieldFilter(?ent.EntityID) = null,
 
     start: ?ecs.FieldFilter(f32) = null,
     end: ?ecs.FieldFilter(f32) = null,
@@ -55,11 +56,11 @@ pub const Query = struct {
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.timeline_id) |cond|
-      if (!ecs.matchField(ecs.EntityID, self.timeline_id, cond))
+      if (!ecs.matchField(ent.EntityID, self.timeline_id, cond))
         return false;
 
     if (f.target_id) |cond|
-      if (!ecs.matchField(?ecs.EntityID, self.target_id, cond))
+      if (!ecs.matchField(?ent.EntityID, self.target_id, cond))
         return false;
 
     if (f.start) |cond|
@@ -124,7 +125,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
     return world.query(Query, &world.components.timelineevent, f, sort);
   }
 };

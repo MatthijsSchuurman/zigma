@@ -1,9 +1,10 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const ent = @import("../entity.zig");
 
 pub const Component = struct {
   progress: f32 = 0,
-  target_id: ?ecs.EntityID,
+  target_id: ?ent.EntityID,
 };
 
 
