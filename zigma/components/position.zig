@@ -4,18 +4,6 @@ const rl = ecs.raylib;
 
 pub const Component = rl.Vector3;
 
-pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
-  if (entity.world.components.position.getPtr(entity.id)) |existing| {
-    existing.* = Component{.x = x, .y = y, .z = z};
-    return entity;
-  }
-
-  const new = Component{.x = x, .y = y, .z = z };
-  entity.world.components.position.put(entity.id, new) catch @panic("Failed to store position");
-
-  return entity;
-}
-
 pub const Query = struct {
   pub const Data = Component;
 
@@ -51,34 +39,15 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-
-test "Component should set position" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test");
-
-  // When
-  const result = set(entity, 1, 2, 3);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(Component{.x = 1, .y = 2, .z = 3}, position)
-  else
-    return error.TestExpectedPosition;
-}
+const EntityPosition = @import("../entity/position.zig");
 
 test "Query should filter" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity1 = set(world.entity("test1"), 1, 2, 3);
-  _ = set(world.entity("test2"), 4, 5, 6);
+  const entity1 = EntityPosition.set(world.entity("test1"), 1, 2, 3);
+  _ = EntityPosition.set(world.entity("test2"), 4, 5, 6);
 
   // When
   const result = Query.exec(&world, .{ .x = .{ .eq = 1 } });

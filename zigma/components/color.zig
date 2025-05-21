@@ -4,18 +4,6 @@ const rl = ecs.raylib;
 
 pub const Component = rl.Color;
 
-pub fn set(entity: ecs.Entity, r: u8, g: u8, b: u8, a: u8) ecs.Entity {
-  if (entity.world.components.color.getPtr(entity.id)) |existing| {
-    existing.* = Component{.r = r, .g = g, .b = b, .a = a };
-    return entity;
-  }
-
-  const new = Component{.r = r, .g = g, .b = b, .a = a };
-  entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
-
-  return entity;
-}
-
 pub const Query = struct {
   pub const Data = Component;
 
@@ -56,34 +44,15 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-
-test "Component should set color" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test");
-
-  // When
-  const result = set(entity, 1, 2, 3, 4);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(Component{.r = 1, .g = 2, .b = 3, .a = 4}, color)
-  else
-    return error.TestExpectedColor;
-}
+const EntityColor= @import("../entity/color.zig");
 
 test "Query should filter" {
   // Given
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity1 = set(world.entity("test1"), 1, 2, 3, 4);
-  _ = set(world.entity("test2"), 5, 6, 7, 8);
+  const entity1 = EntityColor.set(world.entity("test1"), 1, 2, 3, 4);
+  _ = EntityColor.set(world.entity("test2"), 5, 6, 7, 8);
 
   // When
   const result = Query.exec(&world, .{ .r = .{ .eq = 1 } });
