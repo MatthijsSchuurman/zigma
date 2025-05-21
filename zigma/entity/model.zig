@@ -5,7 +5,7 @@ const rl = ecs.raylib;
 
 const ComponentModel = @import("../components/model.zig");
 
-const Model = struct {
+pub const Model = struct {
   type: []const u8,
   material: []const u8 = "",
 };

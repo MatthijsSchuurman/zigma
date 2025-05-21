@@ -4,7 +4,7 @@ const ent = @import("../entity.zig");
 
 const ComponentTimelineEvent = @import("../components/timelineevent.zig");
 
-const Event = struct {
+pub const Event = struct {
   timeline: []const u8 = "",
 
   start: ?f32 = null,

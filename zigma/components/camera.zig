@@ -9,16 +9,6 @@ pub const Component = struct {
   target: rl.Vector3,
 };
 
-const Camera = struct {
-  fovy: f32 = 45.0,
-
-  target: struct {
-    x: f32 = 0,
-    y: f32 = 0,
-    z: f32 = 0,
-  } = .{},
-};
-
 
 // Testing
 const tst = std.testing;

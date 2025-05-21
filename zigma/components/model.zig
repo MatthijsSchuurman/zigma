@@ -27,11 +27,6 @@ pub const Component = struct {
   }
 };
 
-const Model = struct {
-  type: []const u8,
-  material: []const u8 = "",
-};
-
 pub const Query = struct {
   pub const Data = Component;
 

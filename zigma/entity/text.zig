@@ -41,7 +41,7 @@ test "Component should set text" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(text.Component{.text = "test"}, text)
+    try tst.expectEqual(ComponentText.Component{.text = "test"}, text)
   else
     return error.TestExpectedText;
 

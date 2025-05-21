@@ -5,7 +5,7 @@ const rl = ecs.raylib;
 
 const ComponentShader = @import("../components/shader.zig");
 
-const Shader = struct {
+pub const Shader = struct {
   type: []const u8 = "lighting",
 };
 

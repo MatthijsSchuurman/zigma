@@ -13,10 +13,6 @@ pub const Component = struct {
   }
 };
 
-const Material = struct {
-  shader: []const u8 = "",
-};
-
 pub const Query = struct {
   pub const Data = Component;
 

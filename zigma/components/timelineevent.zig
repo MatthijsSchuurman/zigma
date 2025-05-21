@@ -31,18 +31,6 @@ pub const Motion = enum {
   Smooth,
 };
 
-const Event = struct {
-  timeline: []const u8 = "",
-
-  start: ?f32 = null,
-  end: ?f32 = null,
-  duration: f32 = 1.0, // Default duration if only start is provided
-
-  repeat: u32 = 1,
-  pattern: Pattern = .Forward,
-  motion: Motion = .Linear,
-};
-
 pub const Query = struct {
   pub const Data = Component;
 
@@ -133,7 +121,7 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-const EntityTimelineEvent= @import("../entity/timelineevent.zig");
+const EntityTimelineEvent = @import("../entity/timelineevent.zig");
 
 test "Query should filter" {
   // Given
@@ -142,7 +130,7 @@ test "Query should filter" {
 
   _ = world.entity("timeline");
 
-  const entity1 = EntityTimelineEvent.add(world.entity("test1"), Event{
+  const entity1 = EntityTimelineEvent.add(world.entity("test1"), EntityTimelineEvent.Event{
     .start = 1.0,
     .end = 2.0,
     .duration = 1.0,
@@ -150,7 +138,7 @@ test "Query should filter" {
     .pattern = Pattern.Forward,
     .motion = Motion.Linear,
   });
-  _ = EntityTimelineEvent.add(world.entity("test2"), Event{
+  _ = EntityTimelineEvent.add(world.entity("test2"), EntityTimelineEvent.Event{
     .start = 3.0,
     .end = 4.0,
     .duration = 1.0,

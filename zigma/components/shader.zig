@@ -12,10 +12,6 @@ pub const Component = struct {
   }
 };
 
-const Shader = struct {
-  type: []const u8 = "lighting",
-};
-
 pub const Query = struct {
   pub const Data = Component;
 

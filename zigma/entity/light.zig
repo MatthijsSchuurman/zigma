@@ -5,7 +5,7 @@ const rl = ecs.raylib;
 
 const ComponentLight = @import("../components/light.zig");
 
-const Light = struct {
+pub const Light = struct {
   active: bool = true,
   type: ComponentLight.LightType = .Point,
 

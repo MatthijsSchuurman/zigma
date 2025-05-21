@@ -5,7 +5,7 @@ const rl = ecs.raylib;
 
 const ComponentCamera = @import("../components/camera.zig");
 
-const Camera = struct {
+pub const Camera = struct {
   fovy: f32 = 45.0,
 
   target: struct {
