@@ -11,37 +11,7 @@ pub const raylib = @cImport({
 });
 const rl = raylib;
 
-//Entity
-pub const EntityID = u32;
-pub const Entity = struct {
-  id: EntityID,
-  parent_id: EntityID = 0,
-  world: *World,
-
-  pub const timeline = Components.Timeline.init;
-  pub const timeline_speed = Components.Timeline.setSpeed;
-  pub const timeline_offset = Components.Timeline.setOffset;
-  pub const event = Components.TimelineEvent.add;
-
-  pub const camera = Components.Camera.init;
-  pub const camera_activate = Components.Camera.activate;
-  pub const camera_deactivate = Components.Camera.deactivate;
-  pub const camera_target = Components.Camera.target;
-  pub const camera_fovy = Components.Camera.fovy;
-
-  pub const position = Components.Position.set;
-  pub const rotation = Components.Rotation.set;
-  pub const scale = Components.Scale.set;
-
-  pub const color = Components.Color.set;
-
-  pub const shader = Components.Shader.init;
-  pub const light = Components.Light.init;
-  pub const material = Components.Material.init;
-  pub const model = Components.Model.init;
-  pub const text = Components.Text.set;
-};
-
+const ent = @import("entity.zig");
 
 //Components
 pub const Components = struct {
@@ -93,8 +63,8 @@ const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent:
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  entity_id: EntityID = 1, // 0 is no entry
-  entities: std.StringHashMap(EntityID),
+  entity_id: ent.EntityID = 1, // 0 is no entry
+  entities: std.StringHashMap(ent.EntityID),
 
   components: ComponentStores(),
   systems: SystemStores(),
@@ -102,14 +72,14 @@ pub const World = struct {
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(EntityID).init(allocator),
+      .entities = std.StringHashMap(ent.EntityID).init(allocator),
       .components = undefined,
       .systems = undefined,
     };
 
     inline for (ComponentDeclarations) |declaration| {
       const T = @field(Components, declaration.name).Component;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, T).init(allocator);
+      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(ent.EntityID, T).init(allocator);
     }
 
     return self;
@@ -146,15 +116,15 @@ pub const World = struct {
     }
   }
 
-  // Entity
-  pub fn entityNext(self: *World) EntityID {
+  // ent.Entity
+  pub fn entityNext(self: *World) ent.EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
   }
 
-  pub fn entity(self: *World, name: []const u8) Entity {
+  pub fn entity(self: *World, name: []const u8) ent.Entity {
     if (self.entities.get(name)) |id| // Existing named entity
-      return Entity{
+      return ent.Entity{
         .id = id,
         .parent_id = 0,
         .world = self,
@@ -162,7 +132,7 @@ pub const World = struct {
 
     const id = self.entityNext();
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
-    return Entity{
+    return ent.Entity{
       .id = id,
       .parent_id = 0,
       .world = self,
@@ -196,8 +166,8 @@ pub const World = struct {
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []EntityID {
-    var results = std.ArrayList(EntityID).init(self.allocator);
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(ent.EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []ent.EntityID {
+    var results = std.ArrayList(ent.EntityID).init(self.allocator);
 
     var it = component.iterator();
     while (it.next()) |entry|
@@ -206,7 +176,7 @@ pub const World = struct {
 
     if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
-        component: *const std.AutoHashMap(EntityID, T.Data),
+        component: *const std.AutoHashMap(ent.EntityID, T.Data),
         sort: []const T.Sort,
       };
 
@@ -215,8 +185,8 @@ pub const World = struct {
         .sort = sort,
       };
 
-      std.sort.heap(EntityID, results.items, context, struct {
-        fn lessThan(ctx: Context, a: EntityID, b: EntityID) bool {
+      std.sort.heap(ent.EntityID, results.items, context, struct {
+        fn lessThan(ctx: Context, a: ent.EntityID, b: ent.EntityID) bool {
           const va = ctx.component.get(a).?;
           const vb = ctx.component.get(b).?;
           return T.compare(va, vb, ctx.sort) == .lt;
@@ -238,7 +208,7 @@ fn ComponentStores() type {
     const T = @field(Components, d.name).Component;
     f[i] = .{
       .name          = toLower(d.name),
-      .type          = std.AutoHashMap(EntityID, T),
+      .type          = std.AutoHashMap(ent.EntityID, T),
       .default_value = null,
       .is_comptime   = false,
       .alignment     = 0,
