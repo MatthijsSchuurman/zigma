@@ -53,6 +53,20 @@ fn loadMesh(mesh_type: []const u8) rl.Mesh {
   @panic("LoadMeshFromFile not yet implemented");
 }
 
+pub fn hide(entity: ent.Entity) ent.Entity {
+  if (entity.world.components.model.getPtr(entity.id)) |text|
+    text.hidden = true;
+
+  return entity;
+}
+
+pub fn unhide(entity: ent.Entity) ent.Entity {
+  if (entity.world.components.model.getPtr(entity.id)) |text|
+    text.hidden = false;
+
+  return entity;
+}
+
 
 // Testing
 const tst = std.testing;
@@ -81,7 +95,10 @@ test "Component should set mesh" {
     try tst.expectEqual(3, model.model.materials[0].shader.id);
     try tst.expectEqual(1, model.model.materials[0].maps[0].texture.id);
     try tst.expectEqual(0, model.model.materials[0].maps[1].texture.id);
+    try tst.expectEqual(false, model.hidden);
   }
+  else
+    return error.TestExpectedModel;
 
   if (world.components.position.get(entity.id)) |position|
     try tst.expectEqual(ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0}, position)
@@ -102,4 +119,40 @@ test "Component should set mesh" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
+}
+
+test "Component should hide model" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test").model(.{.type = "torus"});
+
+  // When
+  var result = hide(entity);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.model.get(entity.id)) |model| {
+    try tst.expectEqual("torus", model.type);
+    try tst.expectEqual(true, model.hidden);
+  }
+  else
+    return error.TestExpectedModel;
+
+  // When
+  result = unhide(entity);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.model.get(entity.id)) |model| {
+    try tst.expectEqual("torus", model.type);
+    try tst.expectEqual(false, model.hidden);
+  }
+  else
+    return error.TestExpectedModel;
 }

@@ -34,6 +34,8 @@ pub const System = struct {
 
     var it = self.world.components.model.iterator();
     while (it.next()) |model| {
+      if (model.value_ptr.hidden) continue;
+
       if (model.value_ptr.material_id == 0) { // No material (no shader)
         self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
         continue;
@@ -133,7 +135,7 @@ pub const System = struct {
   }
 
   fn renderModel(self: *System, id: ent.EntityID, model: ecs.Components.Model.Component) void {
-    const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
+    const position = self.world.components.position.get(id) orelse unreachable; // Defined in model entity
     const rotation = self.world.components.rotation.get(id) orelse unreachable;
     const scale = self.world.components.scale.get(id) orelse unreachable;
     const color = self.world.components.color.get(id) orelse unreachable;

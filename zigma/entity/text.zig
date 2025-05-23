@@ -5,7 +5,7 @@ const ComponentText = @import("../components/text.zig");
 
 pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   if (entity.world.components.text.getPtr(entity.id)) |existing| {
-    existing.* = ComponentText.Component{.text = text};
+    existing.text = text;
     return entity;
   }
 
@@ -17,6 +17,20 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   .rotation(0, 0, 0)
   .scale(1, 1, 1)
   .color(255, 255, 255, 255);
+
+  return entity;
+}
+
+pub fn hide(entity: ent.Entity) ent.Entity {
+  if (entity.world.components.text.getPtr(entity.id)) |text|
+    text.hidden = true;
+
+  return entity;
+}
+
+pub fn unhide(entity: ent.Entity) ent.Entity {
+  if (entity.world.components.text.getPtr(entity.id)) |text|
+    text.hidden = false;
 
   return entity;
 }
@@ -41,7 +55,7 @@ test "Component should set text" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(ComponentText.Component{.text = "test"}, text)
+    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = false}, text)
   else
     return error.TestExpectedText;
 
@@ -64,4 +78,36 @@ test "Component should set text" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
+}
+
+test "Component should hide text" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test").text("test");
+
+  // When
+  var result = hide(entity);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.text.get(entity.id)) |text|
+    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = true}, text)
+  else
+    return error.TestExpectedText;
+
+  // When
+  result = unhide(entity);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.text.get(entity.id)) |text|
+    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = false}, text)
+  else
+    return error.TestExpectedText;
 }

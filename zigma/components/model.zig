@@ -7,6 +7,7 @@ pub const Component = struct {
   type: []const u8,
   model: rl.Model,
   material_id: ent.EntityID = 0,
+  hidden: bool = false,
 
   pub fn deinit(self: *Component) void{
     if (self.material_id == 0) { // Default material
@@ -33,6 +34,8 @@ pub const Query = struct {
   pub const Filter = struct {
     type: ?ecs.FieldFilter([]const u8) = null,
     material_id: ?ecs.FieldFilter(ent.EntityID) = null,
+
+    hidden: ?ecs.FieldFilter(bool) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
@@ -42,6 +45,10 @@ pub const Query = struct {
 
     if (f.material_id) |cond|
       if (!ecs.matchField(ent.EntityID, self.material_id, cond))
+        return false;
+
+    if (f.hidden) |cond|
+      if (!ecs.matchField(bool, self.hidden, cond))
         return false;
 
     return true;
