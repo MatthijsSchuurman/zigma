@@ -1,5 +1,7 @@
 const ecs = @import("ecs.zig");
 
+const EntityDirty = @import("entity/dirty.zig");
+
 const EntityTimeline = @import("entity/timeline.zig");
 const EntityTimelineEvent = @import("entity/timelineevent.zig");
 
@@ -23,6 +25,8 @@ pub const Entity = struct {
   id: EntityID,
   parent_id: EntityID = 0,
   world: *ecs.World,
+
+  pub const dirty = EntityDirty.set;
 
   pub const timeline = EntityTimeline.init;
   pub const timeline_speed = EntityTimeline.setSpeed;
