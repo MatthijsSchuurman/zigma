@@ -8,13 +8,13 @@ const ComponentRotation = @import("../components/rotation.zig");
 pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
   if (entity.world.components.rotation.getPtr(entity.id)) |existing| {
     existing.* = ComponentRotation.Component{.x = x, .y = y, .z = z};
-    return entity;
+    return entity.dirty(&.{.rotation});
   }
 
   const new = ComponentRotation.Component{.x = x, .y = y, .z = z };
   entity.world.components.rotation.put(entity.id, new) catch @panic("Failed to store rotation");
 
-  return entity;
+  return entity.dirty(&.{.rotation});
 }
 
 
@@ -39,4 +39,9 @@ test "Component should set rotation" {
     try tst.expectEqual(ComponentRotation.Component{.x = 1, .y = 2, .z = 3}, rotation)
   else
     return error.TestExpectedRotation;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.rotation)
+  else
+    return error.TestExpectedDirty;
 }

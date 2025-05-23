@@ -29,7 +29,7 @@ pub fn init(entity: ent.Entity, params: Material) ent.Entity {
 
   entity.world.components.material.put(entity.id, new) catch @panic("Failed to store material");
 
-  return entity;
+  return entity.dirty(&.{.material});
 }
 
 
@@ -57,4 +57,9 @@ test "Component should set mesh" {
     try tst.expectEqual(1, material.material.maps[0].texture.id);
     try tst.expectEqual(0, material.material.maps[1].texture.id);
   }
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.material)
+  else
+    return error.TestExpectedDirty;
 }

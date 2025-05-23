@@ -8,13 +8,13 @@ const ComponentColor = @import("../components/color.zig");
 pub fn set(entity: ent.Entity, r: u8, g: u8, b: u8, a: u8) ent.Entity {
   if (entity.world.components.color.getPtr(entity.id)) |existing| {
     existing.* = ComponentColor.Component{.r = r, .g = g, .b = b, .a = a };
-    return entity;
+    return entity.dirty(&.{.color});
   }
 
   const new = ComponentColor.Component{.r = r, .g = g, .b = b, .a = a };
   entity.world.components.color.put(entity.id, new) catch @panic("Failed to store color");
 
-  return entity;
+  return entity.dirty(&.{.color});
 }
 
 
@@ -39,4 +39,9 @@ test "Component should set color" {
     try tst.expectEqual(ComponentColor.Component{.r = 1, .g = 2, .b = 3, .a = 4}, color)
   else
     return error.TestExpectedColor;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.color)
+  else
+    return error.TestExpectedDirty;
 }

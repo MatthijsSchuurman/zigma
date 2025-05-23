@@ -8,13 +8,13 @@ const ComponentScale= @import("../components/scale.zig");
 pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
   if (entity.world.components.scale.getPtr(entity.id)) |existing| {
     existing.* = ComponentScale.Component{.x = x, .y = y, .z = z};
-    return entity;
+    return entity.dirty(&.{.scale});
   }
 
   const new = ComponentScale.Component{.x = x, .y = y, .z = z };
   entity.world.components.scale.put(entity.id, new) catch @panic("Failed to store scale");
 
-  return entity;
+  return entity.dirty(&.{.scale});
 }
 
 
@@ -39,4 +39,9 @@ test "Component should set scale" {
     try tst.expectEqual(ComponentScale.Component{.x = 1, .y = 2, .z = 3}, scale)
   else
     return error.TestExpectedScale;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.scale)
+  else
+    return error.TestExpectedDirty;
 }

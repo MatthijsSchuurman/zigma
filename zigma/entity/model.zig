@@ -40,7 +40,7 @@ pub fn init(entity: ent.Entity, params: Model) ent.Entity {
   .scale(1, 1, 1)
   .color(255, 255, 255, 255);
 
-  return entity;
+  return entity.dirty(&.{.model});
 }
 
 fn loadMesh(mesh_type: []const u8) rl.Mesh {
@@ -155,4 +155,9 @@ test "Component should hide model" {
   }
   else
     return error.TestExpectedModel;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.model)
+  else
+    return error.TestExpectedDirty;
 }

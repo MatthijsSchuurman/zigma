@@ -6,7 +6,7 @@ const ComponentText = @import("../components/text.zig");
 pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   if (entity.world.components.text.getPtr(entity.id)) |existing| {
     existing.text = text;
-    return entity;
+    return entity.dirty(&.{.text});
   }
 
   const new = ComponentText.Component{.text = text};
@@ -18,7 +18,7 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   .scale(1, 1, 1)
   .color(255, 255, 255, 255);
 
-  return entity;
+  return entity.dirty(&.{.text});
 }
 
 pub fn hide(entity: ent.Entity) ent.Entity {
@@ -78,6 +78,11 @@ test "Component should set text" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.text)
+  else
+    return error.TestExpectedDirty;
 }
 
 test "Component should hide text" {

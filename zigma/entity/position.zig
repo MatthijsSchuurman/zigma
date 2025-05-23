@@ -8,13 +8,13 @@ const ComponentPosition = @import("../components/position.zig");
 pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
   if (entity.world.components.position.getPtr(entity.id)) |existing| {
     existing.* = ComponentPosition.Component{.x = x, .y = y, .z = z};
-    return entity;
+    return entity.dirty(&.{.position});
   }
 
   const new = ComponentPosition.Component{.x = x, .y = y, .z = z };
   entity.world.components.position.put(entity.id, new) catch @panic("Failed to store position");
 
-  return entity;
+  return entity.dirty(&.{.position});
 }
 
 
@@ -39,4 +39,9 @@ test "Component should set position" {
     try tst.expectEqual(ComponentPosition.Component{.x = 1, .y = 2, .z = 3}, position)
   else
     return error.TestExpectedPosition;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.position)
+  else
+    return error.TestExpectedDirty;
 }
