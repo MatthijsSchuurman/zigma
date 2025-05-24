@@ -130,7 +130,13 @@ pub const World = struct {
     const id = self.entityNext();
     return ent.Entity{
       .id = id,
-      .parent_id = 0,
+      .world = self,
+    };
+  }
+
+  pub fn entityWrap(self: *World, id: ent.EntityID) ent.Entity {
+    return ent.Entity{
+      .id = id,
       .world = self,
     };
   }
@@ -139,7 +145,6 @@ pub const World = struct {
     if (self.entities.get(name)) |id| // Existing named entity
       return ent.Entity{
         .id = id,
-        .parent_id = 0,
         .world = self,
       };
 
@@ -147,7 +152,6 @@ pub const World = struct {
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
     return ent.Entity{
       .id = id,
-      .parent_id = 0,
       .world = self,
     };
   }
@@ -167,8 +171,6 @@ pub const World = struct {
 
   // Render
   pub fn render(self: *World) bool {
-    self.systems.dirty.clean();
-
     self.systems.timeline.update();
 
     self.systems.effects_position.update();
@@ -190,6 +192,7 @@ pub const World = struct {
     self.systems.render_text.render();
     self.systems.fps.render();
 
+    self.systems.dirty.clean();
     return true;
   }
 
