@@ -7,6 +7,7 @@ const EntityTimelineEvent = @import("entity/timelineevent.zig");
 
 const EntityCamera = @import("entity/camera.zig");
 
+const EntitySpawn = @import("entity/spawn.zig");
 const EntityPosition = @import("entity/position.zig");
 const EntityRotation = @import("entity/rotation.zig");
 const EntityScale = @import("entity/scale.zig");
@@ -44,6 +45,7 @@ pub const Entity = struct {
   pub const scale = EntityScale.set;
   pub const color = EntityColor.set;
 
+  pub const spawn = EntitySpawn.init;
   pub const shader = EntityShader.init;
   pub const light = EntityLight.init;
   pub const material = EntityMaterial.init;
@@ -53,6 +55,7 @@ pub const Entity = struct {
   pub const text = EntityText.set;
 
   pub fn deinit(entity: Entity) void {
+    EntitySpawn.deinit(entity);
     EntityModel.deinit(entity);
     EntityMaterial.deinit(entity);
     EntityShader.deinit(entity);

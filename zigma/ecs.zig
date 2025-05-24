@@ -23,6 +23,7 @@ pub const Components = struct {
 
   pub const Camera = @import("components/camera.zig");
 
+  pub const Spawn = @import("components/spawn.zig");
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
@@ -48,6 +49,7 @@ pub const Systems = struct {
   pub const Light = @import("systems/light.zig");
 
   // Effects
+  pub const Effects_Spawn = @import("systems/effects/spawn.zig");
   pub const Effects_Position = @import("systems/effects/position.zig");
   pub const Effects_Rotation = @import("systems/effects/rotation.zig");
   pub const Effects_Scale = @import("systems/effects/scale.zig");
@@ -70,7 +72,7 @@ pub const World = struct {
   entity_id: ent.EntityID = 1, // 0 is no entry
   entities: std.StringHashMap(ent.EntityID),
 
-  components: ComponentStores(),
+ components: ComponentStores(),
   systems: SystemStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
@@ -121,7 +123,7 @@ pub const World = struct {
   }
 
   pub fn entityNext(self: *World) ent.Entity {
-    const id = self.entityNext();
+    const id = self.entityNextID();
     return ent.Entity{
       .id = id,
       .world = self,

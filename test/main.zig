@@ -16,11 +16,12 @@ pub fn main() void {
 
   _ = world.entity("floor").model(.{.type = "plane"})
   .color(64, 64, 64, 255)
-  .scale(10, 0, 10);
+  .scale(10, 0, 10)
+  .position(0, -1, 0);
 
   _ = world.entity("cube").model(.{.type = "cube"})
   .color(128, 128, 255, 128)
-  .position(0, 0.5, 0);
+  .spawn(.{.type = "cube"});
 
 
   while(zigma.render(world)){}

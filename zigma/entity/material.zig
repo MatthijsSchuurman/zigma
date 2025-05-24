@@ -53,7 +53,6 @@ test "Component should set mesh" {
 
   // When
   const result = init(entity, .{});
-  // defer deinit(entity); // Handled by world
 
   // Then
   try tst.expectEqual(entity.id, result.id);

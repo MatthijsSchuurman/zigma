@@ -22,15 +22,15 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
 }
 
 pub fn hide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.text.getPtr(entity.id)) |text|
-    text.hidden = true;
+  if (entity.world.components.text.getPtr(entity.id)) |existing|
+    existing.hidden = true;
 
   return entity;
 }
 
 pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.text.getPtr(entity.id)) |text|
-    text.hidden = false;
+  if (entity.world.components.text.getPtr(entity.id)) |existing|
+    existing.hidden = false;
 
   return entity;
 }

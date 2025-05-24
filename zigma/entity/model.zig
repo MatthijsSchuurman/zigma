@@ -74,15 +74,15 @@ fn loadMesh(mesh_type: []const u8) rl.Mesh {
 }
 
 pub fn hide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |text|
-    text.hidden = true;
+  if (entity.world.components.model.getPtr(entity.id)) |existing|
+    existing.hidden = true;
 
   return entity;
 }
 
 pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |text|
-    text.hidden = false;
+  if (entity.world.components.model.getPtr(entity.id)) |existing|
+    existing.hidden = false;
 
   return entity;
 }
@@ -94,10 +94,10 @@ pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3,
 }
 
 fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
-  const T = rl.MatrixTranslate(position.x, position.y, position.z);
   const R = rl.MatrixRotateXYZ(rotation);
   const S = rl.MatrixScale(scale.x, scale.y, scale.z);
-  return rl.MatrixMultiply(T, rl.MatrixMultiply(R, S));
+  const T = rl.MatrixTranslate(position.x, position.y, position.z);
+  return rl.MatrixMultiply(rl.MatrixMultiply(R, S), T);
 }
 
 
@@ -114,7 +114,6 @@ test "Component should set mesh" {
 
   // When
   const result = init(entity, .{.type = "cube"});
-  // defer deinit(entity); // Handled by world
 
   // Then
   try tst.expectEqual(entity.id, result.id);
@@ -161,7 +160,6 @@ test "Component should hide model" {
   defer ecs.World.deinit(&world);
 
   const entity = world.entity("test").model(.{.type = "torus"});
-  // defer deinit(entity); // Handled by world
 
   // When
   var result = hide(entity);
@@ -203,7 +201,6 @@ test "Component should set transform" {
   defer ecs.World.deinit(&world);
 
   const entity = world.entity("test").model(.{.type = "torus"});
-  // defer deinit(entity); // Handled by world
 
   // When
   const result = transform(entity,
