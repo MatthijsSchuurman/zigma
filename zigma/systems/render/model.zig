@@ -99,8 +99,7 @@ pub const System = struct {
 
     // Render opaque models
     for (ids.opaques) |id|
-      if (self.world.components.model.get(id)) |model|
-        self.renderModel(id, model);
+      self.renderModel(id);
 
     // Render transparent models
     rl.rlDisableDepthMask();
@@ -109,7 +108,7 @@ pub const System = struct {
       var shader: ?rl.Shader = null;
       var loc_color_diffuse: c_int = 0;
 
-      if (self.world.components.model.get(id)) |model| {
+      if (self.world.components.model.getPtr(id)) |model| {
         if (self.world.components.material.get(model.material_id)) |material| {
           if (shader == null or shader.?.id != material.material.shader.id) { // Different shader
             if (shader != null) // Unload previous shader
@@ -124,9 +123,10 @@ pub const System = struct {
           if (self.world.components.color.get(id)) |color|
             rl.SetShaderValue(shader.?, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
 
-          self.renderModel(id, model);
         }
       }
+
+      self.renderModel(id);
     }
 
     rl.EndShaderMode();
@@ -134,19 +134,23 @@ pub const System = struct {
     rl.rlEnableDepthMask();
   }
 
-  fn renderModel(self: *System, id: ent.EntityID, model: ecs.Components.Model.Component) void {
-    const position = self.world.components.position.get(id) orelse unreachable; // Defined in model entity
-    const rotation = self.world.components.rotation.get(id) orelse unreachable;
-    const scale = self.world.components.scale.get(id) orelse unreachable;
-    const color = self.world.components.color.get(id) orelse unreachable;
+  fn renderModel(self: *System, id: ent.EntityID) void {
+    if (self.world.components.dirty.get(id)) |dirty| {
+      if (dirty.position or dirty.rotation or dirty.scale) {
+        _ = self.world.entityWrap(id).model_transform(
+          self.world.components.position.get(id) orelse unreachable, // Defined in model entity
+          self.world.components.rotation.get(id) orelse unreachable,
+          self.world.components.scale.get(id) orelse unreachable,
+        );
+      }
+    }
 
-    rl.DrawModelEx(
+    const model = self.world.components.model.get(id) orelse unreachable;
+    rl.DrawModel(
       model.model,
-      position,
-      rotation, // rotation axis
-      0.0, // rotation angle
-      scale,
-      color,
+      rl.Vector3Zero(),
+      1.0,
+      self.world.components.color.get(id) orelse unreachable,
     );
   }
 };

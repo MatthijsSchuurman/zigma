@@ -49,5 +49,6 @@ pub const Entity = struct {
   pub const material = EntityMaterial.init;
 
   pub const model = EntityModel.init;
+  pub const model_transform = EntityModel.transform;
   pub const text = EntityText.set;
 };

@@ -67,6 +67,19 @@ pub fn unhide(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
+pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) ent.Entity {
+  const model = entity.world.components.model.getPtr(entity.id) orelse return entity;
+  model.model.transform = makeTransform(position, rotation, scale);
+  return entity;
+}
+
+fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
+  const T = rl.MatrixTranslate(position.x, position.y, position.z);
+  const R = rl.MatrixRotateXYZ(rotation);
+  const S = rl.MatrixScale(scale.x, scale.y, scale.z);
+  return rl.MatrixMultiply(T, rl.MatrixMultiply(R, S));
+}
+
 
 // Testing
 const tst = std.testing;
@@ -157,6 +170,40 @@ test "Component should hide model" {
     return error.TestExpectedModel;
 
   if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.model)
+  else
+    return error.TestExpectedDirty;
+}
+
+test "Component should set transform" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test").model(.{.type = "torus"});
+
+  // When
+  const result = transform(entity,
+    rl.Vector3{.x = 1, .y = 2, .z = 3},
+    rl.Vector3{.x = 0, .y = 0, .z = 0},
+    rl.Vector3{.x = 1, .y = 1, .z = 1},
+  );
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+  if (world.components.model.get(entity.id)) |model| {
+    try tst.expectEqual(rl.Matrix{
+      .m0 = 1, .m1 = 0, .m2 = 0, .m3 = 0,
+      .m4 = 0, .m5 = 1, .m6 = 0, .m7 = 0,
+      .m8 = 0, .m9 = 0, .m10 = 1, .m11 = 0,
+      .m12 = 1, .m13 = 2, .m14 = 3, .m15 = 1,
+    }, model.model.transform);
+  }
+  else
+    return error.TestExpectedModel;
+
+  if (result.world.components.dirty.get(entity.id)) |dirty|
     try tst.expectEqual(true, dirty.model)
   else
     return error.TestExpectedDirty;
