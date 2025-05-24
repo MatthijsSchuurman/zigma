@@ -6,11 +6,6 @@ const rl = ecs.raylib;
 pub const Component = struct {
   material: rl.Material,
   shader_id: ent.EntityID = 0,
-
-  pub fn deinit(self: *Component) void{
-    self.material.shader = rl.Shader{}; // Unlink shader
-    rl.UnloadMaterial(self.material);
-  }
 };
 
 pub const Query = struct {

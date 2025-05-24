@@ -97,23 +97,17 @@ pub const World = struct {
   }
 
   pub fn deinit(self: *World) void {
+    var id: usize = self.entity_id;
+    while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
+      self.entityWrap(@intCast(id)).deinit();
+
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Component;
-      if (@hasDecl(T, "deinit")) { // Deinit each component
-        var components = &@field(self.components, toLower(declaration.name));
-        var it = components.iterator();
-        while (it.next()) |entry|
-          entry.value_ptr.*.deinit();
-      }
-
+    inline for (ComponentDeclarations) |declaration|
       @field(self.components, toLower(declaration.name)).deinit();
-    }
 
     inline for (SystemDeclarations) |declaration| {
       const T = @field(Systems, declaration.name).System;
-
 
       if (@hasDecl(T, "deinit"))
         @field(self.systems, toLower(declaration.name)).deinit();
@@ -157,14 +151,10 @@ pub const World = struct {
   }
 
   pub fn entityDelete(self: *World, id: ent.EntityID) void {
+    self.entityWrap(id).deinit();
+
     inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Component;
       var components = &@field(self.components, toLower(declaration.name));
-
-      if (@hasDecl(T, "deinit"))  // Deinit component
-        if (components.getPtr(id)) |entry|
-          entry.deinit();
-
       _ = components.remove(id);
     }
   }

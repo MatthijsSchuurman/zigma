@@ -32,6 +32,12 @@ fn loadShader(shader_type: []const u8) rl.Shader {
   return rl.LoadShader("zigma/shaders/lighting.vs", "zigma/shaders/lighting.fs");
 }
 
+pub fn deinit(entity: ent.Entity) void {
+  const existing = entity.world.components.shader.getPtr(entity.id) orelse return;
+
+  rl.UnloadShader(existing.shader);
+}
+
 
 // Testing
 const tst = std.testing;

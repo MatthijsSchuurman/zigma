@@ -32,6 +32,13 @@ pub fn init(entity: ent.Entity, params: Material) ent.Entity {
   return entity.dirty(&.{.material});
 }
 
+pub fn deinit(entity: ent.Entity) void {
+  const existing = entity.world.components.material.getPtr(entity.id) orelse return;
+
+  existing.material.shader = rl.Shader{}; // Unlink shader
+  rl.UnloadMaterial(existing.material);
+}
+
 
 // Testing
 const tst = std.testing;
@@ -46,6 +53,7 @@ test "Component should set mesh" {
 
   // When
   const result = init(entity, .{});
+  // defer deinit(entity); // Handled by world
 
   // Then
   try tst.expectEqual(entity.id, result.id);

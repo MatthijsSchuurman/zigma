@@ -43,6 +43,26 @@ pub fn init(entity: ent.Entity, params: Model) ent.Entity {
   return entity.dirty(&.{.model});
 }
 
+pub fn deinit(entity: ent.Entity) void {
+  const existing = entity.world.components.model.getPtr(entity.id) orelse return;
+
+  if (existing.material_id == 0) { // Default material
+    if (existing.model.materials) |materials| {
+      for (0..@as(usize, @intCast(existing.model.materialCount))) |i| {
+        materials[i].shader = rl.Shader{}; // Unlink shader
+      }
+    }
+  } else { // Custom material
+    if (existing.model.materials) |materials| {
+      for (0..@as(usize, @intCast(existing.model.materialCount))) |i| {
+        materials[i] = rl.Material{}; // Unlink marterial, cleaned up by the material component
+      }
+    }
+  }
+
+  rl.UnloadModel(existing.model);
+}
+
 fn loadMesh(mesh_type: []const u8) rl.Mesh {
   if (std.mem.eql(u8, mesh_type, "cube")) return rl.GenMeshCube(1, 1, 1);
   if (std.mem.eql(u8, mesh_type, "sphere")) return rl.GenMeshSphere(1, 16, 16);
@@ -94,6 +114,7 @@ test "Component should set mesh" {
 
   // When
   const result = init(entity, .{.type = "cube"});
+  // defer deinit(entity); // Handled by world
 
   // Then
   try tst.expectEqual(entity.id, result.id);
@@ -140,6 +161,7 @@ test "Component should hide model" {
   defer ecs.World.deinit(&world);
 
   const entity = world.entity("test").model(.{.type = "torus"});
+  // defer deinit(entity); // Handled by world
 
   // When
   var result = hide(entity);
@@ -181,6 +203,7 @@ test "Component should set transform" {
   defer ecs.World.deinit(&world);
 
   const entity = world.entity("test").model(.{.type = "torus"});
+  // defer deinit(entity); // Handled by world
 
   // When
   const result = transform(entity,

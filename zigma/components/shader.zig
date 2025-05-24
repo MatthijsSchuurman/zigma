@@ -6,10 +6,6 @@ const rl = ecs.raylib;
 pub const Component = struct {
   type: []const u8,
   shader: rl.Shader,
-
-  pub fn deinit(self: *Component) void{
-    rl.UnloadShader(self.shader);
-  }
 };
 
 pub const Query = struct {
