@@ -35,17 +35,12 @@ pub const System = struct {
         start = target_rotation;
       }
 
-      if (self.world.components.rotation.get(id)) |end| {
-        const new_postion = ecs.Components.Rotation.Component{
-          .x = start.x + ((end.x - start.x) * event.progress),
-          .y = start.y + ((end.y - start.y) * event.progress),
-          .z = start.z + ((end.z - start.z) * event.progress),
-        };
-
-        if (self.world.components.rotation.getPtr(target_id)) |target_rotation| {
-          target_rotation.* = new_postion;
-        }
-      }
+      if (self.world.components.rotation.get(id)) |end|
+        _ = self.world.entityWrap(target_id).rotation(
+          start.x + ((end.x - start.x) * event.progress),
+          start.y + ((end.y - start.y) * event.progress),
+          start.z + ((end.z - start.z) * event.progress),
+        );
     }
   }
 };
@@ -76,4 +71,9 @@ test "System should update rotation" {
     try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0.5, .y = -0.5, .z = 50}, rotation)
    else
     return error.TestExpectedRotation;
+
+  if (entity.world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.rotation)
+   else
+    return error.TestExpectedDirty;
 }

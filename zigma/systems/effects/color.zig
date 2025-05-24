@@ -45,16 +45,12 @@ pub const System = struct {
         const be: f32 = @as(f32, @floatFromInt(end.b));
         const ae: f32 = @as(f32, @floatFromInt(end.a));
 
-        const new_postion = ecs.Components.Color.Component{
-          .r = @intFromFloat(@round(rs + ((re - rs) * event.progress))),
-          .g = @intFromFloat(@round(gs + ((ge - gs) * event.progress))),
-          .b = @intFromFloat(@round(bs + ((be - bs) * event.progress))),
-          .a = @intFromFloat(@round(as + ((ae - as) * event.progress))),
-        };
-
-        if (self.world.components.color.getPtr(target_id)) |target_color| {
-          target_color.* = new_postion;
-        }
+        _ = self.world.entityWrap(target_id).color(
+          @intFromFloat(@round(rs + ((re - rs) * event.progress))),
+          @intFromFloat(@round(gs + ((ge - gs) * event.progress))),
+          @intFromFloat(@round(bs + ((be - bs) * event.progress))),
+          @intFromFloat(@round(as + ((ae - as) * event.progress))),
+        );
       }
     }
   }
@@ -86,4 +82,9 @@ test "System should update color" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 128, .g = 128, .b = 128, .a = 150}, color)
    else
     return error.TestExpectedColor;
+
+  if (entity.world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.color)
+   else
+    return error.TestExpectedDirty;
 }
