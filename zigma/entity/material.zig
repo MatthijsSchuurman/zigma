@@ -44,7 +44,7 @@ pub fn deinit(entity: ent.Entity) void {
 const tst = std.testing;
 const zigma = @import("../ma.zig");
 
-test "Component should set mesh" {
+test "Component should init material" {
   // Given
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();

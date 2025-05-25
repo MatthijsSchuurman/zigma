@@ -105,7 +105,7 @@ fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) 
 const tst = std.testing;
 const zigma = @import("../ma.zig");
 
-test "Component should set mesh" {
+test "Component should init model" {
   // Given
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();

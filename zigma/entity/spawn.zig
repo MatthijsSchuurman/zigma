@@ -7,16 +7,22 @@ const ComponentSpawn = @import("../components/spawn.zig");
 
 pub const Spawn = struct {
   type: []const u8,
+  model: []const u8 = "",
 };
 
 pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   if (entity.world.components.spawn.getPtr(entity.id)) |_|
     return entity;
 
-  const model = entity.world.components.model.get(entity.id) orelse @panic("Spawn requires entity with model");
+  if (params.model.len == 0)
+    @panic("Spawn requires a model");
+
+  const model_entity = entity.world.entity(params.model); // May not exists yet
+  const model = entity.world.components.model.get(model_entity.id) orelse @panic("Spawn requires model entity to exist");
 
   var new = ComponentSpawn.Component{
     .type = params.type,
+    .model_id = model_entity.id,
     .child_ids = std.AutoHashMap(ent.EntityID, usize).init(entity.world.allocator),
   };
 
@@ -55,6 +61,11 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   }
 
   entity.world.components.spawn.put(entity.id, new) catch @panic("Failed to store spawn");
+
+  _ = entity
+  .rotation(0, 0, 0)
+  .scale(1, 1, 1)
+  .color(255, 255, 255, 255);
 
   return entity;
 }
@@ -118,15 +129,16 @@ fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) 
 const tst = std.testing;
 const zigma = @import("../ma.zig");
 
-test "Component should set mesh" {
+test "Component should init model spawn" {
   // Given
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("test").model(.{.type = "cube"});
+  _ = world.entity("cube").model(.{.type = "cube"});
+  const entity = world.entity("test");
 
   // When
-  const result = init(entity, .{.type = "cube"});
+  const result = init(entity, .{.model = "cube", .type = "cube"});
 
   // Then
   try tst.expectEqual(entity.id, result.id);
@@ -134,15 +146,11 @@ test "Component should set mesh" {
 
   if (world.components.spawn.get(entity.id)) |spawn| {
     try tst.expectEqual("cube", spawn.type);
+    try tst.expectEqual(1, spawn.model_id);
     try tst.expectEqual(8, spawn.child_ids.count());
   }
   else
     return error.TestExpectedSpawn;
-
-  if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0}, position)
-  else
-    return error.TestExpectedPosition;
 
   if (world.components.rotation.get(entity.id)) |rotation|
     try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0, .y = 0, .z = 0}, rotation)
@@ -165,9 +173,8 @@ test "Component should hide spawn" {
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
-  const entity = world.entity("test")
-  .model(.{.type = "cube"})
-  .spawn(.{.type = "torus"});
+  _ = world.entity("cube").model(.{.type = "cube"});
+  const entity = world.entity("test").spawn(.{.model = "cube", .type = "torus"});
 
   // When
   var result = hide(entity);

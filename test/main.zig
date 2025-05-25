@@ -25,6 +25,12 @@ pub fn main() void {
     .scale(2, 2, 2)
     .rotation(1, 1, 1);
 
+  _ = world.entity("torus spawn").spawn(.{.model = "torus", .type = "cube"})
+  .color(128, 128, 255, 128)
+  .event(.{.duration = 60, .repeat = 20, .pattern = .PingPong, .motion = .Smooth})
+    .scale(2, 2, 2)
+    .rotation(1, 1, 1);
+
 
   while(zigma.render(world)){}
 }
