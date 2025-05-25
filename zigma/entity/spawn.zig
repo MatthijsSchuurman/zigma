@@ -64,7 +64,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
 
   _ = entity
   .rotation(0, 0, 0)
-  .scale(1, 1, 1)
+  .scale(0.1, 0.1, 0.1)
   .color(255, 255, 255, 255);
 
   return entity;

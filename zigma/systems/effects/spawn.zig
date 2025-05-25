@@ -18,15 +18,47 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const spawn = entry.value_ptr.*;
 
-      if (self.world.components.dirty.get(id)) |dirty| {
-        if (dirty.position or dirty.rotation or dirty.scale) { // Model dirty
-          _ = self.world.entityWrap(id).model_transform( // Pre transform model, redone by model system
-            self.world.components.position.get(id) orelse unreachable,
-            self.world.components.rotation.get(id) orelse unreachable,
-            self.world.components.scale.get(id) orelse unreachable,
+      if (self.world.components.dirty.get(id)) |dirty| { // Spawn dirty
+        if (dirty.rotation) {
+          const rotation = self.world.components.rotation.get(id) orelse unreachable;
+
+          var it2 = spawn.child_ids.iterator();
+          while (it2.next()) |entry2| {
+            const child_id = entry2.key_ptr.*;
+            _ = self.world.entityWrap(child_id).rotation(rotation.x, rotation.y, rotation.z);
+          }
+        }
+
+        if (dirty.scale) {
+          const scale = self.world.components.scale.get(id) orelse unreachable;
+
+          var it2 = spawn.child_ids.iterator();
+          while (it2.next()) |entry2| {
+            const child_id = entry2.key_ptr.*;
+            _ = self.world.entityWrap(child_id).scale(scale.x, scale.y, scale.z);
+          }
+        }
+
+        if (dirty.color) {
+          const color = self.world.components.color.get(id) orelse unreachable;
+
+          var it2 = spawn.child_ids.iterator();
+          while (it2.next()) |entry2| {
+            const child_id = entry2.key_ptr.*;
+            _ = self.world.entityWrap(child_id).color(color.r, color.g, color.b, color.a);
+          }
+        }
+      }
+
+      if (self.world.components.dirty.get(spawn.model_id)) |dirty| { // Model dirty
+        if (dirty.position or dirty.rotation or dirty.scale) {
+          _ = self.world.entityWrap(spawn.model_id).model_transform( // Pre transform model, redone by model system
+            self.world.components.position.get(spawn.model_id) orelse unreachable,
+            self.world.components.rotation.get(spawn.model_id) orelse unreachable,
+            self.world.components.scale.get(spawn.model_id) orelse unreachable,
           );
 
-          const model = self.world.components.model.get(id) orelse unreachable;
+          const model = self.world.components.model.get(spawn.model_id) orelse unreachable;
           const mesh = model.model.meshes[0];
 
           var it2 = spawn.child_ids.iterator();
@@ -59,11 +91,10 @@ test "System should update position" {
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
-  const entity = world.entity("test").position(0, 0, 0);
-  const event = world.entity("test event").position(1, -1, 100);
-
-  const new = .{.target_id = entity.id, .progress = 0.5};
-  world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
+  _ = world.entity("cube").model(.{.type = "cube"});
+  const entity = world.entity("test")
+  .spawn(.{.model = "cube", .type = "torus"})
+  .color(128, 128, 128, 255);
 
   var system = System.init(&world);
 
@@ -71,12 +102,17 @@ test "System should update position" {
   system.update();
 
   // Then
-  if (entity.world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = 0.5, .y = -0.5, .z = 50}, position)
+  if (entity.world.components.position.get(3)) |position|
+    try tst.expectEqual(ecs.Components.Position.Component{.x = -0.5, .y = -0.5, .z = 0.5}, position)
    else
     return error.TestExpectedPosition;
 
-  if (entity.world.components.dirty.get(entity.id)) |dirty|
+  if (entity.world.components.color.get(4)) |color|
+    try tst.expectEqual(ecs.Components.Color.Component{.r = 128, .g = 128, .b = 128, .a = 255}, color)
+   else
+    return error.TestExpectedColor;
+
+  if (entity.world.components.dirty.get(5)) |dirty|
     try tst.expectEqual(true, dirty.position)
    else
     return error.TestExpectedDirty;
