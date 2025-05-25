@@ -47,7 +47,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   while (it.next()) |entry| {
     const child = entity.world.entityNext()
       .model(.{.type = params.type})
-      .scale(0.25, 0.25, 0.25)
+      .scale(0.10, 0.10, 0.10)
       .position(entry.value_ptr.x, entry.value_ptr.y, entry.value_ptr.z);
 
     //store child id => vertex index (needed for position lookup in spawn system)

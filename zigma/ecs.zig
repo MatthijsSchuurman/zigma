@@ -169,6 +169,7 @@ pub const World = struct {
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
+    self.systems.effects_spawn.update();
 
     self.systems.camera.update();
     self.systems.shader.update();
