@@ -8,7 +8,7 @@ pub fn main() void {
   defer zigma.destroy(world);
 
   _ = world.entity("camera").camera(.{})
-  .event(.{.start = 0, .duration = 60, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
+  .event(.{.duration = 60, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
     .position(-5, 0.5, 2);
 
   _ = world.entity("background")
@@ -21,8 +21,7 @@ pub fn main() void {
 
   _ = world.entity("torus").model(.{.type = "torus"})
   .color(128, 128, 255, 128)
-  .spawn(.{.type = "cube"})
-  .event(.{.start = 0, .duration = 60, .repeat = 20, .pattern = .PingPong, .motion = .Smooth})
+  .event(.{.duration = 60, .repeat = 20, .pattern = .PingPong, .motion = .Smooth})
     .scale(2, 2, 2)
     .rotation(1, 1, 1);
 

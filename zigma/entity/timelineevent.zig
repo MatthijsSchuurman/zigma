@@ -9,7 +9,7 @@ pub const Event = struct {
 
   start: ?f32 = null,
   end: ?f32 = null,
-  duration: f32 = 1.0, // Default duration if only start is provided
+  duration: ?f32 = null,
 
   repeat: u32 = 1,
   pattern: ComponentTimelineEvent.Pattern = .Forward,
@@ -17,9 +17,8 @@ pub const Event = struct {
 };
 
 pub fn add(entity: ent.Entity, params: Event) ent.Entity {
-  if (params.start == undefined and params.end == undefined)
-    if (entity.parent_id == 0) // No previous event
-      @panic("Event start or end needs to be provided or a previous event should exist");
+  if (params.end == undefined and params.duration == undefined)
+    @panic("Event end or duration must be provided");
 
   if (params.repeat < 1)
     @panic("Event repeat should be at least 1");
@@ -41,22 +40,29 @@ pub fn add(entity: ent.Entity, params: Event) ent.Entity {
   if (params.start) |start| {
     realStart = start;
 
-    if (params.end) |end| {
-      realEnd = end;
-    } else {
-      realEnd = start + params.duration;
-    }
+    if (params.end) |end|
+      realEnd = end
+    else
+      realEnd = start + params.duration.?; // Either end or duration is set
   } else if (params.end) |end| {
     realEnd = end;
 
-    if (params.start) |start| {
-      realStart = start;
-    } else {
-      realStart = end - params.duration;
-    }
+    if (params.duration) |duration|
+      realStart = end - duration
+    else if (params.start) |start|
+      realStart = start
+    else
+      realStart = 0;
+  } else if (entity.parent_id == 0) { // No previous event
+    realStart = 0;
+
+    if (params.end) |end|
+      realEnd = end
+    else
+      realEnd = params.duration.?; // Either end or duration is set
   } else if (entity.world.components.timelineevent.get(entity.id)) |previousEvent| { // Get end from previous event
     realStart = previousEvent.end;
-    realEnd = previousEvent.end + params.duration;
+    realEnd = previousEvent.end + params.duration.?; // Either end or duration is set
   }
 
   if (realEnd < realStart) { // Ensure start is always before end, timeline system requires this
