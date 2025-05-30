@@ -6,23 +6,24 @@ const rl = ecs.raylib;
 const ComponentSpawn = @import("../components/spawn.zig");
 
 pub const Spawn = struct {
-  model: []const u8 = "",
+  source_model: []const u8 = "",
 };
+
 
 pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   if (entity.world.components.spawn.getPtr(entity.id)) |_|
     return entity;
 
-  if (params.model.len == 0)
-    @panic("Spawn requires a model");
+  if (params.source_model.len == 0)
+    @panic("Spawn requires a source model");
 
-  const model2 = entity.world.components.model.getPtr(entity.id) orelse @panic("Spawn must be a model entity");
+  const model = entity.world.components.model.getPtr(entity.id) orelse @panic("Spawn must be a model entity");
 
-  const model_entity = entity.world.entity(params.model); // May not exists yet
-  const model = entity.world.components.model.get(model_entity.id) orelse @panic("Spawn requires model entity to exist");
+  const source_entity = entity.world.entity(params.source_model); // May not exists yet
+  const source_model = entity.world.components.model.get(source_entity.id) orelse @panic("Spawn requires source model entity to exist");
 
   var new = ComponentSpawn.Component{
-    .model_id = model_entity.id,
+    .source_model_id = source_entity.id,
     .vertex_indexes = std.ArrayList(usize).init(entity.world.allocator),
   };
 
@@ -30,7 +31,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   var unique = std.AutoArrayHashMap(usize, rl.Vector3).init(entity.world.allocator);
   defer unique.deinit();
 
-  const mesh = model.model.meshes[0];
+  const mesh = source_model.model.meshes[0];
   vertex: for (0..@intCast(mesh.vertexCount)) |vertex_index| {
     const base = vertex_index * 3;
     const position = rl.Vector3{
@@ -55,9 +56,9 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   entity.world.components.spawn.put(entity.id, new) catch @panic("Failed to store spawn");
 
   // Prepare model transformations array
-  model2.transforms = std.ArrayList(rl.Matrix).init(entity.world.allocator);
+  model.transforms = std.ArrayList(rl.Matrix).init(entity.world.allocator);
   for (0..new.vertex_indexes.items.len) |_|
-    model2.transforms.?.append(rl.Matrix{}) catch @panic("Failed to prepare model transforms");
+    model.transforms.?.append(rl.Matrix{}) catch @panic("Failed to prepare model transforms");
 
   _ = entity
   .rotation(0, 0, 0)
@@ -119,26 +120,28 @@ test "Component should init model spawn" {
   const entity = world.entity("test").model(.{.type = "cube"});
 
   // When
-  const result = init(entity, .{.model = "cube"});
+  const result = init(entity, .{.source_model = "cube"});
 
   // Then
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.spawn.get(entity.id)) |spawn| {
-    try tst.expectEqual(1, spawn.model_id);
+    try tst.expectEqual(1, spawn.source_model_id);
     try tst.expectEqual(8, spawn.vertex_indexes.items.len);
   }
   else
     return error.TestExpectedSpawn;
 
   if (world.components.spawn.get(entity.id)) |spawn|
-    try tst.expectEqual(1, spawn.model_id)
+    try tst.expectEqual(1, spawn.source_model_id)
   else
     return error.TestExpectedSpawn;
 
-  if (world.components.model.get(entity.id)) |model|
-    try tst.expect(model.transforms != null)
+  if (world.components.model.get(entity.id)) |model| {
+    try tst.expect(model.transforms != null);
+    try tst.expectEqual(8, model.transforms.?.items.len);
+  }
   else
     return error.TestExpectedModel;
 
@@ -164,7 +167,7 @@ test "Component should hide spawn" {
   defer ecs.World.deinit(&world);
 
   _ = world.entity("cube").model(.{.type = "cube"});
-  const entity = world.entity("test").model(.{.type = "torus"}).spawn(.{.model = "cube"});
+  const entity = world.entity("test").model(.{.type = "torus"}).spawn(.{.source_model = "cube"});
 
   // When
   var result = hide(entity);

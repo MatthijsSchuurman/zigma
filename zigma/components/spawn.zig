@@ -4,7 +4,7 @@ const ent = @import("../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = struct {
-  model_id: ent.EntityID = 0,
+  source_model_id: ent.EntityID = 0,
   vertex_indexes: std.ArrayList(usize),
   hidden: bool = false,
 };
@@ -13,13 +13,13 @@ pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    model_id: ?ecs.FieldFilter(ent.EntityID) = null,
+    source_model_id: ?ecs.FieldFilter(ent.EntityID) = null,
     hidden: ?ecs.FieldFilter(bool) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
-    if (f.model_id) |cond|
-      if (!ecs.matchField(ent.EntityID, self.model_id, cond))
+    if (f.source_model_id) |cond|
+      if (!ecs.matchField(ent.EntityID, self.source_model_id, cond))
         return false;
 
     if (f.hidden) |cond|
@@ -30,15 +30,15 @@ pub const Query = struct {
   }
 
   pub const Sort = enum {
-    model_id_asc,
-    model_id_desc,
+    source_model_id_asc,
+    source_model_id_desc,
   };
 
   pub fn compare(a: Data, b: Data, sort: []const Sort) std.math.Order {
     for (sort) |field| {
       const order = switch (field) {
-        .model_id_asc => std.math.order(a.model_id, b.model_id),
-        .model_id_desc => std.math.order(b.model_id, a.model_id),
+        .source_model_id_asc => std.math.order(a.source_model_id, b.source_model_id),
+        .source_model_id_desc => std.math.order(b.source_model_id, a.source_model_id),
       };
 
       if(order != .eq) // lt/qt not further comparison needed
@@ -66,14 +66,14 @@ test "Query should filter" {
 
   _ = EntityModel.init(world.entity("test cube"), .{.type = "cube"});
   _ = EntityModel.init(world.entity("test1"), .{.type = "cube"});
-  const entity = EntitySpawn.init(world.entity("test1"), .{.model = "test cube"});
+  const entity = EntitySpawn.init(world.entity("test1"), .{.source_model = "test cube"});
 
   _ = EntityModel.init(world.entity("test sphere"), .{.type = "sphere"});
   _ = EntityModel.init(world.entity("test2"), .{.type = "sphere"});
-  _ = EntitySpawn.init(world.entity("test2"), .{.model = "test sphere"});
+  _ = EntitySpawn.init(world.entity("test2"), .{.source_model = "test sphere"});
 
   // When
-  const result = Query.exec(&world, .{ .model_id = .{ .eq = 1 }}, &.{.model_id_asc});
+  const result = Query.exec(&world, .{ .source_model_id = .{ .eq = 1 }}, &.{.source_model_id_asc});
   defer world.allocator.free(result);
 
   // Then
