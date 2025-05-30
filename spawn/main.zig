@@ -21,9 +21,9 @@ pub fn main() void {
 
   _ = world.entity("torus").model(.{.type = "torus"})
   .color(128, 128, 255, 128)
-  .event(.{.duration = 60, .repeat = 20, .pattern = .PingPong, .motion = .Smooth})
+  .event(.{.duration = 60, .repeat = 15, .pattern = .PingPong, .motion = .Smooth})
     .scale(2, 2, 2)
-    .rotation(1, 1, 1);
+    .rotation(0.25, 0, 1);
 
   _ = world.entity("torus spawn").model(.{.type = "cube"}).spawn(.{.source_model = "torus"})
   .event(.{.duration = 90, .repeat = 10, .pattern = .PongPing, .motion = .EaseIn})

@@ -97,7 +97,12 @@ pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3,
 }
 
 pub fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
-  const R = rl.MatrixRotateXYZ(rotation);
+  const rad = std.math.pi * 2;
+  const R = rl.MatrixRotateXYZ(rl.Vector3{
+    .x = rotation.x * rad,
+    .y = rotation.y * rad,
+    .z = rotation.z * rad
+  });
   const S = rl.MatrixScale(scale.x, scale.y, scale.z);
   const T = rl.MatrixTranslate(position.x, position.y, position.z);
   return rl.MatrixMultiply(rl.MatrixMultiply(R, S), T);
