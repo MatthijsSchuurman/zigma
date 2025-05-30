@@ -1,5 +1,6 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const EntityTimelineEventProgress = @import("../entity/timelineeventprogress.zig");
 
 const timePrecision: f32 = 0.000001;
 
@@ -78,29 +79,30 @@ pub const System = struct {
         if (@abs(timeline.speed) < timePrecision) // Singularity
           continue; // Nothing's changed
 
+        const entity = self.world.entityWrap(id);
         if (timeline.timeDelta >= 0.0) { // Normal time
           if (timeline.timeCurrent < event.start) // Event not started yet
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
             if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
-              ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+              EntityTimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
             progress = motionCalculation(progress, event);
 
-            ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
+            EntityTimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
               if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
-                ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+                EntityTimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.end, event); // Force end of event
               progress = motionCalculation(progress, event);
 
-              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
+              EntityTimelineEventProgress.progress(entity, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
-              ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
+              EntityTimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
             }
           }
         } else { // Tenet
@@ -109,23 +111,23 @@ pub const System = struct {
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
             if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
-              ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+              EntityTimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
             progress = motionCalculation(progress, event);
 
-            ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
+            EntityTimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
               if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
-                ecs.Components.TimelineEventProgress.activate(.{.id = id, .world = self.world}, event.target_id);
+                EntityTimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.start, event); // Force start of event
               progress = motionCalculation(progress, event);
 
-              ecs.Components.TimelineEventProgress.progress(.{.id = id, .world = self.world}, progress);
+              EntityTimelineEventProgress.progress(entity, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
-              ecs.Components.TimelineEventProgress.deactivate(.{.id = id, .world = self.world}); // Removes it from the TimelineEventProgress list
+              EntityTimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
             }
           }
         }

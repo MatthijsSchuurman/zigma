@@ -15,20 +15,20 @@ fn intro() void {
     .color(255, 255, 255, 255);
 
   _ = world.entity("camera").camera(.{})
-  .event(.{.start = 0, .duration = 5, .motion = .EaseIn})
+  .event(.{.duration = 5, .motion = .EaseIn})
     .position(-5, 3, 2)
   .event(.{.duration = 10, .motion = .EaseOut})
     .position(-10, 0.0, -2);
 
   _ = world.entity("light").light(.{.type = .Point})
   .color(0, 0, 255, 255)
-  .event(.{.start = 0, .end = 10, .motion = .Smooth})
+  .event(.{.end = 10, .motion = .Smooth})
     .color(255, 0, 0, 255);
 
 
   _ = world.entity("background")
   .color(50, 50, 50, 255)
-  .event(.{.start = 0, .end = 10, .motion = .Linear})
+  .event(.{.end = 10, .motion = .Linear})
     .color(25, 25, 25, 255);
 
 
@@ -43,7 +43,7 @@ fn intro() void {
   .color(100, 255, 255, 255)
   .position(0, 2, 0)
   .scale(1, 1, 1)
-  .event(.{.start = 0, .duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
+  .event(.{.duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
     .color(100, 255, 100, 150)
     .position(0, 0.5, 0)
     .scale(1, 0.5, 1);
@@ -52,7 +52,7 @@ fn intro() void {
   .color(100, 255, 100, 255)
   .position(2, 0.5, 1)
   .scale(1, 0.5, 1)
-  .event(.{.start = 0, .duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseOut})
+  .event(.{.duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseOut})
     .color(255, 255, 255, 150)
     .position(2, 2, 1)
     .scale(1, 1, 1);
@@ -62,7 +62,7 @@ fn intro() void {
   .scale(20, 0, 0)
   .rotation(0, 0, 0)
   .color(100, 255, 255, 150)
-  .event(.{.start = 0, .end = 2})
+  .event(.{.end = 2})
     .position(0, 0.5, 0)
     .scale(1, 0, 0)
     .rotation(0, 0, 1)

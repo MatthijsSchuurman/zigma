@@ -51,7 +51,7 @@ pub const System = struct {
         const id = entry2.key_ptr.*;
         const light = entry2.value_ptr.*;
 
-        const position = self.world.components.position.get(id) orelse unreachable; // Defined in light component
+        const position = self.world.components.position.get(id) orelse unreachable; // Defined in light entity
         const color = self.world.components.color.get(id) orelse unreachable;
 
         enabled_buffer[count] = 1;

@@ -11,46 +11,19 @@ pub const raylib = @cImport({
 });
 const rl = raylib;
 
-//Entity
-pub const EntityID = u32;
-pub const Entity = struct {
-  id: EntityID,
-  parent_id: EntityID = 0,
-  world: *World,
-
-  pub const timeline = Components.Timeline.init;
-  pub const timeline_speed = Components.Timeline.setSpeed;
-  pub const timeline_offset = Components.Timeline.setOffset;
-  pub const event = Components.TimelineEvent.add;
-
-  pub const camera = Components.Camera.init;
-  pub const camera_activate = Components.Camera.activate;
-  pub const camera_deactivate = Components.Camera.deactivate;
-  pub const camera_target = Components.Camera.target;
-  pub const camera_fovy = Components.Camera.fovy;
-
-  pub const position = Components.Position.set;
-  pub const rotation = Components.Rotation.set;
-  pub const scale = Components.Scale.set;
-
-  pub const color = Components.Color.set;
-
-  pub const shader = Components.Shader.init;
-  pub const light = Components.Light.init;
-  pub const material = Components.Material.init;
-  pub const model = Components.Model.init;
-  pub const text = Components.Text.set;
-};
-
+const ent = @import("entity.zig");
 
 //Components
 pub const Components = struct {
+  pub const Dirty = @import("components/dirty.zig");
+
   pub const Timeline = @import("components/timeline.zig");
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
 
   pub const Camera = @import("components/camera.zig");
 
+  pub const Spawn = @import("components/spawn.zig");
   pub const Position = @import("components/position.zig");
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
@@ -68,12 +41,15 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 
 //Systems
 pub const Systems = struct {
+  pub const Dirty = @import("systems/dirty.zig");
+
   pub const Timeline = @import("systems/timeline.zig");
   pub const Camera = @import("systems/camera.zig");
   pub const Shader = @import("systems/shader.zig");
   pub const Light = @import("systems/light.zig");
 
   // Effects
+  pub const Effects_Spawn = @import("systems/effects/spawn.zig");
   pub const Effects_Position = @import("systems/effects/position.zig");
   pub const Effects_Rotation = @import("systems/effects/rotation.zig");
   pub const Effects_Scale = @import("systems/effects/scale.zig");
@@ -93,23 +69,23 @@ const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent:
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  entity_id: EntityID = 1, // 0 is no entry
-  entities: std.StringHashMap(EntityID),
+  entity_id: ent.EntityID = 1, // 0 is no entry
+  entities: std.StringHashMap(ent.EntityID),
 
-  components: ComponentStores(),
+ components: ComponentStores(),
   systems: SystemStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(EntityID).init(allocator),
+      .entities = std.StringHashMap(ent.EntityID).init(allocator),
       .components = undefined,
       .systems = undefined,
     };
 
     inline for (ComponentDeclarations) |declaration| {
       const T = @field(Components, declaration.name).Component;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(EntityID, T).init(allocator);
+      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(ent.EntityID, T).init(allocator);
     }
 
     return self;
@@ -123,23 +99,17 @@ pub const World = struct {
   }
 
   pub fn deinit(self: *World) void {
+    var id: usize = self.entity_id;
+    while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
+      self.entityWrap(@intCast(id)).deinit();
+
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Component;
-      if (@hasDecl(T, "deinit")) { // Deinit each component
-        var components = &@field(self.components, toLower(declaration.name));
-        var it = components.iterator();
-        while (it.next()) |entry|
-          entry.value_ptr.*.deinit();
-      }
-
+    inline for (ComponentDeclarations) |declaration|
       @field(self.components, toLower(declaration.name)).deinit();
-    }
 
     inline for (SystemDeclarations) |declaration| {
       const T = @field(Systems, declaration.name).System;
-
 
       if (@hasDecl(T, "deinit"))
         @field(self.systems, toLower(declaration.name)).deinit();
@@ -147,26 +117,48 @@ pub const World = struct {
   }
 
   // Entity
-  pub fn entityNext(self: *World) EntityID {
+  pub fn entityNextID(self: *World) ent.EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
   }
 
-  pub fn entity(self: *World, name: []const u8) Entity {
+  pub fn entityNext(self: *World) ent.Entity {
+    const id = self.entityNextID();
+    return ent.Entity{
+      .id = id,
+      .world = self,
+    };
+  }
+
+  pub fn entityWrap(self: *World, id: ent.EntityID) ent.Entity {
+    return ent.Entity{
+      .id = id,
+      .world = self,
+    };
+  }
+
+  pub fn entity(self: *World, name: []const u8) ent.Entity {
     if (self.entities.get(name)) |id| // Existing named entity
-      return Entity{
+      return ent.Entity{
         .id = id,
-        .parent_id = 0,
         .world = self,
       };
 
-    const id = self.entityNext();
+    const id = self.entityNextID();
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
-    return Entity{
+    return ent.Entity{
       .id = id,
-      .parent_id = 0,
       .world = self,
     };
+  }
+
+  pub fn entityDelete(self: *World, id: ent.EntityID) void {
+    self.entityWrap(id).deinit();
+
+    inline for (ComponentDeclarations) |declaration| {
+      var components = &@field(self.components, toLower(declaration.name));
+      _ = components.remove(id);
+    }
   }
 
   // Render
@@ -177,6 +169,7 @@ pub const World = struct {
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
+    self.systems.effects_spawn.update();
 
     self.systems.camera.update();
     self.systems.shader.update();
@@ -192,12 +185,13 @@ pub const World = struct {
     self.systems.render_text.render();
     self.systems.fps.render();
 
+    self.systems.dirty.clean();
     return true;
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []EntityID {
-    var results = std.ArrayList(EntityID).init(self.allocator);
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(ent.EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []ent.EntityID {
+    var results = std.ArrayList(ent.EntityID).init(self.allocator);
 
     var it = component.iterator();
     while (it.next()) |entry|
@@ -206,7 +200,7 @@ pub const World = struct {
 
     if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
-        component: *const std.AutoHashMap(EntityID, T.Data),
+        component: *const std.AutoHashMap(ent.EntityID, T.Data),
         sort: []const T.Sort,
       };
 
@@ -215,8 +209,8 @@ pub const World = struct {
         .sort = sort,
       };
 
-      std.sort.heap(EntityID, results.items, context, struct {
-        fn lessThan(ctx: Context, a: EntityID, b: EntityID) bool {
+      std.sort.heap(ent.EntityID, results.items, context, struct {
+        fn lessThan(ctx: Context, a: ent.EntityID, b: ent.EntityID) bool {
           const va = ctx.component.get(a).?;
           const vb = ctx.component.get(b).?;
           return T.compare(va, vb, ctx.sort) == .lt;
@@ -238,7 +232,7 @@ fn ComponentStores() type {
     const T = @field(Components, d.name).Component;
     f[i] = .{
       .name          = toLower(d.name),
-      .type          = std.AutoHashMap(EntityID, T),
+      .type          = std.AutoHashMap(ent.EntityID, T),
       .default_value = null,
       .is_comptime   = false,
       .alignment     = 0,
@@ -441,8 +435,8 @@ test "ECS World should get next entity" {
   defer world.deinit();
 
   // When
-  const id = world.entityNext();
-  const id2 = world.entityNext();
+  const id = world.entityNextID();
+  const id2 = world.entityNextID();
 
   // Then
   try tst.expectEqual(1, id);
@@ -466,6 +460,38 @@ test "ECS World should add entity" {
   try tst.expectEqual(0, entity2.parent_id);
   try tst.expectEqual(&world, entity.world);
   try tst.expectEqual(&world, entity2.world);
+}
+
+test "ECS World should delete entity" {
+  // Given
+  var world = World.init(std.testing.allocator);
+  defer world.deinit();
+
+  const entity = world.entity("test").position(1, 2, 3).scale(4, 5, 6);
+  const entity2 = world.entity("test2").position(1, 2, 3).scale(4, 5, 6);
+
+  // When
+  world.entityDelete(entity.id);
+
+  // Then
+  try tst.expectEqual(1, world.components.position.count());
+  try tst.expectEqual(1, world.components.scale.count());
+  try tst.expectEqual(0, world.components.timeline.count());
+
+  if (world.components.position.get(entity.id)) |_|
+    return error.TestEntityNotDeleted;
+  if (world.components.scale.get(entity.id)) |_|
+    return error.TestEntityNotDeleted;
+
+  if (world.components.position.get(entity2.id)) |position|
+    try tst.expectEqual(Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
+  else
+    return error.TestEntityNotFound;
+
+  if (world.components.scale.get(entity2.id)) |scale|
+    try tst.expectEqual(Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
+  else
+    return error.TestEntityNotFound;
 }
 
 test "ECS World should render" {

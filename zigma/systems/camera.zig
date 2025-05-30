@@ -1,5 +1,6 @@
 const std = @import("std");
 const ecs = @import("../ecs.zig");
+const ent = @import("../entity.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
@@ -11,7 +12,7 @@ pub const System = struct {
     };
   }
 
-  pub fn active(self: *System) ecs.EntityID {
+  pub fn active(self: *System) ent.EntityID {
     var it = self.world.components.camera.iterator();
     while (it.next()) |entry|
       if (entry.value_ptr.*.active) return entry.key_ptr.*;
@@ -23,7 +24,7 @@ pub const System = struct {
     const camera_id = self.active();
     if (camera_id == 0) return;
 
-    const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera component
+    const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera entity
 
     var it2 = self.world.components.shader.iterator();
     while (it2.next()) |entry2| {
@@ -38,7 +39,7 @@ pub const System = struct {
     if (camera_id == 0) return;
 
     if (self.world.components.camera.get(camera_id)) |entry| {
-      const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera component
+      const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera entity
       const rotation = self.world.components.rotation.get(camera_id) orelse unreachable;
 
       const camera = rl.Camera3D{

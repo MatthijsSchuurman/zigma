@@ -1,9 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
+const ent = @import("../../entity.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_rotations: std.AutoHashMap(ecs.EntityID, ecs.Components.Rotation.Component),
+  start_rotations: std.AutoHashMap(ent.EntityID, ecs.Components.Rotation.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -11,7 +12,7 @@ pub const System = struct {
       .start_rotations = undefined,
     };
 
-    self.start_rotations = std.AutoHashMap(ecs.EntityID, ecs.Components.Rotation.Component).init(world.allocator);
+    self.start_rotations = std.AutoHashMap(ent.EntityID, ecs.Components.Rotation.Component).init(world.allocator);
     return self;
   }
 
@@ -34,17 +35,12 @@ pub const System = struct {
         start = target_rotation;
       }
 
-      if (self.world.components.rotation.get(id)) |end| {
-        const new_postion = ecs.Components.Rotation.Component{
-          .x = start.x + ((end.x - start.x) * event.progress),
-          .y = start.y + ((end.y - start.y) * event.progress),
-          .z = start.z + ((end.z - start.z) * event.progress),
-        };
-
-        if (self.world.components.rotation.getPtr(target_id)) |target_rotation| {
-          target_rotation.* = new_postion;
-        }
-      }
+      if (self.world.components.rotation.get(id)) |end|
+        _ = self.world.entityWrap(target_id).rotation(
+          start.x + ((end.x - start.x) * event.progress),
+          start.y + ((end.y - start.y) * event.progress),
+          start.z + ((end.z - start.z) * event.progress),
+        );
     }
   }
 };
@@ -75,4 +71,9 @@ test "System should update rotation" {
     try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0.5, .y = -0.5, .z = 50}, rotation)
    else
     return error.TestExpectedRotation;
+
+  if (entity.world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.rotation)
+   else
+    return error.TestExpectedDirty;
 }

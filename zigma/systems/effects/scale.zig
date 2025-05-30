@@ -1,9 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
+const ent = @import("../../entity.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_scales: std.AutoHashMap(ecs.EntityID, ecs.Components.Scale.Component),
+  start_scales: std.AutoHashMap(ent.EntityID, ecs.Components.Scale.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -11,7 +12,7 @@ pub const System = struct {
       .start_scales = undefined,
     };
 
-    self.start_scales = std.AutoHashMap(ecs.EntityID, ecs.Components.Scale.Component).init(world.allocator);
+    self.start_scales = std.AutoHashMap(ent.EntityID, ecs.Components.Scale.Component).init(world.allocator);
     return self;
   }
 
@@ -34,17 +35,12 @@ pub const System = struct {
         start = target_scale;
       }
 
-      if (self.world.components.scale.get(id)) |end| {
-        const new_postion = ecs.Components.Scale.Component{
-          .x = start.x + ((end.x - start.x) * event.progress),
-          .y = start.y + ((end.y - start.y) * event.progress),
-          .z = start.z + ((end.z - start.z) * event.progress),
-        };
-
-        if (self.world.components.scale.getPtr(target_id)) |target_scale| {
-          target_scale.* = new_postion;
-        }
-      }
+      if (self.world.components.scale.get(id)) |end|
+        _ = self.world.entityWrap(target_id).scale(
+          start.x + ((end.x - start.x) * event.progress),
+          start.y + ((end.y - start.y) * event.progress),
+          start.z + ((end.z - start.z) * event.progress),
+        );
     }
   }
 };
@@ -75,4 +71,9 @@ test "System should update scale" {
     try tst.expectEqual(ecs.Components.Scale.Component{.x = 0.5, .y = -0.5, .z = 50}, scale)
    else
     return error.TestExpectedScale;
+
+  if (entity.world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.scale)
+   else
+    return error.TestExpectedDirty;
 }

@@ -1,19 +1,20 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
+const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
   world: *ecs.World,
 
-  opaques: std.ArrayList(ecs.EntityID), // Use preallocated lists for splitByAlpha
-  transparent: std.ArrayList(ecs.EntityID),
+  opaques: std.ArrayList(ent.EntityID), // Use preallocated lists for splitByAlpha
+  transparent: std.ArrayList(ent.EntityID),
 
   pub fn init(world: *ecs.World) System {
     return System{
       .world = world,
 
-      .opaques = std.ArrayList(ecs.EntityID).init(world.allocator),
-      .transparent = std.ArrayList(ecs.EntityID).init(world.allocator),
+      .opaques = std.ArrayList(ent.EntityID).init(world.allocator),
+      .transparent = std.ArrayList(ent.EntityID).init(world.allocator),
     };
   }
 
@@ -24,8 +25,8 @@ pub const System = struct {
 
 
   const SplitByAlphaIDs = struct {
-    opaques: []const ecs.EntityID,
-    transparent: []const ecs.EntityID,
+    opaques: []const ent.EntityID,
+    transparent: []const ent.EntityID,
   };
   fn splitByAlpha(self: *System) SplitByAlphaIDs {
     self.opaques.clearRetainingCapacity(); // Clear previous data
@@ -33,6 +34,8 @@ pub const System = struct {
 
     var it = self.world.components.model.iterator();
     while (it.next()) |model| {
+      if (model.value_ptr.hidden) continue;
+
       if (model.value_ptr.material_id == 0) { // No material (no shader)
         self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
         continue;
@@ -70,8 +73,8 @@ pub const System = struct {
 
     pub fn lessThan(
         self: *const Comparator,
-        a: ecs.EntityID,
-        b: ecs.EntityID,
+        a: ent.EntityID,
+        b: ent.EntityID,
     ) bool {
         const pa = self.world.components.position.get(a).?;
         const pb = self.world.components.position.get(b).?;
@@ -92,12 +95,11 @@ pub const System = struct {
       .world = self.world,
       .camera_position = camera_position,
     };
-    std.sort.pdq(ecs.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
+    std.sort.pdq(ent.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
 
     // Render opaque models
     for (ids.opaques) |id|
-      if (self.world.components.model.get(id)) |model|
-        self.renderModel(id, model);
+      self.renderModel(id);
 
     // Render transparent models
     rl.rlDisableDepthMask();
@@ -106,7 +108,7 @@ pub const System = struct {
       var shader: ?rl.Shader = null;
       var loc_color_diffuse: c_int = 0;
 
-      if (self.world.components.model.get(id)) |model| {
+      if (self.world.components.model.getPtr(id)) |model| {
         if (self.world.components.material.get(model.material_id)) |material| {
           if (shader == null or shader.?.id != material.material.shader.id) { // Different shader
             if (shader != null) // Unload previous shader
@@ -120,10 +122,10 @@ pub const System = struct {
 
           if (self.world.components.color.get(id)) |color|
             rl.SetShaderValue(shader.?, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
-
-          self.renderModel(id, model);
         }
       }
+
+      self.renderModel(id);
     }
 
     rl.EndShaderMode();
@@ -131,20 +133,38 @@ pub const System = struct {
     rl.rlEnableDepthMask();
   }
 
-  fn renderModel(self: *System, id: ecs.EntityID, model: ecs.Components.Model.Component) void {
-    const position = self.world.components.position.get(id) orelse unreachable; // Defined in model component
-    const rotation = self.world.components.rotation.get(id) orelse unreachable;
-    const scale = self.world.components.scale.get(id) orelse unreachable;
+  fn renderModel(self: *System, id: ent.EntityID) void {
+    var model = self.world.components.model.get(id) orelse unreachable;
     const color = self.world.components.color.get(id) orelse unreachable;
 
-    rl.DrawModelEx(
-      model.model,
-      position,
-      rotation, // rotation axis
-      0.0, // rotation angle
-      scale,
-      color,
-    );
+    if (model.transforms) |transforms| { // Multi render
+      for (transforms.items) |transform| {
+        model.model.transform = transform;
+        rl.DrawModel(
+          model.model,
+          rl.Vector3Zero(),
+          1.0,
+          color,
+        );
+      }
+    } else { // Single render
+      if (self.world.components.dirty.get(id)) |dirty| {
+        if (dirty.position or dirty.rotation or dirty.scale) {
+          _ = self.world.entityWrap(id).model_transform(
+            self.world.components.position.get(id) orelse unreachable, // Defined in model entity
+            self.world.components.rotation.get(id) orelse unreachable,
+            self.world.components.scale.get(id) orelse unreachable,
+          );
+        }
+      }
+
+      rl.DrawModel(
+        model.model,
+        rl.Vector3Zero(),
+        1.0,
+        color,
+      );
+    }
   }
 };
 

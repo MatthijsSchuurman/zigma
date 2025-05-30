@@ -20,10 +20,12 @@ pub const System = struct {
     const screen_height: f32 = @floatFromInt(rl.GetScreenHeight());
 
     while (it.next()) |entry| {
+      if (entry.value_ptr.hidden) continue;
+
       const id = entry.key_ptr.*;
       const text = entry.value_ptr.*;
 
-      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text component
+      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text entity
       const rotation = self.world.components.rotation.get(id) orelse unreachable;
       const scale = self.world.components.scale.get(id) orelse unreachable;
       const color = self.world.components.color.get(id) orelse unreachable;

@@ -1,9 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
+const ent = @import("../../entity.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_positions: std.AutoHashMap(ecs.EntityID, ecs.Components.Position.Component),
+  start_positions: std.AutoHashMap(ent.EntityID, ecs.Components.Position.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -11,7 +12,7 @@ pub const System = struct {
       .start_positions = undefined,
     };
 
-    self.start_positions = std.AutoHashMap(ecs.EntityID, ecs.Components.Position.Component).init(world.allocator);
+    self.start_positions = std.AutoHashMap(ent.EntityID, ecs.Components.Position.Component).init(world.allocator);
     return self;
   }
 
@@ -34,17 +35,12 @@ pub const System = struct {
         start = target_position;
       }
 
-      if (self.world.components.position.get(id)) |end| {
-        const new_postion = ecs.Components.Position.Component{
-          .x = start.x + ((end.x - start.x) * event.progress),
-          .y = start.y + ((end.y - start.y) * event.progress),
-          .z = start.z + ((end.z - start.z) * event.progress),
-        };
-
-        if (self.world.components.position.getPtr(target_id)) |target_position| {
-          target_position.* = new_postion;
-        }
-      }
+      if (self.world.components.position.get(id)) |end|
+        _ = self.world.entityWrap(target_id).position(
+          start.x + ((end.x - start.x) * event.progress),
+          start.y + ((end.y - start.y) * event.progress),
+          start.z + ((end.z - start.z) * event.progress),
+        );
     }
   }
 };
@@ -75,4 +71,9 @@ test "System should update position" {
     try tst.expectEqual(ecs.Components.Position.Component{.x = 0.5, .y = -0.5, .z = 50}, position)
    else
     return error.TestExpectedPosition;
+
+  if (entity.world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.position)
+   else
+    return error.TestExpectedDirty;
 }
