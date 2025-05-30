@@ -33,8 +33,8 @@ pub const System = struct {
       const font_height: f32 = 10 * scale.x;
       const width: f32 = rl.MeasureTextEx(font, @ptrCast(text.text), font_height, font_spacing).x;
 
-      const x = (position.x * 0.5 + 0.5) * screen_width;
-      const y = (position.y * 0.5 + 0.5) * screen_height;
+      const x = (0.5 + position.x * 0.5) * screen_width;
+      const y = (0.5 - position.y * 0.5) * screen_height;
 
       rl.DrawTextPro(
         font,

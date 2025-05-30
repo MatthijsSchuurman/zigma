@@ -22,7 +22,7 @@ pub fn main() void {
   _ = world.entity("torus").model(.{.type = "cube"})
   .color(128, 255, 255, 200)
   .event(.{.duration = 60, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
-    .rotation(0, 0, 1);
+    .rotation(1, 0, 1);
 
   _ = world.entity("zigma balls").text("Zigma")
   .position(-0.7, 0.8, 0)
