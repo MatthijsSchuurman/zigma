@@ -53,12 +53,14 @@ zig build test
 const zigma = @import("zigma");
 
 pub fn main() void {
+  // Initialize
   zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 30});
   defer zigma.deinit();
 
   var world = zigma.create();
   defer zigma.destroy(world);
 
+  // Setup world
   _ = world.entity("camera").camera(.{})
   .event(.{.duration = 60, .repeat = 2, .pattern = .PingPong, .motion = .Smooth})
     .position(-5, 0.5, 2);
@@ -66,7 +68,8 @@ pub fn main() void {
   _ = world.entity("background")
   .color(25, 25, 25, 255);
 
-  _ = world.entity("torus").model(.{.type = "cube"})
+  // Add models
+  _ = world.entity("cube").model(.{.type = "cube"})
   .color(128, 255, 255, 200)
   .event(.{.duration = 60, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
     .rotation(1, 0, 1);

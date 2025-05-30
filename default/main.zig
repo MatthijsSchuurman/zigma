@@ -19,7 +19,7 @@ pub fn main() void {
   .scale(10, 0, 10)
   .position(0, -1, 0);
 
-  _ = world.entity("torus").model(.{.type = "cube"})
+  _ = world.entity("cube").model(.{.type = "cube"})
   .color(128, 255, 255, 200)
   .event(.{.duration = 60, .repeat = 10, .pattern = .PingPong, .motion = .Smooth})
     .rotation(1, 0, 1);
