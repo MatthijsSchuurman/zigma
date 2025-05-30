@@ -60,6 +60,9 @@ pub fn deinit(entity: ent.Entity) void {
     }
   }
 
+  if (existing.transforms) |transforms|
+    transforms.deinit();
+
   rl.UnloadModel(existing.model);
 }
 
@@ -93,7 +96,7 @@ pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3,
   return entity;
 }
 
-fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
+pub fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
   const R = rl.MatrixRotateXYZ(rotation);
   const S = rl.MatrixScale(scale.x, scale.y, scale.z);
   const T = rl.MatrixTranslate(position.x, position.y, position.z);
@@ -128,6 +131,7 @@ test "Component should init model" {
     try tst.expectEqual(3, model.model.materials[0].shader.id);
     try tst.expectEqual(1, model.model.materials[0].maps[0].texture.id);
     try tst.expectEqual(0, model.model.materials[0].maps[1].texture.id);
+    try tst.expectEqual(null, model.transforms);
     try tst.expectEqual(false, model.hidden);
   }
   else

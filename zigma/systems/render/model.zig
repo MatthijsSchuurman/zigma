@@ -122,7 +122,6 @@ pub const System = struct {
 
           if (self.world.components.color.get(id)) |color|
             rl.SetShaderValue(shader.?, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
-
         }
       }
 
@@ -135,23 +134,37 @@ pub const System = struct {
   }
 
   fn renderModel(self: *System, id: ent.EntityID) void {
-    if (self.world.components.dirty.get(id)) |dirty| {
-      if (dirty.position or dirty.rotation or dirty.scale) {
-        _ = self.world.entityWrap(id).model_transform(
-          self.world.components.position.get(id) orelse unreachable, // Defined in model entity
-          self.world.components.rotation.get(id) orelse unreachable,
-          self.world.components.scale.get(id) orelse unreachable,
+    var model = self.world.components.model.get(id) orelse unreachable;
+    const color = self.world.components.color.get(id) orelse unreachable;
+
+    if (model.transforms) |transforms| { // Multi render
+      for (transforms.items) |transform| {
+        model.model.transform = transform;
+        rl.DrawModel(
+          model.model,
+          rl.Vector3Zero(),
+          1.0,
+          color,
         );
       }
-    }
+    } else { // Single render
+      if (self.world.components.dirty.get(id)) |dirty| {
+        if (dirty.position or dirty.rotation or dirty.scale) {
+          _ = self.world.entityWrap(id).model_transform(
+            self.world.components.position.get(id) orelse unreachable, // Defined in model entity
+            self.world.components.rotation.get(id) orelse unreachable,
+            self.world.components.scale.get(id) orelse unreachable,
+          );
+        }
+      }
 
-    const model = self.world.components.model.get(id) orelse unreachable;
-    rl.DrawModel(
-      model.model,
-      rl.Vector3Zero(),
-      1.0,
-      self.world.components.color.get(id) orelse unreachable,
-    );
+      rl.DrawModel(
+        model.model,
+        rl.Vector3Zero(),
+        1.0,
+        color,
+      );
+    }
   }
 };
 

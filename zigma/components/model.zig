@@ -7,6 +7,7 @@ pub const Component = struct {
   type: []const u8,
   model: rl.Model,
   material_id: ent.EntityID = 0,
+  transforms: ?std.ArrayList(rl.Matrix) = null,
   hidden: bool = false,
 };
 

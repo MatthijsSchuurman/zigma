@@ -25,7 +25,7 @@ pub fn main() void {
     .scale(2, 2, 2)
     .rotation(1, 1, 1);
 
-  _ = world.entity("torus spawn").spawn(.{.model = "torus", .type = "cube"})
+  _ = world.entity("torus spawn").model(.{.type = "cube"}).spawn(.{.model = "torus"})
   .event(.{.duration = 90, .repeat = 10, .pattern = .PongPing, .motion = .EaseIn})
     .color(128, 255, 255, 200)
     .scale(0.01, 0.01, 0.01)
