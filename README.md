@@ -42,3 +42,13 @@ zig build run
 | Left | Jump a bit backwards on the main timeline |
 | Shift Right | Jump a lot forward on the main timeline |
 | Shift Left | Jump a lot backwards on the main timeline |
+
+## Examples
+### [Default](./default/main.zig)
+![Screenshot](./default/screenshot.png)
+
+### [Balls](./balls/main.zig)
+![Screenshot](./balls/screenshot.png)
+
+### [Spawn](./spawn/main.zig)
+![Screenshot](./spawn/screenshot.png)
