@@ -76,38 +76,6 @@ fn loadMesh(mesh_type: []const u8) rl.Mesh {
   @panic("LoadMeshFromFile not yet implemented");
 }
 
-pub fn hide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |existing|
-    existing.hidden = true;
-
-  return entity;
-}
-
-pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |existing|
-    existing.hidden = false;
-
-  return entity;
-}
-
-pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) ent.Entity {
-  const model = entity.world.components.model.getPtr(entity.id) orelse return entity;
-  model.model.transform = makeTransform(position, rotation, scale);
-  return entity;
-}
-
-pub fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
-  const rad = std.math.pi * 2;
-  const R = rl.MatrixRotateXYZ(rl.Vector3{
-    .x = rotation.x * rad,
-    .y = rotation.y * rad,
-    .z = rotation.z * rad
-  });
-  const S = rl.MatrixScale(scale.x, scale.y, scale.z);
-  const T = rl.MatrixTranslate(position.x, position.y, position.z);
-  return rl.MatrixMultiply(rl.MatrixMultiply(R, S), T);
-}
-
 
 // Testing
 const tst = std.testing;
@@ -137,7 +105,6 @@ test "Component should init model" {
     try tst.expectEqual(1, model.model.materials[0].maps[0].texture.id);
     try tst.expectEqual(0, model.model.materials[0].maps[1].texture.id);
     try tst.expectEqual(null, model.transforms);
-    try tst.expectEqual(false, model.hidden);
   }
   else
     return error.TestExpectedModel;
@@ -161,79 +128,4 @@ test "Component should init model" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
-}
-
-test "Component should hide model" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test").model(.{.type = "torus"});
-
-  // When
-  var result = hide(entity);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.model.get(entity.id)) |model| {
-    try tst.expectEqual("torus", model.type);
-    try tst.expectEqual(true, model.hidden);
-  }
-  else
-    return error.TestExpectedModel;
-
-  // When
-  result = unhide(entity);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.model.get(entity.id)) |model| {
-    try tst.expectEqual("torus", model.type);
-    try tst.expectEqual(false, model.hidden);
-  }
-  else
-    return error.TestExpectedModel;
-
-  if (world.components.dirty.get(entity.id)) |dirty|
-    try tst.expectEqual(true, dirty.model)
-  else
-    return error.TestExpectedDirty;
-}
-
-test "Component should set transform" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test").model(.{.type = "torus"});
-
-  // When
-  const result = transform(entity,
-    rl.Vector3{.x = 1, .y = 2, .z = 3},
-    rl.Vector3{.x = 0, .y = 0, .z = 0},
-    rl.Vector3{.x = 1, .y = 1, .z = 1},
-  );
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-  if (world.components.model.get(entity.id)) |model| {
-    try tst.expectEqual(rl.Matrix{
-      .m0 = 1, .m1 = 0, .m2 = 0, .m3 = 0,
-      .m4 = 0, .m5 = 1, .m6 = 0, .m7 = 0,
-      .m8 = 0, .m9 = 0, .m10 = 1, .m11 = 0,
-      .m12 = 1, .m13 = 2, .m14 = 3, .m15 = 1,
-    }, model.model.transform);
-  }
-  else
-    return error.TestExpectedModel;
-
-  if (result.world.components.dirty.get(entity.id)) |dirty|
-    try tst.expectEqual(true, dirty.model)
-  else
-    return error.TestExpectedDirty;
 }

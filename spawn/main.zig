@@ -1,7 +1,7 @@
 const zigma = @import("zigma");
 
 pub fn main() void {
-  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 300});
+  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080});
   defer zigma.deinit();
 
   var world = zigma.create();
@@ -23,7 +23,9 @@ pub fn main() void {
   .color(128, 128, 255, 128)
   .event(.{.duration = 60, .repeat = 15, .pattern = .PingPong, .motion = .Smooth})
     .scale(2, 2, 2)
-    .rotation(0.25, 0, 1);
+    .rotation(0.25, 0, 1)
+  .event(.{.start = 1, .duration = 10, .repeat = 20})
+    .hide();
 
   _ = world.entity("torus spawn").model(.{.type = "cube"}).spawn(.{.source_model = "torus"})
   .event(.{.duration = 90, .repeat = 10, .pattern = .PongPing, .motion = .EaseIn})

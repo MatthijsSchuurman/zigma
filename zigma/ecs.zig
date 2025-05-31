@@ -28,6 +28,7 @@ pub const Components = struct {
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
+  pub const Hide = @import("components/hide.zig");
 
   pub const Shader = @import("components/shader.zig");
   pub const Light = @import("components/light.zig");
@@ -54,6 +55,7 @@ pub const Systems = struct {
   pub const Effects_Rotation = @import("systems/effects/rotation.zig");
   pub const Effects_Scale = @import("systems/effects/scale.zig");
   pub const Effects_Color = @import("systems/effects/color.zig");
+  pub const Effects_Hide = @import("systems/effects/hide.zig");
 
   // Render
   pub const Render_Background = @import("systems/render/background.zig");
@@ -165,6 +167,7 @@ pub const World = struct {
   pub fn render(self: *World) bool {
     self.systems.timeline.update();
 
+    self.systems.effects_hide.update();
     self.systems.effects_position.update();
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
@@ -174,6 +177,7 @@ pub const World = struct {
     self.systems.camera.update();
     self.systems.shader.update();
     self.systems.light.update();
+
 
     // Render
     self.systems.render_background.render();

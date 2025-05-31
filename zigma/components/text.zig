@@ -4,7 +4,6 @@ const ent = @import("../entity.zig");
 
 pub const Component = struct {
   text: []const u8,
-  hidden: bool = false,
 };
 
 pub const Query = struct {
@@ -12,16 +11,11 @@ pub const Query = struct {
 
   pub const Filter = struct {
     text: ?ecs.FieldFilter([]const u8) = null,
-    hidden: ?ecs.FieldFilter(bool) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.text) |cond|
       if (!ecs.matchField([]const u8, self.text, cond))
-        return false;
-
-    if (f.hidden) |cond|
-      if (!ecs.matchField(bool, self.hidden, cond))
         return false;
 
     return true;

@@ -20,15 +20,15 @@ pub const System = struct {
     const screen_height: f32 = @floatFromInt(rl.GetScreenHeight());
 
     while (it.next()) |entry| {
-      if (entry.value_ptr.hidden) continue;
+      if (self.world.components.hide.getPtr(entry.key_ptr.*)) |hide| if (hide.hidden) continue;
 
       const id = entry.key_ptr.*;
       const text = entry.value_ptr.*;
 
-      const position = self.world.components.position.get(id) orelse unreachable; // Defined in text entity
-      const rotation = self.world.components.rotation.get(id) orelse unreachable;
-      const scale = self.world.components.scale.get(id) orelse unreachable;
-      const color = self.world.components.color.get(id) orelse unreachable;
+      const position = self.world.components.position.getPtr(id) orelse unreachable; // Defined in text entity
+      const rotation = self.world.components.rotation.getPtr(id) orelse unreachable;
+      const scale = self.world.components.scale.getPtr(id) orelse unreachable;
+      const color = self.world.components.color.getPtr(id) orelse unreachable;
 
       const font_height: f32 = 10 * scale.x;
       const width: f32 = rl.MeasureTextEx(font, @ptrCast(text.text), font_height, font_spacing).x;
@@ -46,7 +46,7 @@ pub const System = struct {
 
         font_height,
         font_spacing,
-        color
+        color.*,
       );
     }
   }

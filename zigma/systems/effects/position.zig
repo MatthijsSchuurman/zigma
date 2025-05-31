@@ -30,12 +30,12 @@ pub const System = struct {
       var start: ecs.Components.Position.Component = undefined;
       if (self.start_positions.get(id)) |cached| {
         start = cached;
-      } else if (self.world.components.position.get(target_id)) |target_position| { // Use current position of target entity
-        self.start_positions.put(id, target_position) catch @panic("Fail to put start position");
-        start = target_position;
-      }
+      } else if (self.world.components.position.getPtr(target_id)) |target_position| { // Use current position of target entity
+        self.start_positions.put(id, target_position.*) catch @panic("Fail to put start position");
+        start = target_position.*;
+      } else continue; // No start value
 
-      if (self.world.components.position.get(id)) |end|
+      if (self.world.components.position.getPtr(id)) |end|
         _ = self.world.entityWrap(target_id).position(
           start.x + ((end.x - start.x) * event.progress),
           start.y + ((end.y - start.y) * event.progress),

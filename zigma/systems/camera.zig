@@ -24,13 +24,13 @@ pub const System = struct {
     const camera_id = self.active();
     if (camera_id == 0) return;
 
-    const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera entity
+    const position = self.world.components.position.getPtr(camera_id) orelse unreachable; // Defined in camera entity
 
     var it2 = self.world.components.shader.iterator();
     while (it2.next()) |entry2| {
       const shader = entry2.value_ptr.*;
 
-      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), &position, rl.SHADER_UNIFORM_VEC3);
+      rl.SetShaderValue(shader.shader, rl.GetShaderLocation(shader.shader, "viewPos"), position, rl.SHADER_UNIFORM_VEC3);
     }
   }
 
@@ -38,14 +38,14 @@ pub const System = struct {
     const camera_id = self.active();
     if (camera_id == 0) return;
 
-    if (self.world.components.camera.get(camera_id)) |entry| {
-      const position = self.world.components.position.get(camera_id) orelse unreachable; // Defined in camera entity
-      const rotation = self.world.components.rotation.get(camera_id) orelse unreachable;
+    if (self.world.components.camera.getPtr(camera_id)) |entry| {
+      const position = self.world.components.position.getPtr(camera_id) orelse unreachable; // Defined in camera entity
+      const rotation = self.world.components.rotation.getPtr(camera_id) orelse unreachable;
 
       const camera = rl.Camera3D{
         .target = entry.target,
-        .position = position,
-        .up = rotation,
+        .position = position.*,
+        .up = rotation.*,
         .fovy = entry.fovy,
         .projection = rl.CAMERA_PERSPECTIVE,
       };

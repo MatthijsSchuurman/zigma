@@ -1,7 +1,6 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
-const EntityModel = @import("../../entity/model.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
@@ -21,7 +20,7 @@ pub const System = struct {
 
       if (self.world.components.dirty.getPtr(spawn.source_model_id)) |dirty| { // Spawn dirty
         if (dirty.position or dirty.rotation or dirty.scale) {
-          _ = self.world.entityWrap(spawn.source_model_id).model_transform( // Pre transform model, redone by model system
+          const transform = ecs.Systems.Render_Model.System.transform(
             self.world.components.position.get(spawn.source_model_id) orelse unreachable,
             self.world.components.rotation.get(spawn.source_model_id) orelse unreachable,
             self.world.components.scale.get(spawn.source_model_id) orelse unreachable,
@@ -31,8 +30,8 @@ pub const System = struct {
           const source_mesh = source_model.model.meshes[0];
 
           const model = self.world.components.model.getPtr(id) orelse unreachable;
-          const rotation = self.world.components.rotation.get(id) orelse unreachable;
-          const scale = self.world.components.scale.get(id) orelse unreachable;
+          const rotation = self.world.components.rotation.getPtr(id) orelse unreachable;
+          const scale = self.world.components.scale.getPtr(id) orelse unreachable;
 
           for (0..spawn.vertex_indexes.items.len) |i| {
             const base = spawn.vertex_indexes.items[i] * 3;
@@ -41,12 +40,12 @@ pub const System = struct {
               .y = source_mesh.vertices[base + 1],
               .z = source_mesh.vertices[base + 2],
             };
-            position = rl.Vector3Transform(position, source_model.model.transform);
+            position = rl.Vector3Transform(position, transform);
 
-            model.transforms.?.items[i] = EntityModel.makeTransform(
+            model.transforms.?.items[i] = ecs.Systems.Render_Model.System.transform(
               position,
-              rotation,
-              scale,
+              rotation.*,
+              scale.*,
             );
           }
         }

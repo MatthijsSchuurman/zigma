@@ -30,10 +30,11 @@ pub const System = struct {
       var start: ecs.Components.Color.Component = undefined;
       if (self.start_colors.get(id)) |cached| {
         start = cached;
-      } else if (self.world.components.color.get(target_id)) |target_color| { // Use current color of target entity
-        self.start_colors.put(id, target_color) catch @panic("Fail to put start color");
-        start = target_color;
-      }
+      } else if (self.world.components.color.getPtr(target_id)) |target_color| { // Use current color of target entity
+        self.start_colors.put(id, target_color.*) catch @panic("Fail to put start color");
+        start = target_color.*;
+      } else continue; // No start value
+
 
       if (self.world.components.color.get(id)) |end| {
         const rs: f32 = @as(f32, @floatFromInt(start.r));

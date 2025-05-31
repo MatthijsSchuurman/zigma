@@ -17,7 +17,7 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const shader = entry.value_ptr.*;
 
-      const color = self.world.components.color.get(id) orelse unreachable; // Defined in shader entity
+      const color = self.world.components.color.getPtr(id) orelse unreachable; // Defined in shader entity
 
       const ambient_color = rl.Vector4{
         .x = (@as(f32, @floatFromInt(color.r)) / 255.0),

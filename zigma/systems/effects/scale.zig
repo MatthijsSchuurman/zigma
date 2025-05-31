@@ -30,12 +30,12 @@ pub const System = struct {
       var start: ecs.Components.Scale.Component = undefined;
       if (self.start_scales.get(id)) |cached| {
         start = cached;
-      } else if (self.world.components.scale.get(target_id)) |target_scale| { // Use current scale of target entity
-        self.start_scales.put(id, target_scale) catch @panic("Fail to put start scale");
-        start = target_scale;
-      }
+      } else if (self.world.components.scale.getPtr(target_id)) |target_scale| { // Use current scale of target entity
+        self.start_scales.put(id, target_scale.*) catch @panic("Fail to put start scale");
+        start = target_scale.*;
+      } else continue; // No start value
 
-      if (self.world.components.scale.get(id)) |end|
+      if (self.world.components.scale.getPtr(id)) |end|
         _ = self.world.entityWrap(target_id).scale(
           start.x + ((end.x - start.x) * event.progress),
           start.y + ((end.y - start.y) * event.progress),

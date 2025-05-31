@@ -13,7 +13,7 @@ pub const System = struct {
 
   pub fn render(self: *System) void {
     const background_entity = self.world.entity("background");
-    if (self.world.components.color.get(background_entity.id)) |color| {
+    if (self.world.components.color.getPtr(background_entity.id)) |color| {
       if (color.a == 0) { // No wipe
       } else if (color.a == 255) { // Full wipe
         rl.ClearBackground(rl.Color{.r = color.r, .g = color.g, .b = color.b, .a = color.a});

@@ -51,13 +51,13 @@ pub const System = struct {
         const id = entry2.key_ptr.*;
         const light = entry2.value_ptr.*;
 
-        const position = self.world.components.position.get(id) orelse unreachable; // Defined in light entity
-        const color = self.world.components.color.get(id) orelse unreachable;
+        const position = self.world.components.position.getPtr(id) orelse unreachable; // Defined in light entity
+        const color = self.world.components.color.getPtr(id) orelse unreachable;
 
         enabled_buffer[count] = 1;
         type_buffer[count] = light.type.raylibType();
 
-        position_buffer[count] = position;
+        position_buffer[count] = position.*;
         target_buffer[count] = light.target;
         color_buffer[count] = rl.Vector4{
           .x = (@as(f32, @floatFromInt(color.r)) / 255.0),
