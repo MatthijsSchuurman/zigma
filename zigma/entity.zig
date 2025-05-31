@@ -12,6 +12,7 @@ const EntityPosition = @import("entity/position.zig");
 const EntityRotation = @import("entity/rotation.zig");
 const EntityScale = @import("entity/scale.zig");
 const EntityColor = @import("entity/color.zig");
+const EntityHide = @import("entity/hide.zig");
 
 const EntityShader = @import("entity/shader.zig");
 const EntityLight = @import("entity/light.zig");
@@ -44,6 +45,8 @@ pub const Entity = struct {
   pub const rotation = EntityRotation.set;
   pub const scale = EntityScale.set;
   pub const color = EntityColor.set;
+  pub const hide = EntityHide.hide;
+  pub const unhide = EntityHide.unhide;
 
   pub const spawn = EntitySpawn.init;
   pub const shader = EntityShader.init;
@@ -52,12 +55,6 @@ pub const Entity = struct {
 
   pub const model = EntityModel.init;
   pub const text = EntityText.set;
-
-  pub fn hide(entity: Entity, hidden: bool) Entity {
-    _ = EntityModel.hide(entity, hidden);
-    _ = EntityText.hide(entity, hidden);
-    return entity;
-  }
 
   pub fn deinit(entity: Entity) void {
     EntitySpawn.deinit(entity);
