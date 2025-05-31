@@ -46,21 +46,21 @@ pub const System = struct {
 
     var it = self.world.components.model.iterator();
     while (it.next()) |model| {
-      if (self.world.components.hide.get(model.key_ptr.*)) |hide| if (hide.hidden) continue;
+      if (self.world.components.hide.getPtr(model.key_ptr.*)) |hide| if (hide.hidden) continue;
 
       if (model.value_ptr.material_id == 0) { // No material (no shader)
         self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
         continue;
       }
 
-      if (self.world.components.material.get(model.value_ptr.material_id)) |material| {
+      if (self.world.components.material.getPtr(model.value_ptr.material_id)) |material| {
         if (material.shader_id == 0) { // Default shader
           self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
           continue;
         }
       }
 
-      if (self.world.components.color.get(model.key_ptr.*)) |color| {
+      if (self.world.components.color.getPtr(model.key_ptr.*)) |color| {
         if (color.a == 255) { // Opaque
           self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
           continue;
@@ -88,8 +88,8 @@ pub const System = struct {
         a: ent.EntityID,
         b: ent.EntityID,
     ) bool {
-        const pa = self.world.components.position.get(a).?;
-        const pb = self.world.components.position.get(b).?;
+        const pa = self.world.components.position.getPtr(a).?.*;
+        const pb = self.world.components.position.getPtr(b).?.*;
         return rl.Vector3DistanceSqr(pa, self.camera_position)
              > rl.Vector3DistanceSqr(pb, self.camera_position);
     }
@@ -102,10 +102,10 @@ pub const System = struct {
     const ids = self.splitByAlpha();
 
     // Determine transparent models order
-    const camera_position = self.world.components.position.get(camera_id) orelse unreachable;
+    const camera_position = self.world.components.position.getPtr(camera_id) orelse unreachable;
     const comparator = Comparator{
       .world = self.world,
-      .camera_position = camera_position,
+      .camera_position = camera_position.*,
     };
     std.sort.pdq(ent.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
 
@@ -121,7 +121,7 @@ pub const System = struct {
       var loc_color_diffuse: c_int = 0;
 
       if (self.world.components.model.getPtr(id)) |model| {
-        if (self.world.components.material.get(model.material_id)) |material| {
+        if (self.world.components.material.getPtr(model.material_id)) |material| {
           if (shader == null or shader.?.id != material.material.shader.id) { // Different shader
             if (shader != null) // Unload previous shader
               rl.EndBlendMode();
@@ -132,8 +132,8 @@ pub const System = struct {
             loc_color_diffuse = rl.GetShaderLocation(shader.?, "colDiffuse");
           }
 
-          if (self.world.components.color.get(id)) |color|
-            rl.SetShaderValue(shader.?, loc_color_diffuse, &color, rl.SHADER_UNIFORM_VEC4);
+          if (self.world.components.color.getPtr(id)) |color|
+            rl.SetShaderValue(shader.?, loc_color_diffuse, color, rl.SHADER_UNIFORM_VEC4);
         }
       }
 
@@ -147,7 +147,7 @@ pub const System = struct {
 
   fn renderModel(self: *System, id: ent.EntityID) void {
     var model = self.world.components.model.getPtr(id) orelse unreachable;
-    const color = self.world.components.color.get(id) orelse unreachable;
+    const color = self.world.components.color.getPtr(id) orelse unreachable;
 
     if (model.transforms) |transforms| { // Multi render
       for (transforms.items) |t| {
@@ -156,11 +156,11 @@ pub const System = struct {
           model.model,
           rl.Vector3Zero(),
           1.0,
-          color,
+          color.*,
         );
       }
     } else { // Single render
-      if (self.world.components.dirty.get(id)) |dirty| {
+      if (self.world.components.dirty.getPtr(id)) |dirty| {
         if (dirty.position or dirty.rotation or dirty.scale) {
           model.model.transform = transform(
             self.world.components.position.get(id) orelse unreachable, // Defined in model entity
@@ -174,7 +174,7 @@ pub const System = struct {
         model.model,
         rl.Vector3Zero(),
         1.0,
-        color,
+        color.*,
       );
     }
   }

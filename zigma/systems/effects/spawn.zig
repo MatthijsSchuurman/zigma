@@ -30,8 +30,8 @@ pub const System = struct {
           const source_mesh = source_model.model.meshes[0];
 
           const model = self.world.components.model.getPtr(id) orelse unreachable;
-          const rotation = self.world.components.rotation.get(id) orelse unreachable;
-          const scale = self.world.components.scale.get(id) orelse unreachable;
+          const rotation = self.world.components.rotation.getPtr(id) orelse unreachable;
+          const scale = self.world.components.scale.getPtr(id) orelse unreachable;
 
           for (0..spawn.vertex_indexes.items.len) |i| {
             const base = spawn.vertex_indexes.items[i] * 3;
@@ -44,8 +44,8 @@ pub const System = struct {
 
             model.transforms.?.items[i] = ecs.Systems.Render_Model.System.transform(
               position,
-              rotation,
-              scale,
+              rotation.*,
+              scale.*,
             );
           }
         }

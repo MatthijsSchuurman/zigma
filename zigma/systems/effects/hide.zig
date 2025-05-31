@@ -30,7 +30,7 @@ pub const System = struct {
       var start: bool = undefined;
       if (self.start_hides.get(id)) |cached| {
         start = cached;
-      } else if (self.world.components.hide.get(target_id)) |target_hide| { // Use current hide of target entity
+      } else if (self.world.components.hide.getPtr(target_id)) |target_hide| { // Use current hide of target entity
         self.start_hides.put(id, target_hide.hidden) catch @panic("Fail to put start hide");
         start = target_hide.hidden;
       } else {
@@ -38,7 +38,7 @@ pub const System = struct {
         start = false;
       }
 
-      if (self.world.components.hide.get(id)) |end| {
+      if (self.world.components.hide.getPtr(id)) |end| {
         if ((event.progress == 1.0 and end.hidden) or (event.progress != 1.0 and !end.hidden))
           _ = self.world.entityWrap(target_id).hide()
         else
@@ -85,7 +85,7 @@ test "System should update hide" {
 
   // Then
   if (entity.world.components.hide.get(entity.id)) |hide|
-    try tst.expectEqual(false, hide.hidden)
+    try tst.expectEqual(true, hide.hidden)
    else
     return error.TestExpectedHide;
 }

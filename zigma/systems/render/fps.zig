@@ -16,7 +16,7 @@ pub const System = struct {
     const screen_height = rl.GetScreenHeight();
 
     const timeline_entity = self.world.entity("timeline");
-    if (self.world.components.timeline.get(timeline_entity.id)) |timeline| {
+    if (self.world.components.timeline.getPtr(timeline_entity.id)) |timeline| {
       const fps = rl.GetFPS();
 
       const pos_x: i32 = screen_width - 300;

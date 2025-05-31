@@ -30,12 +30,12 @@ pub const System = struct {
       var start: ecs.Components.Rotation.Component = undefined;
       if (self.start_rotations.get(id)) |cached| {
         start = cached;
-      } else if (self.world.components.rotation.get(target_id)) |target_rotation| { // Use current rotation of target entity
-        self.start_rotations.put(id, target_rotation) catch @panic("Fail to put start rotation");
-        start = target_rotation;
-      }
+      } else if (self.world.components.rotation.getPtr(target_id)) |target_rotation| { // Use current rotation of target entity
+        self.start_rotations.put(id, target_rotation.*) catch @panic("Fail to put start rotation");
+        start = target_rotation.*;
+      } else continue; // No start value
 
-      if (self.world.components.rotation.get(id)) |end|
+      if (self.world.components.rotation.getPtr(id)) |end|
         _ = self.world.entityWrap(target_id).rotation(
           start.x + ((end.x - start.x) * event.progress),
           start.y + ((end.y - start.y) * event.progress),

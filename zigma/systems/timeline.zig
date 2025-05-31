@@ -25,7 +25,7 @@ pub const System = struct {
     //   std.debug.print("Timeline Event {d}: {d:1.6}\n", .{id, event.progress});
     //
     //   //get related events
-    //   const event_entry = self.world.components.timelineevent.get(id) orelse continue;
+    //   const event_entry = self.world.components.timelineevent.getPtr(id) orelse continue;
     //
     //   const related_ids = ecs.Components.TimelineEvent.Query.exec(self.world,
     //     .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
@@ -75,7 +75,7 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const event = entry.value_ptr.*;
 
-      if (self.world.components.timeline.get(event.timeline_id)) |timeline| {
+      if (self.world.components.timeline.getPtr(event.timeline_id)) |timeline| {
         if (@abs(timeline.speed) < timePrecision) // Singularity
           continue; // Nothing's changed
 
@@ -85,7 +85,7 @@ pub const System = struct {
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+            if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
               EntityTimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
@@ -94,7 +94,7 @@ pub const System = struct {
             EntityTimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
-              if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+              if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
                 EntityTimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.end, event); // Force end of event
@@ -110,7 +110,7 @@ pub const System = struct {
             continue;
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
-            if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+            if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
               EntityTimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
@@ -119,7 +119,7 @@ pub const System = struct {
             EntityTimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
-              if (self.world.components.timelineeventprogress.get(id) == null) // Not yet active
+              if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
                 EntityTimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.start, event); // Force start of event
