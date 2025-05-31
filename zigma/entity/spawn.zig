@@ -93,19 +93,6 @@ pub fn unhide(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
-pub fn transform(entity: ent.Entity, position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) ent.Entity {
-  const spawn = entity.world.components.spawn.getPtr(entity.id) orelse return entity;
-  spawn.spawn.transform = makeTransform(position, rotation, scale);
-  return entity;
-}
-
-fn makeTransform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
-  const T = rl.MatrixTranslate(position.x, position.y, position.z);
-  const R = rl.MatrixRotateXYZ(rotation);
-  const S = rl.MatrixScale(scale.x, scale.y, scale.z);
-  return rl.MatrixMultiply(T, rl.MatrixMultiply(R, S));
-}
-
 
 // Testing
 const tst = std.testing;

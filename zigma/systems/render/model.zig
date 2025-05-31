@@ -24,6 +24,18 @@ pub const System = struct {
   }
 
 
+  pub fn transform(position: rl.Vector3, rotation: rl.Vector3, scale: rl.Vector3) rl.Matrix {
+    const rad = std.math.pi * 2;
+    const R = rl.MatrixRotateXYZ(rl.Vector3{
+      .x = rotation.x * rad,
+      .y = rotation.y * rad,
+      .z = rotation.z * rad
+    });
+    const S = rl.MatrixScale(scale.x, scale.y, scale.z);
+    const T = rl.MatrixTranslate(position.x, position.y, position.z);
+    return rl.MatrixMultiply(rl.MatrixMultiply(R, S), T);
+  }
+
   const SplitByAlphaIDs = struct {
     opaques: []const ent.EntityID,
     transparent: []const ent.EntityID,
@@ -134,12 +146,12 @@ pub const System = struct {
   }
 
   fn renderModel(self: *System, id: ent.EntityID) void {
-    var model = self.world.components.model.get(id) orelse unreachable;
+    var model = self.world.components.model.getPtr(id) orelse unreachable;
     const color = self.world.components.color.get(id) orelse unreachable;
 
     if (model.transforms) |transforms| { // Multi render
-      for (transforms.items) |transform| {
-        model.model.transform = transform;
+      for (transforms.items) |t| {
+        model.model.transform = t;
         rl.DrawModel(
           model.model,
           rl.Vector3Zero(),
@@ -150,7 +162,7 @@ pub const System = struct {
     } else { // Single render
       if (self.world.components.dirty.get(id)) |dirty| {
         if (dirty.position or dirty.rotation or dirty.scale) {
-          _ = self.world.entityWrap(id).model_transform(
+          model.model.transform = transform(
             self.world.components.position.get(id) orelse unreachable, // Defined in model entity
             self.world.components.rotation.get(id) orelse unreachable,
             self.world.components.scale.get(id) orelse unreachable,
@@ -172,6 +184,25 @@ pub const System = struct {
 // Testing
 const tst = std.testing;
 const SystemCamera = @import("../camera.zig");
+
+test "Should should transform" {
+  // Given
+
+  // When
+  const result = System.transform(
+    rl.Vector3{.x = 1, .y = 2, .z = 3},
+    rl.Vector3{.x = 0, .y = 0, .z = 0},
+    rl.Vector3{.x = 1, .y = 1, .z = 1},
+  );
+
+  // Then
+  try tst.expectEqual(rl.Matrix{
+    .m0 = 1, .m1 = 0, .m2 = 0, .m3 = 0,
+    .m4 = 0, .m5 = 1, .m6 = 0, .m7 = 0,
+    .m8 = 0, .m9 = 0, .m10 = 1, .m11 = 0,
+    .m12 = 1, .m13 = 2, .m14 = 3, .m15 = 1,
+  }, result);
+}
 
 test "System should render model" {
   // Given
