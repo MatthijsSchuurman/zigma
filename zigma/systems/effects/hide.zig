@@ -39,7 +39,7 @@ pub const System = struct {
       }
 
       if (self.world.components.hide.getPtr(id)) |end| {
-        if ((event.progress == 1.0 and end.hidden) or (event.progress != 1.0 and !end.hidden))
+        if ((event.progress > 0.5 and end.hidden) or (event.progress < 0.5 and !end.hidden))
           _ = self.world.entityWrap(target_id).hide()
         else
           _ = self.world.entityWrap(target_id).unhide();
