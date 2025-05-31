@@ -79,20 +79,6 @@ pub fn deinit(entity: ent.Entity) void {
   existing.vertex_indexes.deinit();
 }
 
-pub fn hide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.spawn.getPtr(entity.id)) |existing|
-    existing.hidden = true;
-
-  return entity;
-}
-
-pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.spawn.getPtr(entity.id)) |existing|
-    existing.hidden = false;
-
-  return entity;
-}
-
 
 // Testing
 const tst = std.testing;
@@ -146,37 +132,4 @@ test "Component should init model spawn" {
     try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
-}
-
-test "Component should hide spawn" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  _ = world.entity("cube").model(.{.type = "cube"});
-  const entity = world.entity("test").model(.{.type = "torus"}).spawn(.{.source_model = "cube"});
-
-  // When
-  var result = hide(entity);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.spawn.get(entity.id)) |spawn|
-    try tst.expectEqual(true, spawn.hidden)
-  else
-    return error.TestExpectedSpawn;
-
-  // When
-  result = unhide(entity);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.spawn.get(entity.id)) |spawn|
-    try tst.expectEqual(false, spawn.hidden)
-  else
-    return error.TestExpectedSpawn;
 }

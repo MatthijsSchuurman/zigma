@@ -76,16 +76,9 @@ fn loadMesh(mesh_type: []const u8) rl.Mesh {
   @panic("LoadMeshFromFile not yet implemented");
 }
 
-pub fn hide(entity: ent.Entity) ent.Entity {
+pub fn hide(entity: ent.Entity, hidden: bool) ent.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |existing|
-    existing.hidden = true;
-
-  return entity;
-}
-
-pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.model.getPtr(entity.id)) |existing|
-    existing.hidden = false;
+    existing.hidden = hidden;
 
   return entity;
 }
@@ -153,7 +146,7 @@ test "Component should hide model" {
   const entity = world.entity("test").model(.{.type = "torus"});
 
   // When
-  var result = hide(entity);
+  var result = hide(entity, true);
 
   // Then
   try tst.expectEqual(entity.id, result.id);
@@ -167,7 +160,7 @@ test "Component should hide model" {
     return error.TestExpectedModel;
 
   // When
-  result = unhide(entity);
+  result = hide(entity, false);
 
   // Then
   try tst.expectEqual(entity.id, result.id);

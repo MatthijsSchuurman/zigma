@@ -21,16 +21,9 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   return entity.dirty(&.{.text});
 }
 
-pub fn hide(entity: ent.Entity) ent.Entity {
+pub fn hide(entity: ent.Entity, hidden: bool) ent.Entity {
   if (entity.world.components.text.getPtr(entity.id)) |existing|
-    existing.hidden = true;
-
-  return entity;
-}
-
-pub fn unhide(entity: ent.Entity) ent.Entity {
-  if (entity.world.components.text.getPtr(entity.id)) |existing|
-    existing.hidden = false;
+    existing.hidden = hidden;
 
   return entity;
 }
@@ -93,7 +86,7 @@ test "Component should hide text" {
   const entity = world.entity("test").text("test");
 
   // When
-  var result = hide(entity);
+  var result = hide(entity, true);
 
   // Then
   try tst.expectEqual(entity.id, result.id);
@@ -105,7 +98,7 @@ test "Component should hide text" {
     return error.TestExpectedText;
 
   // When
-  result = unhide(entity);
+  result = hide(entity, false);
 
   // Then
   try tst.expectEqual(entity.id, result.id);

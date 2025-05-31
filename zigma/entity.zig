@@ -53,6 +53,12 @@ pub const Entity = struct {
   pub const model = EntityModel.init;
   pub const text = EntityText.set;
 
+  pub fn hide(entity: Entity, hidden: bool) Entity {
+    _ = EntityModel.hide(entity, hidden);
+    _ = EntityText.hide(entity, hidden);
+    return entity;
+  }
+
   pub fn deinit(entity: Entity) void {
     EntitySpawn.deinit(entity);
     EntityModel.deinit(entity);
