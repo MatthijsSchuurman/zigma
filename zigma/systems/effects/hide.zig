@@ -33,7 +33,10 @@ pub const System = struct {
       } else if (self.world.components.hide.get(target_id)) |target_hide| { // Use current hide of target entity
         self.start_hides.put(id, target_hide.hidden) catch @panic("Fail to put start hide");
         start = target_hide.hidden;
-      } else
+      } else {
+        self.start_hides.put(id, false) catch @panic("Fail to put start hide");
+        start = false;
+      }
 
       if (self.world.components.hide.get(id)) |end| {
         if ((event.progress == 1.0 and end.hidden) or (event.progress != 1.0 and !end.hidden))

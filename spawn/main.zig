@@ -23,7 +23,13 @@ pub fn main() void {
   .color(128, 128, 255, 128)
   .event(.{.duration = 60, .repeat = 15, .pattern = .PingPong, .motion = .Smooth})
     .scale(2, 2, 2)
-    .rotation(0.25, 0, 1);
+    .rotation(0.25, 0, 1)
+  .event(.{.start = 4, .duration = 0.0001})
+    .hide()
+  .event(.{.start = 5, .duration = 0.0001})
+    .unhide()
+  .event(.{.start = 6, .duration = 0.0001})
+    .hide();
 
   _ = world.entity("torus spawn").model(.{.type = "cube"}).spawn(.{.source_model = "torus"})
   .event(.{.duration = 90, .repeat = 10, .pattern = .PongPing, .motion = .EaseIn})

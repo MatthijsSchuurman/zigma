@@ -46,7 +46,7 @@ pub const System = struct {
 
     var it = self.world.components.model.iterator();
     while (it.next()) |model| {
-      if (model.value_ptr.hidden) continue;
+      if (self.world.components.hide.get(model.key_ptr.*)) |hide| if (hide.hidden) continue;
 
       if (model.value_ptr.material_id == 0) { // No material (no shader)
         self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");

@@ -20,7 +20,7 @@ pub const System = struct {
     const screen_height: f32 = @floatFromInt(rl.GetScreenHeight());
 
     while (it.next()) |entry| {
-      if (entry.value_ptr.hidden) continue;
+      if (self.world.components.hide.get(entry.key_ptr.*)) |hide| if (hide.hidden) continue;
 
       const id = entry.key_ptr.*;
       const text = entry.value_ptr.*;

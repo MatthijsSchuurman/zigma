@@ -21,13 +21,6 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
   return entity.dirty(&.{.text});
 }
 
-pub fn hide(entity: ent.Entity, hidden: bool) ent.Entity {
-  if (entity.world.components.text.getPtr(entity.id)) |existing|
-    existing.hidden = hidden;
-
-  return entity;
-}
-
 
 // Testing
 const tst = std.testing;
@@ -48,7 +41,7 @@ test "Component should set text" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = false}, text)
+    try tst.expectEqual(ComponentText.Component{.text = "test"}, text)
   else
     return error.TestExpectedText;
 
@@ -76,36 +69,4 @@ test "Component should set text" {
     try tst.expectEqual(true, dirty.text)
   else
     return error.TestExpectedDirty;
-}
-
-test "Component should hide text" {
-  // Given
-  var world = ecs.World.init(std.testing.allocator);
-  defer ecs.World.deinit(&world);
-
-  const entity = world.entity("test").text("test");
-
-  // When
-  var result = hide(entity, true);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = true}, text)
-  else
-    return error.TestExpectedText;
-
-  // When
-  result = hide(entity, false);
-
-  // Then
-  try tst.expectEqual(entity.id, result.id);
-  try tst.expectEqual(entity.world, result.world);
-
-  if (world.components.text.get(entity.id)) |text|
-    try tst.expectEqual(ComponentText.Component{.text = "test", .hidden = false}, text)
-  else
-    return error.TestExpectedText;
 }
