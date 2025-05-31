@@ -12,6 +12,8 @@ pub const allocator =
   else
     arena.allocator();
 
+pub const Music = @import("music.zig").Music;
+
 // ECS
 pub const ecs = @import("ecs.zig");
 const rl = ecs.raylib;

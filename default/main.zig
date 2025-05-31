@@ -1,8 +1,13 @@
 const zigma = @import("zigma");
+const std = @import("std");
 
 pub fn main() void {
-  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 30});
+  zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 60});
   defer zigma.deinit();
+
+  var music = zigma.Music.init("default/soundtrack.ogg");
+  defer music.play();
+  music.play();
 
   var world = zigma.create();
   defer zigma.destroy(world);
@@ -32,6 +37,15 @@ pub fn main() void {
   .event(.{.duration = 60, .repeat = 6, .pattern = .PingPong})
     .scale(22, 0, 0);
 
+  const timeline_entity = world.entity("timeline");
+  const timeline = world.components.timeline.getPtr(timeline_entity.id) orelse unreachable;
 
-  while(zigma.render(world)){}
+  while(zigma.render(world)){
+    if (@abs(timeline.timeDelta) > 0.1) // Sync music on big jumps
+      music.seek(timeline.timeCurrent);
+    if (timeline.speed != music.pitch)
+      music.speed(timeline.speed);
+
+    music.update();
+  }
 }
