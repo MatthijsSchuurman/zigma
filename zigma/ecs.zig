@@ -15,12 +15,12 @@ const ent = @import("entity.zig");
 
 //Components
 pub const Components = struct {
-  pub const Dirty = @import("components/dirty.zig");
-
   pub const Timeline = @import("components/timeline.zig");
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
+  pub const Music = @import("components/music.zig");
 
+  pub const Dirty = @import("components/dirty.zig");
   pub const Camera = @import("components/camera.zig");
 
   pub const Spawn = @import("components/spawn.zig");
@@ -42,9 +42,10 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 
 //Systems
 pub const Systems = struct {
-  pub const Dirty = @import("systems/dirty.zig");
-
   pub const Timeline = @import("systems/timeline.zig");
+  pub const Music = @import("systems/music.zig");
+
+  pub const Dirty = @import("systems/dirty.zig");
   pub const Camera = @import("systems/camera.zig");
   pub const Shader = @import("systems/shader.zig");
   pub const Light = @import("systems/light.zig");
@@ -166,6 +167,7 @@ pub const World = struct {
   // Render
   pub fn render(self: *World) bool {
     self.systems.timeline.update();
+    self.systems.music.update();
 
     self.systems.effects_hide.update();
     self.systems.effects_position.update();

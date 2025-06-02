@@ -6,7 +6,6 @@ const rl = ecs.raylib;
 pub const Component = struct {
   source_model_id: ent.EntityID = 0,
   vertex_indexes: std.ArrayList(usize),
-  hidden: bool = false,
 };
 
 pub const Query = struct {
@@ -14,16 +13,11 @@ pub const Query = struct {
 
   pub const Filter = struct {
     source_model_id: ?ecs.FieldFilter(ent.EntityID) = null,
-    hidden: ?ecs.FieldFilter(bool) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.source_model_id) |cond|
       if (!ecs.matchField(ent.EntityID, self.source_model_id, cond))
-        return false;
-
-    if (f.hidden) |cond|
-      if (!ecs.matchField(bool, self.hidden, cond))
         return false;
 
     return true;

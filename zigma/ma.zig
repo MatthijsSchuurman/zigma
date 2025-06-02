@@ -28,6 +28,7 @@ const Config = struct {
 
 pub fn init(config: Config) void {
   rl.InitWindow(config.width, config.height, config.title);
+  rl.InitAudioDevice();
 
   if (config.fps > 0)
     rl.SetTargetFPS(config.fps);
@@ -51,6 +52,7 @@ pub fn destroy(world: *ecs.World) void {
 }
 
 pub fn deinit() void {
+  rl.CloseAudioDevice();
   rl.CloseWindow();
 
   if (!builtin.is_test) {// Test allocator teardown done by test framework
