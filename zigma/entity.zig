@@ -1,10 +1,10 @@
 const ecs = @import("ecs.zig");
 
-const EntityDirty = @import("entity/dirty.zig");
-
 const EntityTimeline = @import("entity/timeline.zig");
 const EntityTimelineEvent = @import("entity/timelineevent.zig");
+const EntityMusic = @import("entity/music.zig");
 
+const EntityDirty = @import("entity/dirty.zig");
 const EntityCamera = @import("entity/camera.zig");
 
 const EntitySpawn = @import("entity/spawn.zig");
@@ -28,13 +28,13 @@ pub const Entity = struct {
   parent_id: EntityID = 0,
   world: *ecs.World,
 
-  pub const dirty = EntityDirty.set;
-
   pub const timeline = EntityTimeline.init;
   pub const timeline_speed = EntityTimeline.setSpeed;
   pub const timeline_offset = EntityTimeline.setOffset;
   pub const event = EntityTimelineEvent.add;
+  pub const music = EntityMusic.init;
 
+  pub const dirty = EntityDirty.set;
   pub const camera = EntityCamera.init;
   pub const camera_activate = EntityCamera.activate;
   pub const camera_deactivate = EntityCamera.deactivate;
