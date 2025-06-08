@@ -24,10 +24,15 @@ pub fn main() void {
 
   _ = world.entity("cube").model(.{.type = "cube"})
   .color(128, 255, 255, 200)
-  .edge(.{.color = .{.r = 128, .g = 255, .b = 0, .a = 255}})
+  .edge(.{.width = 10, .color = .{.r = 255, .g = 128, .b = 0, .a = 0}})
   .event(.{.duration = 60, .repeat = 14, .pattern = .PingPong, .motion = .Smooth})
-    .edge(.{.width = 5, .color = .{.r = 255, .g = 128, .b = 0, .a = 255}})
-    .rotation(1, 0, 1);
+    .rotation(1, 0, 1)
+  .event(.{.start = 0, .duration = 120, .repeat = 280, .pattern = .PingPong, .motion = .Smooth})
+    .scale(1.3, 1.2, 1.1)
+  .event(.{.start = 41.666, .duration = 0.333})
+    .edge(.{.width = 10, .color = .{.r = 255, .g = 128, .b = 0, .a = 255}})
+  .event(.{.start = 41.7, .duration = 60, .repeat = 70, .pattern = .Forward, .motion = .EaseIn})
+    .edge(.{.width = 0, .color = .{.r = 0, .g = 0, .b = 0, .a = 255}});
 
   _ = world.entity("zigma balls").text("Zigma")
   .position(-0.7, 0.8, 0)
