@@ -28,6 +28,7 @@ pub const Components = struct {
   pub const Rotation = @import("components/rotation.zig");
   pub const Scale = @import("components/scale.zig");
   pub const Color = @import("components/color.zig");
+  pub const Edge = @import("components/edge.zig");
   pub const Hide = @import("components/hide.zig");
 
   pub const Shader = @import("components/shader.zig");

@@ -12,6 +12,7 @@ const EntityPosition = @import("entity/position.zig");
 const EntityRotation = @import("entity/rotation.zig");
 const EntityScale = @import("entity/scale.zig");
 const EntityColor = @import("entity/color.zig");
+const EntityEdge = @import("entity/edge.zig");
 const EntityHide = @import("entity/hide.zig");
 
 const EntityShader = @import("entity/shader.zig");
@@ -45,6 +46,7 @@ pub const Entity = struct {
   pub const rotation = EntityRotation.set;
   pub const scale = EntityScale.set;
   pub const color = EntityColor.set;
+  pub const edge = EntityEdge.set;
   pub const hide = EntityHide.hide;
   pub const unhide = EntityHide.unhide;
 
