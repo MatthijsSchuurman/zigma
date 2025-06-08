@@ -43,6 +43,7 @@ fn intro() void {
   .color(100, 255, 255, 255)
   .position(0, 2, 0)
   .scale(1, 1, 1)
+  .edge(.{.color = .{.r = 255, .g = 0, .b = 0, .a = 255}})
   .event(.{.duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseIn})
     .color(100, 255, 100, 150)
     .position(0, 0.5, 0)
@@ -52,7 +53,9 @@ fn intro() void {
   .color(100, 255, 100, 255)
   .position(2, 0.5, 1)
   .scale(1, 0.5, 1)
+  .edge(.{.color = .{.r = 0, .g = 0, .b = 255, .a = 255}})
   .event(.{.duration = 20, .repeat = 20, .pattern = .PingPong, .motion = .EaseOut})
+    .edge(.{.width = 2, .color = .{.r = 0, .g = 255, .b = 0, .a = 25}})
     .color(255, 255, 255, 150)
     .position(2, 2, 1)
     .scale(1, 1, 1);

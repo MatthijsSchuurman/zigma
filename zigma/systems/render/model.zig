@@ -159,6 +159,19 @@ pub const System = struct {
           color.*,
         );
       }
+
+      if (self.world.components.edge.getPtr(id)) |edge| {
+        rl.rlSetLineWidth(edge.width);
+        for (transforms.items) |t| {
+          model.model.transform = t;
+          rl.DrawModelWires(
+            model.model,
+            rl.Vector3Zero(),
+            1.0,
+            edge.color
+          );
+        }
+      }
     } else { // Single render
       if (self.world.components.dirty.getPtr(id)) |dirty| {
         if (dirty.position or dirty.rotation or dirty.scale) {
@@ -176,6 +189,16 @@ pub const System = struct {
         1.0,
         color.*,
       );
+
+      if (self.world.components.edge.getPtr(id)) |edge| {
+        rl.rlSetLineWidth(edge.width);
+        rl.DrawModelWires(
+          model.model,
+          rl.Vector3Zero(),
+          1.0,
+          edge.color
+        );
+      }
     }
   }
 };

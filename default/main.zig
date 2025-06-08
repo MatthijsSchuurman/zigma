@@ -24,13 +24,9 @@ pub fn main() void {
 
   _ = world.entity("cube").model(.{.type = "cube"})
   .color(128, 255, 255, 200)
+  .edge(.{.color = .{.r = 128, .g = 255, .b = 0, .a = 255}})
   .event(.{.duration = 60, .repeat = 14, .pattern = .PingPong, .motion = .Smooth})
-    .rotation(1, 0, 1);
-
-  _ = world.entity("cube2").model(.{.type = "torus"})
-  .position(0, 1, 0)
-  .color(128, 255, 255, 200)
-  .event(.{.duration = 60, .repeat = 14, .pattern = .PingPong, .motion = .Smooth})
+    .edge(.{.width = 5, .color = .{.r = 255, .g = 128, .b = 0, .a = 255}})
     .rotation(1, 0, 1);
 
   _ = world.entity("zigma balls").text("Zigma")

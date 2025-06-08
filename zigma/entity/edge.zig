@@ -6,25 +6,21 @@ const rl = ecs.raylib;
 const ComponentEdge = @import("../components/edge.zig");
 
 pub const Edge = struct {
-  width: ?f32 = null,
+  width: f32 = 1.0,
   color: ?rl.Color = null,
 };
 
 pub fn set(entity: ent.Entity, params: Edge) ent.Entity {
   if (entity.world.components.edge.getPtr(entity.id)) |existing| {
-    if (params.width) |width|
-      existing.width = width;
+    existing.width = params.width;
     if (params.color) |color|
       existing.color = color;
 
     return entity;
   }
 
-  if (entity.world.components.model.getPtr(entity.id) == null)
-    @panic("Edge must be a model entity");
-
   const new = ComponentEdge.Component{
-    .width = if (params.width) |width| width else 1.0,
+    .width = params.width,
     .color = if (params.color) |color| color else rl.Color{.r = 255, .g = 255, .b = 255, .a = 255},
   };
 

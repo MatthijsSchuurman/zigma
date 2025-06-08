@@ -57,6 +57,7 @@ pub const Systems = struct {
   pub const Effects_Rotation = @import("systems/effects/rotation.zig");
   pub const Effects_Scale = @import("systems/effects/scale.zig");
   pub const Effects_Color = @import("systems/effects/color.zig");
+  pub const Effects_Edge = @import("systems/effects/edge.zig");
   pub const Effects_Hide = @import("systems/effects/hide.zig");
 
   // Render
@@ -175,6 +176,7 @@ pub const World = struct {
     self.systems.effects_rotation.update();
     self.systems.effects_scale.update();
     self.systems.effects_color.update();
+    self.systems.effects_edge.update();
     self.systems.effects_spawn.update();
 
     self.systems.camera.update();
