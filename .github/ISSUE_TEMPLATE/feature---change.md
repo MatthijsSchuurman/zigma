@@ -1,6 +1,6 @@
 ---
 name: Feature / Change
-about: 'Helps describe a feature / change well '
+about: 'Helps describe a feature / change well'
 title: ''
 labels: enhancement
 assignees: ''
