@@ -25,7 +25,7 @@ assignees: ''
   **Then** ...
 
 ## Tech Debt
-*Is there any tech debt we're aware of that affects the solution*
+*Is there any tech debt we're aware of that affects the solution?*
 
 ## Open Questions & Assumptions
 | Question/Assumption | Impact |
