@@ -70,9 +70,7 @@ test "System should update hide" {
   system.update();
 
   // Then
-  if (entity.world.components.hide.get(entity.id)) |hide|
-    try tst.expectEqual(false, hide.hidden)
-   else
+  if (entity.world.components.hide.get(entity.id)) |_|
     return error.TestExpectedHide;
 
 
@@ -86,6 +84,6 @@ test "System should update hide" {
   // Then
   if (entity.world.components.hide.get(entity.id)) |hide|
     try tst.expectEqual(true, hide.hidden)
-   else
+  else
     return error.TestExpectedHide;
 }
