@@ -49,7 +49,7 @@ pub fn main() void {
     .scale(15, 0, 0);
 
 
-  universe.entity("world intro").world(intro)
+  _ = universe.entity("world intro").subWorld(intro)
   .event(.{.start = 0, .end= 60, .pattern = .Forward, .motion = .Linear});
 
   while(zigma.render(universe)){}

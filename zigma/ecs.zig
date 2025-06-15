@@ -19,6 +19,7 @@ pub const Components = struct {
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
   pub const Music = @import("components/music.zig");
+  pub const World = @import("components/world.zig");
 
   pub const Dirty = @import("components/dirty.zig");
   pub const Camera = @import("components/camera.zig");
@@ -45,6 +46,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
   pub const Music = @import("systems/music.zig");
+  pub const World = @import("systems/world.zig");
 
   pub const Dirty = @import("systems/dirty.zig");
   pub const Camera = @import("systems/camera.zig");
@@ -170,6 +172,9 @@ pub const World = struct {
   pub fn render(self: *World) bool {
     self.systems.timeline.update();
     self.systems.music.update();
+
+    if (self.systems.world.update()) // Rendered sub world
+      return true; // Don't render anything else
 
     self.systems.effects_hide.update();
     self.systems.effects_position.update();
@@ -312,6 +317,16 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
     };
 
   if (T == bool)
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (@typeInfo(T) == .Pointer)
     return switch (cond) {
       .eq => actual == cond.eq,
       .not => actual != cond.not,
