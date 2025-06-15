@@ -22,6 +22,7 @@ const EntityMaterial = @import("entity/material.zig");
 
 const EntityModel = @import("entity/model.zig");
 const EntityText = @import("entity/text.zig");
+const EntityFPS = @import("entity/fps.zig");
 
 //Entity
 pub const EntityID = u32;
@@ -59,6 +60,7 @@ pub const Entity = struct {
 
   pub const model = EntityModel.init;
   pub const text = EntityText.set;
+  pub const fps = EntityFPS.init;
 
   pub fn deinit(entity: Entity) void {
     EntitySpawn.deinit(entity);

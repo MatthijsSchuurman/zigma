@@ -165,6 +165,7 @@ test "Zigma should render world" {
   _ = world.entity("material").material(.{.shader = "shader"});
   _ = world.entity("ball").model(.{.type = "sphere", .material = "material"});
   _ = world.entity("background").color(0, 0, 0, 255); // Wipe previous test data
+  _ = world.entity("fps").fps();
 
   // When
   const result = render(world);

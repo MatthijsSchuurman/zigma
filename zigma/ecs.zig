@@ -37,6 +37,7 @@ pub const Components = struct {
   pub const Material = @import("components/material.zig");
   pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
+  pub const FPS = @import("components/fps.zig");
 };
 
 const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
