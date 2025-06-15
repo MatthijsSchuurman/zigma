@@ -13,8 +13,8 @@ pub const System = struct {
     };
   }
 
-  pub fn update(self: *System) bool {
-    const world_timeline = self.world.components.timeline.get(self.world.entity("timeline").id) orelse return false; // No timeline, prolly testing
+  pub fn render(self: *System) bool {
+    const world_timeline = self.world.components.timeline.get(self.world.entity("timeline").id) orelse return true; // No timeline, prolly testing
 
     var it = self.world.components.world.iterator();
     while(it.next()) |entry| {
@@ -30,14 +30,14 @@ pub const System = struct {
 
       if (active_events.len > 0) { // World active
         // Ensure sub world timeline system correctly adjust timeline
-        const subworld_timeline = sub.world.components.timeline.getPtr(sub.world.entity("timeline").id) orelse @panic("World system update no timeline");
+        const subworld_timeline = sub.world.components.timeline.getPtr(sub.world.entity("timeline").id) orelse @panic("World system render no timeline");
         subworld_timeline.timestampPreviousMS = world_timeline.timestampPreviousMS - @as(i64, @intFromFloat(world_timeline.timeDelta*1000));
 
         return sub.world.render(); // Only render sub world
       }
     }
 
-    return false;
+    return true;
   }
 };
 
@@ -72,7 +72,7 @@ test "System should render sub world" {
 
   // When
   _ = universe_system_timeline.update();
-  const result = universe_system.update();
+  const result = universe_system.render();
 
   rl.BeginDrawing(); //Nasty but it does ensure cleanup... no way around this as sub.world.render() has to be called for this test
   rl.ClearBackground(rl.BLACK);

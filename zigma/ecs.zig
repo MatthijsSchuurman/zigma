@@ -174,9 +174,6 @@ pub const World = struct {
     self.systems.timeline.update();
     self.systems.music.update();
 
-    if (self.systems.world.update()) // Rendered sub world
-      return true; // Don't render anything else
-
     self.systems.effects_hide.update();
     self.systems.effects_position.update();
     self.systems.effects_rotation.update();
@@ -191,6 +188,8 @@ pub const World = struct {
 
 
     // Render
+    const success = self.systems.world.render(); // Rendered sub world
+
     self.systems.render_background.render();
 
     self.systems.camera.start();
@@ -201,7 +200,7 @@ pub const World = struct {
     self.systems.fps.render();
 
     self.systems.dirty.clean();
-    return true;
+    return success;
   }
 
   //Components
