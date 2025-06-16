@@ -16,7 +16,7 @@ pub const System = struct {
   pub fn render(self: *System) bool {
     const world_timeline = self.world.components.timeline.get(self.world.entity("timeline").id) orelse return true; // No timeline, prolly testing
 
-    var it = self.world.components.world.iterator();
+    var it = self.world.components.subworld.iterator();
     while(it.next()) |entry| {
       const id = entry.key_ptr.*;
       const sub = entry.value_ptr.*;
@@ -33,6 +33,11 @@ pub const System = struct {
         const subworld_timeline = sub.world.components.timeline.getPtr(sub.world.entity("timeline").id) orelse @panic("World system render no timeline");
         subworld_timeline.timestampPreviousMS = world_timeline.timestampPreviousMS - @as(i64, @intFromFloat(world_timeline.timeDelta*1000));
 
+        std.debug.print("World timeline speed: {d}, timeCurrent: {d}, timeDelta: {d}, timePrevious: {d}, timestampPreviousMS: {d}, timeOffset: {d}\n",
+          .{ world_timeline.speed, world_timeline.timeCurrent, world_timeline.timeDelta, world_timeline.timePrevious, world_timeline.timestampPreviousMS, world_timeline.timeOffset });
+        std.debug.print("Subld timeline speed: {d}, timeCurrent: {d}, timeDelta: {d}, timePrevious: {d}, timestampPreviousMS: {d}, timeOffset: {d}\n",
+          .{ subworld_timeline.speed, subworld_timeline.timeCurrent, subworld_timeline.timeDelta, subworld_timeline.timePrevious, subworld_timeline.timestampPreviousMS, subworld_timeline.timeOffset });
+
         return sub.world.render(); // Only render sub world
       }
     }
@@ -46,7 +51,7 @@ pub const System = struct {
 const tst = std.testing;
 const SystemTimeline = @import("timeline.zig");
 
-test "System should render sub world" {
+test "System should render subworld" {
   // Given
   var universe = ecs.World.init(tst.allocator);
   defer universe.deinit();

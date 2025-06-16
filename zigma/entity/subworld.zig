@@ -3,16 +3,16 @@ const ecs = @import("../ecs.zig");
 const ent = @import("../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentWorld= @import("../components/world.zig");
+const ComponentSubWorld= @import("../components/subworld.zig");
 
 pub fn init(entity: ent.Entity, world: *ecs.World) ent.Entity {
-  if (entity.world.components.world.getPtr(entity.id)) |existing| {
+  if (entity.world.components.subworld.getPtr(entity.id)) |existing| {
     existing.*.world = world;
     return entity;
   }
 
-  const new = ComponentWorld.Component{.world = world };
-  entity.world.components.world.put(entity.id, new) catch @panic("Failed to store world");
+  const new = ComponentSubWorld.Component{.world = world };
+  entity.world.components.subworld.put(entity.id, new) catch @panic("Failed to store subworld");
 
   return entity;
 }

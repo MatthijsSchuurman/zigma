@@ -25,14 +25,14 @@ pub const Query = struct {
   pub const Sort = enum {noyetimplemented};
 
   pub fn exec(world: *ecs.World, f: Filter) []ent.EntityID {
-    return world.query(Query, &world.components.world, f, &.{});
+    return world.query(Query, &world.components.subworld, f, &.{});
   }
 };
 
 
 // Testing
 const tst = std.testing;
-const EntityWorld = @import("../entity/world.zig");
+const EntitySubWorld = @import("../entity/subworld.zig");
 
 test "Query should filter" {
   // Given
@@ -41,8 +41,8 @@ test "Query should filter" {
   var world2 = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world2);
 
-  const entity1 = EntityWorld.init(world.entity("test1"), &world);
-  _ = EntityWorld.init(world.entity("test2"), &world2);
+  const entity1 = EntitySubWorld.init(world.entity("test1"), &world);
+  _ = EntitySubWorld.init(world.entity("test2"), &world2);
 
   // When
   const result = Query.exec(&world, .{ .world = .{ .eq = &world } });

@@ -3,7 +3,7 @@ const ecs = @import("ecs.zig");
 const EntityTimeline = @import("entity/timeline.zig");
 const EntityTimelineEvent = @import("entity/timelineevent.zig");
 const EntityMusic = @import("entity/music.zig");
-const EntityWorld = @import("entity/world.zig");
+const EntitySubWorld = @import("entity/subworld.zig");
 
 const EntityDirty = @import("entity/dirty.zig");
 const EntityCamera = @import("entity/camera.zig");
@@ -36,7 +36,7 @@ pub const Entity = struct {
   pub const timeline_offset = EntityTimeline.setOffset;
   pub const event = EntityTimelineEvent.add;
   pub const music = EntityMusic.init;
-  pub const subWorld = EntityWorld.init;
+  pub const subWorld = EntitySubWorld.init;
 
   pub const dirty = EntityDirty.set;
   pub const camera = EntityCamera.init;

@@ -19,7 +19,7 @@ pub const Components = struct {
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
   pub const Music = @import("components/music.zig");
-  pub const World = @import("components/world.zig");
+  pub const SubWorld = @import("components/subworld.zig");
 
   pub const Dirty = @import("components/dirty.zig");
   pub const Camera = @import("components/camera.zig");
@@ -47,7 +47,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
   pub const Music = @import("systems/music.zig");
-  pub const World = @import("systems/world.zig");
+  pub const SubWorld = @import("systems/subworld.zig");
 
   pub const Dirty = @import("systems/dirty.zig");
   pub const Camera = @import("systems/camera.zig");
@@ -188,7 +188,7 @@ pub const World = struct {
 
 
     // Render
-    const success = self.systems.world.render(); // Rendered sub world
+    const success = self.systems.subworld.render();
 
     self.systems.render_background.render();
 
