@@ -37,7 +37,7 @@ test "Component should init world" {
   try tst.expectEqual(entity.id, result.id);
   try tst.expectEqual(entity.world, result.world);
 
-  if (world.components.world.get(entity.id)) |exists|
+  if (world.components.subworld.get(entity.id)) |exists|
     try tst.expectEqual(world2, exists.world.*)
   else
     return error.TestExpectedWorld;

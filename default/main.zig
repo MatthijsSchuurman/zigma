@@ -34,11 +34,11 @@ pub fn main() void {
   .edge(.{.width = 10, .color = .{.r = 255, .g = 128, .b = 0, .a = 0}})
   .event(.{.duration = 60, .repeat = 14, .pattern = .PingPong, .motion = .Smooth})
     .rotation(1, 0, 1)
-  .event(.{.start = 0, .duration = 120, .repeat = 280, .pattern = .PingPong, .motion = .Smooth})
+  .event(.{.start = 41.9, .duration = 60, .repeat = 120, .pattern = .PingPong, .motion = .Smooth})
     .scale(1.3, 1.2, 1.1)
   .event(.{.start = 41.666, .duration = 0.333})
     .edge(.{.width = 10, .color = .{.r = 255, .g = 128, .b = 0, .a = 255}})
-  .event(.{.start = 41.7, .duration = 60, .repeat = 70, .pattern = .Forward, .motion = .EaseIn})
+  .event(.{.start = 41.9, .duration = 60, .repeat = 70, .pattern = .Forward, .motion = .EaseIn})
     .edge(.{.width = 0, .color = .{.r = 0, .g = 0, .b = 0, .a = 255}});
 
   _ = cube.entity("zigma balls").text("Zigma")
@@ -46,9 +46,9 @@ pub fn main() void {
   .scale(25, 0, 0)
   .rotation(0, 0, 0)
   .color(200, 255, 255, 150)
-  .event(.{.end = 25, .repeat = 5, .pattern = .PingPong})
+  .event(.{.end = 27.3, .repeat = 5, .pattern = .PingPong})
     .scale(15, 0, 0)
-  .event(.{.start = 27.6, .duration = 60, .repeat = 140, .motion = .EaseIn })
+  .event(.{.start = 27.3, .duration = 60, .repeat = 140, .motion = .EaseOut })
     .scale(15, 0, 0);
 
 

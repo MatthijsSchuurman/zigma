@@ -105,20 +105,16 @@ pub fn render(world: *ecs.World) bool {
 
   if (rl.IsKeyPressed(rl.KEY_RIGHT)) {
     var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current| {
-      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
-        _ = timeline.timeline_offset(current.speed * 5)
-      else
-        _ = timeline.timeline_offset(current.speed * 2);
-    }
+    if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+      _ = timeline.timeline_offset(10)
+    else
+      _ = timeline.timeline_offset(2);
   } else if (rl.IsKeyPressed(rl.KEY_LEFT)) {
     var timeline = world.entity("timeline");
-    if (world.components.timeline.get(timeline.id)) |current| {
-      if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
-        _ = timeline.timeline_offset(-current.speed * 5)
-      else
-        _ = timeline.timeline_offset(-current.speed * 2);
-    }
+    if (rl.IsKeyDown(rl.KEY_LEFT_SHIFT) or rl.IsKeyDown(rl.KEY_RIGHT_SHIFT))
+      _ = timeline.timeline_offset(-10)
+    else
+      _ = timeline.timeline_offset(-2);
   }
 
 
