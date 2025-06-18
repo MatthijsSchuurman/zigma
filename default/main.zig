@@ -39,7 +39,7 @@ pub fn main() void {
   .event(.{.start = 41.666, .duration = 0.333})
     .edge(.{.width = 10, .color = .{.r = 255, .g = 128, .b = 0, .a = 255}})
   .event(.{.start = 41.9, .duration = 60, .repeat = 70, .pattern = .Forward, .motion = .EaseIn})
-    .edge(.{.width = 0, .color = .{.r = 0, .g = 0, .b = 0, .a = 255}});
+    .edge(.{.width = 1, .color = .{.r = 0, .g = 0, .b = 0, .a = 255}});
 
   _ = cube.entity("zigma balls").text("Zigma")
   .position(-0.7, 0.8, 0)

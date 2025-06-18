@@ -29,14 +29,13 @@ pub const System = struct {
       defer self.world.allocator.free(active_events);
 
       if (active_events.len > 0) { // World active
-        // Ensure sub world timeline system correctly adjust timeline
+        const active_event = self.world.components.timelineevent.getPtr(active_events[0]) orelse @panic("World system render event not found");
+        const active_eventprogress = self.world.components.timelineeventprogress.getPtr(active_events[0]) orelse @panic("World system render event progress not found");
         const subworld_timeline = sub.world.components.timeline.getPtr(sub.world.entity("timeline").id) orelse @panic("World system render no timeline");
-        subworld_timeline.timestampPreviousMS = world_timeline.timestampPreviousMS - @as(i64, @intFromFloat(world_timeline.timeDelta*1000));
 
-        std.debug.print("World timeline speed: {d}, timeCurrent: {d}, timeDelta: {d}, timePrevious: {d}, timestampPreviousMS: {d}, timeOffset: {d}\n",
-          .{ world_timeline.speed, world_timeline.timeCurrent, world_timeline.timeDelta, world_timeline.timePrevious, world_timeline.timestampPreviousMS, world_timeline.timeOffset });
-        std.debug.print("Subld timeline speed: {d}, timeCurrent: {d}, timeDelta: {d}, timePrevious: {d}, timestampPreviousMS: {d}, timeOffset: {d}\n",
-          .{ subworld_timeline.speed, subworld_timeline.timeCurrent, subworld_timeline.timeDelta, subworld_timeline.timePrevious, subworld_timeline.timestampPreviousMS, subworld_timeline.timeOffset });
+        const subworld_current = ((active_event.end - active_event.start) * active_eventprogress.progress);
+        subworld_timeline.timeCurrent = (subworld_current - world_timeline.timeDelta) * subworld_timeline.speed; // Enforces single speed for the whole subworld timeline, alternative is to use delta but there the drift is too much
+        subworld_timeline.timestampPreviousMS = world_timeline.timestampPreviousMS - @as(i64, @intFromFloat(world_timeline.timeDelta*1000));
 
         return sub.world.render(); // Only render sub world
       }
