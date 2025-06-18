@@ -3,6 +3,7 @@ const ecs = @import("ecs.zig");
 const EntityTimeline = @import("entity/timeline.zig");
 const EntityTimelineEvent = @import("entity/timelineevent.zig");
 const EntityMusic = @import("entity/music.zig");
+const EntitySubWorld = @import("entity/subworld.zig");
 
 const EntityDirty = @import("entity/dirty.zig");
 const EntityCamera = @import("entity/camera.zig");
@@ -21,6 +22,7 @@ const EntityMaterial = @import("entity/material.zig");
 
 const EntityModel = @import("entity/model.zig");
 const EntityText = @import("entity/text.zig");
+const EntityFPS = @import("entity/fps.zig");
 
 //Entity
 pub const EntityID = u32;
@@ -34,6 +36,7 @@ pub const Entity = struct {
   pub const timeline_offset = EntityTimeline.setOffset;
   pub const event = EntityTimelineEvent.add;
   pub const music = EntityMusic.init;
+  pub const subWorld = EntitySubWorld.init;
 
   pub const dirty = EntityDirty.set;
   pub const camera = EntityCamera.init;
@@ -57,6 +60,7 @@ pub const Entity = struct {
 
   pub const model = EntityModel.init;
   pub const text = EntityText.set;
+  pub const fps = EntityFPS.init;
 
   pub fn deinit(entity: Entity) void {
     EntitySpawn.deinit(entity);

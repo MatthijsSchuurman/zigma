@@ -19,6 +19,7 @@ pub const Components = struct {
   pub const TimelineEvent = @import("components/timelineevent.zig");
   pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
   pub const Music = @import("components/music.zig");
+  pub const SubWorld = @import("components/subworld.zig");
 
   pub const Dirty = @import("components/dirty.zig");
   pub const Camera = @import("components/camera.zig");
@@ -36,6 +37,7 @@ pub const Components = struct {
   pub const Material = @import("components/material.zig");
   pub const Model = @import("components/model.zig");
   pub const Text = @import("components/text.zig");
+  pub const FPS = @import("components/fps.zig");
 };
 
 const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
@@ -45,6 +47,7 @@ const ComponentDeclarations = std.meta.declarations(Components); // Needed to pr
 pub const Systems = struct {
   pub const Timeline = @import("systems/timeline.zig");
   pub const Music = @import("systems/music.zig");
+  pub const SubWorld = @import("systems/subworld.zig");
 
   pub const Dirty = @import("systems/dirty.zig");
   pub const Camera = @import("systems/camera.zig");
@@ -185,6 +188,8 @@ pub const World = struct {
 
 
     // Render
+    const success = self.systems.subworld.render();
+
     self.systems.render_background.render();
 
     self.systems.camera.start();
@@ -195,7 +200,7 @@ pub const World = struct {
     self.systems.fps.render();
 
     self.systems.dirty.clean();
-    return true;
+    return success;
   }
 
   //Components
@@ -312,6 +317,16 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
     };
 
   if (T == bool)
+    return switch (cond) {
+      .eq => actual == cond.eq,
+      .not => actual != cond.not,
+      .lt => false,
+      .lte => false,
+      .gt => false,
+      .gte => false,
+    };
+
+  if (@typeInfo(T) == .Pointer)
     return switch (cond) {
       .eq => actual == cond.eq,
       .not => actual != cond.not,

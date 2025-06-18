@@ -80,10 +80,8 @@ pub fn main() void {
 ```
 
 ### [Default](./default/main.zig)
-![Screenshot](./default/screenshot.png)
+![Screenshot cube](./default/screenshot_cube.png)
+![Screenshot torus](./default/screenshot_torus.png)
 
 ### [Balls](./balls/main.zig)
 ![Screenshot](./balls/screenshot.png)
-
-### [Spawn](./spawn/main.zig)
-![Screenshot](./spawn/screenshot.png)

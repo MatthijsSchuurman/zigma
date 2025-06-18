@@ -12,11 +12,11 @@ pub const System = struct {
   }
 
   pub fn render(self: *System) void {
-    const screen_width = rl.GetScreenWidth();
-    const screen_height = rl.GetScreenHeight();
+    var it = self.world.components.fps.iterator();
+    if (it.next()) |_| {
+      const screen_width = rl.GetScreenWidth();
+      const screen_height = rl.GetScreenHeight();
 
-    const timeline_entity = self.world.entity("timeline");
-    if (self.world.components.timeline.getPtr(timeline_entity.id)) |timeline| {
       const fps = rl.GetFPS();
 
       const pos_x: i32 = screen_width - 300;
@@ -29,13 +29,16 @@ pub const System = struct {
       rl.DrawText(fps_text, pos_x+20, pos_y+5, 20, rl.WHITE);
       rl.DrawText("fps", pos_x+70, pos_y+5, 20, rl.Color{.r = 128, .g = 228, .b = 128, .a = 128});
 
-      const current_text = std.fmt.bufPrintZ(&buffer, "{d:.1}", .{timeline.timeCurrent}) catch return;
-      rl.DrawText(current_text, pos_x+140, pos_y+5, 20, rl.WHITE);
-      rl.DrawText("s", pos_x+180, pos_y+5, 20, rl.Color{.r = 128, .g = 228, .b = 128, .a = 128});
+      const timeline_entity = self.world.entity("timeline");
+      if (self.world.components.timeline.getPtr(timeline_entity.id)) |timeline| {
+        const current_text = std.fmt.bufPrintZ(&buffer, "{d:.1}", .{timeline.timeCurrent}) catch return;
+        rl.DrawText(current_text, pos_x+140, pos_y+5, 20, rl.WHITE);
+        rl.DrawText("s", pos_x+180, pos_y+5, 20, rl.Color{.r = 128, .g = 228, .b = 128, .a = 128});
 
-      const speed_text = std.fmt.bufPrintZ(&buffer, "{d:.1}", .{timeline.speed}) catch return;
-      rl.DrawText(speed_text, pos_x+240, pos_y+5, 20, rl.WHITE);
-      rl.DrawText("x", pos_x+270, pos_y+5, 20, rl.Color{.r = 128, .g = 228, .b = 128, .a = 128});
+        const speed_text = std.fmt.bufPrintZ(&buffer, "{d:.1}", .{timeline.speed}) catch return;
+        rl.DrawText(speed_text, pos_x+240, pos_y+5, 20, rl.WHITE);
+        rl.DrawText("x", pos_x+270, pos_y+5, 20, rl.Color{.r = 128, .g = 228, .b = 128, .a = 128});
+      }
     }
   }
 };
@@ -52,6 +55,7 @@ test "System should render fps" {
   var system = System.init(&world);
 
   _ = world.entity("timeline").timeline();
+  _ = world.entity("fps").fps();
 
   // When
   rl.BeginDrawing(); // Ensure consistent FPS
