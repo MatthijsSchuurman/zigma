@@ -65,7 +65,7 @@ pub fn speed(entity: ent.Entity, pitch: f32) ent.Entity {
 pub fn seek(entity: ent.Entity, seconds: f32) ent.Entity {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return entity;
 
-  rl.SeekMusicStream(existing.music, seconds * existing.speed);
+  rl.SeekMusicStream(existing.music, seconds);
   return entity;
 }
 
