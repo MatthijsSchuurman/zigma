@@ -153,7 +153,7 @@ pub const System = struct {
       .PingPong => 1.0 - @abs(progress * 2.0 - 1.0),
       .PongPing => @abs(progress * 2.0 - 1.0),
       .Random => {
-        var prng = std.rand.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
+        var prng = std.Random.DefaultPrng.init(@intCast(std.time.nanoTimestamp()));
         return prng.random().float(f32);
       }
     };

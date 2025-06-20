@@ -69,7 +69,7 @@ test "System should update color" {
   const entity = world.entity("test").color(255, 128, 0, 100);
   const event = world.entity("test event").color(0, 128, 255, 200);
 
-  const new = .{.target_id = entity.id, .progress = 0.5};
+  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);

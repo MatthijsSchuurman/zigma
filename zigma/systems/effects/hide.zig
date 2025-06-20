@@ -60,7 +60,7 @@ test "System should update hide" {
   const entity = world.entity("test");
   const event = world.entity("test event").hide();
 
-  const new = .{.target_id = entity.id, .progress = 0.5};
+  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
