@@ -57,7 +57,7 @@ test "System should update position" {
   const entity = world.entity("test").position(0, 0, 0);
   const event = world.entity("test event").position(1, -1, 100);
 
-  const new = .{.target_id = entity.id, .progress = 0.5};
+  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);

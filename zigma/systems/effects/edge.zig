@@ -76,7 +76,7 @@ test "System should update edge" {
   const entity = world.entity("test").edge(.{.width = 1, .color = rl.Color{.r = 255, .g = 128, .b = 0, .a = 100}});
   const event = world.entity("test event").edge(.{.width = 2, .color = rl.Color{.r = 0, .g = 128, .b = 255, .a = 200}});
 
-  const new = .{.target_id = entity.id, .progress = 0.5};
+  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
