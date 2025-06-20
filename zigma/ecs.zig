@@ -247,13 +247,13 @@ fn ComponentStores() type {
     f[i] = .{
       .name          = toLower(d.name),
       .type          = std.AutoHashMap(ent.EntityID, T),
-      .default_value = null,
+      .default_value_ptr = null,
       .is_comptime   = false,
       .alignment     = 0,
     };
   }
 
-  return @Type(.{ .Struct = .{
+  return @Type(.{ .@"struct" = .{
     .layout   = .auto,
     .fields   = &f,
     .decls    = &.{},
@@ -270,13 +270,13 @@ fn SystemStores() type {
     f[i] = .{
       .name          = toLower(d.name),
       .type          = T,
-      .default_value = null,
+      .default_value_ptr = null,
       .is_comptime   = false,
       .alignment     = 0,
     };
   }
 
-  return @Type(.{ .Struct = .{
+  return @Type(.{ .@"struct" = .{
     .layout   = .auto,
     .fields   = &f,
     .decls    = &.{},
@@ -286,6 +286,8 @@ fn SystemStores() type {
 
 pub fn toLower(comptime s: []const u8) [:0]const u8 {
   var buf: [s.len + 1]u8 = undefined;
+
+  @setEvalBranchQuota(10000); // Needed for comptime usage
   for (s, 0..) |c, i|
     buf[i] = std.ascii.toLower(c);
 
@@ -326,7 +328,7 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
       .gte => false,
     };
 
-  if (@typeInfo(T) == .Pointer)
+  if (@typeInfo(T) == .pointer)
     return switch (cond) {
       .eq => actual == cond.eq,
       .not => actual != cond.not,
@@ -336,7 +338,7 @@ pub fn matchField(comptime T: type, actual: T, cond: FieldFilter(T)) bool {
       .gte => false,
     };
 
-  if (@typeInfo(T) == .Optional)
+  if (@typeInfo(T) == .optional)
     return switch (cond) {
       .eq => actual != null and cond.eq != null and actual.? == cond.eq.?,
       .not => actual != null and cond.not != null and actual.? != cond.not.?,

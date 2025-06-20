@@ -17,7 +17,7 @@ pub const Event = struct {
 };
 
 pub fn add(entity: ent.Entity, params: Event) ent.Entity {
-  if (params.end == undefined and params.duration == undefined)
+  if (params.end == null and params.duration == null)
     @panic("Event end or duration must be provided");
 
   if (params.repeat < 1)
