@@ -11,65 +11,40 @@ pub const raylib = @cImport({
 });
 const rl = raylib;
 
+
 const ent = @import("entity.zig");
 
-//Components
-pub const Components = struct {
-  pub const Timeline = @import("components/timeline.zig");
-  pub const TimelineEvent = @import("components/timelineevent.zig");
-  pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
-  pub const Music = @import("components/music.zig");
-  pub const SubWorld = @import("components/subworld.zig");
 
-  pub const Dirty = @import("components/dirty.zig");
-  pub const Camera = @import("components/camera.zig");
+// Modules
+const modules = [_]type{
+  @import("modules/timeline/ecs.zig"),
+  @import("modules/music/ecs.zig"),
+  @import("modules/subworld/ecs.zig"),
 
-  pub const Spawn = @import("components/spawn.zig");
-  pub const Position = @import("components/position.zig");
-  pub const Rotation = @import("components/rotation.zig");
-  pub const Scale = @import("components/scale.zig");
-  pub const Color = @import("components/color.zig");
-  pub const Edge = @import("components/edge.zig");
-  pub const Hide = @import("components/hide.zig");
+  @import("modules/dirty/ecs.zig"),
+  @import("modules/hide/ecs.zig"),
 
-  pub const Shader = @import("components/shader.zig");
-  pub const Light = @import("components/light.zig");
-  pub const Material = @import("components/material.zig");
-  pub const Model = @import("components/model.zig");
-  pub const Text = @import("components/text.zig");
-  pub const FPS = @import("components/fps.zig");
+  @import("modules/model/ecs.zig"),
+  @import("modules/camera/ecs.zig"),
+  @import("modules/shader/ecs.zig"),
+  @import("modules/light/ecs.zig"),
+
+  @import("modules/transform/ecs.zig"),
+  @import("modules/material/ecs.zig"),
+  @import("modules/color/ecs.zig"),
+  @import("modules/edge/ecs.zig"),
+
+  @import("modules/spawn/ecs.zig"),
+
+  @import("modules/background/ecs.zig"),
+  @import("modules/text/ecs.zig"),
+  @import("modules/fps/ecs.zig"),
 };
+
+pub const Components = LoadModules(&modules, "Components");
+pub const Systems = LoadModules(&modules, "Systems");
 
 const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
-
-
-//Systems
-pub const Systems = struct {
-  pub const Timeline = @import("systems/timeline.zig");
-  pub const Music = @import("systems/music.zig");
-  pub const SubWorld = @import("systems/subworld.zig");
-
-  pub const Dirty = @import("systems/dirty.zig");
-  pub const Camera = @import("systems/camera.zig");
-  pub const Shader = @import("systems/shader.zig");
-  pub const Light = @import("systems/light.zig");
-
-  // Effects
-  pub const Effects_Spawn = @import("systems/effects/spawn.zig");
-  pub const Effects_Position = @import("systems/effects/position.zig");
-  pub const Effects_Rotation = @import("systems/effects/rotation.zig");
-  pub const Effects_Scale = @import("systems/effects/scale.zig");
-  pub const Effects_Color = @import("systems/effects/color.zig");
-  pub const Effects_Edge = @import("systems/effects/edge.zig");
-  pub const Effects_Hide = @import("systems/effects/hide.zig");
-
-  // Render
-  pub const Render_Background = @import("systems/render/background.zig");
-  pub const Render_Model = @import("systems/render/model.zig");
-  pub const Render_Text = @import("systems/render/text.zig");
-  pub const FPS = @import("systems/render/fps.zig");
-};
-
 const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
 
 
@@ -80,7 +55,7 @@ pub const World = struct {
   entity_id: ent.EntityID = 1, // 0 is no entry
   entities: std.StringHashMap(ent.EntityID),
 
- components: ComponentStores(),
+  components: ComponentStores(),
   systems: SystemStores(),
 
   pub fn init(allocator: std.mem.Allocator) World {
@@ -238,25 +213,64 @@ pub const World = struct {
 
 
 // Utils
+fn LoadModules(comptime mods: []const type, ecsType: []const u8) type {
+  var fields: [100]std.builtin.Type.StructField = undefined;
+  var fields_count: usize = 0;
+
+  inline for (mods) |mod| {
+    if (!@hasDecl(mod, "Module"))
+      @compileError("Module struct not found for " ++ @typeName(mod));
+
+    const M = @field(mod, "Module");
+    if (@hasDecl(M, ecsType)) {
+      const S = @field(M, ecsType);
+
+      @compileLog(S);
+      inline for (@typeInfo(S).@"struct".decls) |f| {
+        @compileLog(f.name);
+        const field = @field(S, f.name);
+        fields[fields_count] = .{
+          .name = f.name,
+          .type = @TypeOf(field),
+          .default_value_ptr = null,
+          .is_comptime = false,
+          .alignment = @alignOf(@TypeOf(field)),
+        };
+
+        fields_count += 1;
+      }
+    }
+  }
+
+  return @Type(.{ .@"struct" = .{
+    .layout = .auto,
+    .fields = fields[0..fields_count],
+    .decls = &.{},
+    .is_tuple = false,
+  }});
+}
+
 fn ComponentStores() type {
   const ds = std.meta.declarations(Components);
   var f: [ds.len]std.builtin.Type.StructField = undefined;
 
   inline for (ds, 0..) |d, i| {
+
+    std.debug.print("{} {d}\n", .{d.name, i });
     const T = @field(Components, d.name).Component;
     f[i] = .{
-      .name          = toLower(d.name),
-      .type          = std.AutoHashMap(ent.EntityID, T),
+      .name = toLower(d.name),
+      .type = std.AutoHashMap(ent.EntityID, T),
       .default_value_ptr = null,
-      .is_comptime   = false,
-      .alignment     = 0,
+      .is_comptime = false,
+      .alignment = 0,
     };
   }
 
   return @Type(.{ .@"struct" = .{
-    .layout   = .auto,
-    .fields   = &f,
-    .decls    = &.{},
+    .layout = .auto,
+    .fields = &f,
+    .decls = &.{},
     .is_tuple = false,
   }});
 }
@@ -268,18 +282,18 @@ fn SystemStores() type {
   inline for (ds, 0..) |d, i| {
     const T = @field(Systems, d.name).System;
     f[i] = .{
-      .name          = toLower(d.name),
-      .type          = T,
+      .name = toLower(d.name),
+      .type = T,
       .default_value_ptr = null,
-      .is_comptime   = false,
-      .alignment     = 0,
+      .is_comptime = false,
+      .alignment = 0,
     };
   }
 
   return @Type(.{ .@"struct" = .{
-    .layout   = .auto,
-    .fields   = &f,
-    .decls    = &.{},
+    .layout = .auto,
+    .fields = &f,
+    .decls = &.{},
     .is_tuple = false,
   }});
 }

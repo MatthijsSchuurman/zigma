@@ -1,5 +1,4 @@
 const zigma = @import("zigma");
-const std = @import("std");
 
 pub fn main() void {
   zigma.init(.{.title = "Zigma test", .width = 1920, .height = 1080, .fps = 120});
