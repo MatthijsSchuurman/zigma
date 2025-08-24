@@ -44,8 +44,8 @@ const modules = [_]type{
 pub const Components = LoadModules(&modules, "Components");
 pub const Systems = LoadModules(&modules, "Systems");
 
-const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
-const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
+const ComponentHashTypes = GetComponentHashTypes();
+const SystemTypes = GetSystemTypes();
 
 
 // World
@@ -55,8 +55,8 @@ pub const World = struct {
   entity_id: ent.EntityID = 1, // 0 is no entry
   entities: std.StringHashMap(ent.EntityID),
 
-  components: ComponentStores(),
-  systems: SystemStores(),
+  components: ComponentHashTypes,
+  systems: SystemTypes,
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
@@ -66,19 +66,15 @@ pub const World = struct {
       .systems = undefined,
     };
 
-    inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Component;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(ent.EntityID, T).init(allocator);
-    }
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      @field(self.components, toLower(field.name)) = field.type.init(allocator);
 
     return self;
   }
 
   pub fn initSystems(self: *World) void {
-    inline for (SystemDeclarations) |declaration| {
-      const T = @field(Systems, declaration.name).System;
-      @field(self.systems, toLower(declaration.name)) = T.init(self);
-    }
+    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+      @field(self.systems, toLower(field.name)) = field.type.init(self);
   }
 
   pub fn deinit(self: *World) void {
@@ -88,15 +84,12 @@ pub const World = struct {
 
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration|
-      @field(self.components, toLower(declaration.name)).deinit();
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      @field(self.components, toLower(field.name)).deinit();
 
-    inline for (SystemDeclarations) |declaration| {
-      const T = @field(Systems, declaration.name).System;
-
-      if (@hasDecl(T, "deinit"))
-        @field(self.systems, toLower(declaration.name)).deinit();
-    }
+    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+      if (@hasDecl(field.type, "deinit"))
+        @field(self.systems, toLower(field.name)).deinit();
   }
 
   // Entity
@@ -138,10 +131,8 @@ pub const World = struct {
   pub fn entityDelete(self: *World, id: ent.EntityID) void {
     self.entityWrap(id).deinit();
 
-    inline for (ComponentDeclarations) |declaration| {
-      var components = &@field(self.components, toLower(declaration.name));
-      _ = components.remove(id);
-    }
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      @field(self.components, toLower(field.name)).remove(id);
   }
 
   // Render
@@ -217,31 +208,37 @@ fn LoadModules(comptime mods: []const type, ecsType: []const u8) type {
   var fields: [100]std.builtin.Type.StructField = undefined;
   var fields_count: usize = 0;
 
+  const ecsTypeSingular = if (std.mem.eql(u8, ecsType, "Systems")) "System" else "Component";
+
   inline for (mods) |mod| {
     if (!@hasDecl(mod, "Module"))
       @compileError("Module struct not found for " ++ @typeName(mod));
 
     const M = @field(mod, "Module");
-    if (@hasDecl(M, ecsType)) {
-      const S = @field(M, ecsType);
+    if (!@hasDecl(M, ecsType)) // Only check Components / Systems
+      continue;
 
-      @compileLog(S);
-      inline for (@typeInfo(S).@"struct".decls) |f| {
-        @compileLog(f.name);
-        const field = @field(S, f.name);
-        fields[fields_count] = .{
-          .name = f.name,
-          .type = @TypeOf(field),
-          .default_value_ptr = null,
-          .is_comptime = false,
-          .alignment = @alignOf(@TypeOf(field)),
-        };
+    const S = @field(M, ecsType);
+    inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Components / Systems declarations
+      const D = @field(S, decl.name);
 
-        fields_count += 1;
-      }
+      //if (!@hasField(D, ecsTypeSingular)) // declaration must have Component / System struct
+      //  continue;
+
+      const T = @field(D, ecsTypeSingular);
+      fields[fields_count] = .{
+        .name = decl.name,
+        .type = T,
+        .default_value_ptr = null,
+        .is_comptime = false,
+        .alignment = @alignOf(T),
+      };
+
+      fields_count += 1;
     }
   }
 
+  @compileLog(fields_count);
   return @Type(.{ .@"struct" = .{
     .layout = .auto,
     .fields = fields[0..fields_count],
@@ -250,49 +247,49 @@ fn LoadModules(comptime mods: []const type, ecsType: []const u8) type {
   }});
 }
 
-fn ComponentStores() type {
-  const ds = std.meta.declarations(Components);
-  var f: [ds.len]std.builtin.Type.StructField = undefined;
+fn GetComponentHashTypes() type {
+  const components = @typeInfo(Components).@"struct";
+  var fields: [components.fields.len]std.builtin.Type.StructField = undefined;
 
-  inline for (ds, 0..) |d, i| {
-
-    std.debug.print("{} {d}\n", .{d.name, i });
-    const T = @field(Components, d.name).Component;
-    f[i] = .{
-      .name = toLower(d.name),
-      .type = std.AutoHashMap(ent.EntityID, T),
+  @compileLog("Components");
+  inline for (components.fields, 0..) |field, i| {
+    @compileLog(field.name, field.type);
+    fields[i] = .{
+      .name = toLower(field.name),
+      .type = std.AutoHashMap(ent.EntityID, field.type),
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = 0,
+      .alignment = @alignOf(field.type),
     };
   }
 
   return @Type(.{ .@"struct" = .{
     .layout = .auto,
-    .fields = &f,
+    .fields = fields[0..],
     .decls = &.{},
     .is_tuple = false,
   }});
 }
 
-fn SystemStores() type {
-  const ds = std.meta.declarations(Systems);
-  var f: [ds.len]std.builtin.Type.StructField = undefined;
+fn GetSystemTypes() type {
+  const systems = @typeInfo(Systems).@"struct";
+  var fields: [systems.fields.len]std.builtin.Type.StructField = undefined;
 
-  inline for (ds, 0..) |d, i| {
-    const T = @field(Systems, d.name).System;
-    f[i] = .{
-      .name = toLower(d.name),
-      .type = T,
+  @compileLog("Systems");
+  inline for (systems.fields, 0..) |field, i| {
+    @compileLog(field.name, field.type);
+    fields[i] = .{
+      .name = toLower(field.name),
+      .type = field.type,
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = 0,
+      .alignment = @alignOf(field.type),
     };
   }
 
   return @Type(.{ .@"struct" = .{
     .layout = .auto,
-    .fields = &f,
+    .fields = fields[0..],
     .decls = &.{},
     .is_tuple = false,
   }});
