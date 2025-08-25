@@ -3,9 +3,11 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
+const ComponentEdge = @import("component.zig");
+
 pub const System = struct {
   world: *ecs.World,
-  start_edges: std.AutoHashMap(ent.EntityID, ecs.Components.Edge.Component),
+  start_edges: std.AutoHashMap(ent.EntityID, ComponentEdge.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -13,7 +15,7 @@ pub const System = struct {
       .start_edges = undefined,
     };
 
-    self.start_edges = std.AutoHashMap(ent.EntityID, ecs.Components.Edge.Component).init(world.allocator);
+    self.start_edges = std.AutoHashMap(ent.EntityID, ComponentEdge.Component).init(world.allocator);
     return self;
   }
 
@@ -28,7 +30,7 @@ pub const System = struct {
       const event = entry.value_ptr.*;
       const target_id = event.target_id orelse continue;
 
-      var start: ecs.Components.Edge.Component = undefined;
+      var start: ComponentEdge.Component = undefined;
       if (self.start_edges.get(id)) |cached| {
         start = cached;
       } else if (self.world.components.edge.getPtr(target_id)) |target_edge| { // Use current edge of target entity
@@ -70,13 +72,15 @@ const tst = std.testing;
 
 test "System should update edge" {
   // Given
+  const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
   const entity = world.entity("test").edge(.{.width = 1, .color = rl.Color{.r = 255, .g = 128, .b = 0, .a = 100}});
   const event = world.entity("test event").edge(.{.width = 2, .color = rl.Color{.r = 0, .g = 128, .b = 255, .a = 200}});
 
-  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
+  const new = ComponentTimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
@@ -87,7 +91,7 @@ test "System should update edge" {
 
   // Then
   if (entity.world.components.edge.get(entity.id)) |edge|
-    try tst.expectEqual(ecs.Components.Edge.Component{.width = 1.5, .color = rl.Color{.r = 128, .g = 128, .b = 128, .a = 150}}, edge)
+    try tst.expectEqual(ComponentEdge.Component{.width = 1.5, .color = rl.Color{.r = 128, .g = 128, .b = 128, .a = 150}}, edge)
    else
     return error.TestExpectedEdge;
 }

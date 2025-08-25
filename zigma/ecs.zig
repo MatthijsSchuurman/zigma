@@ -141,13 +141,13 @@ pub const World = struct {
     self.systems.timeline.update();
     self.systems.music.update();
 
-    self.systems.effects_hide.update();
-    self.systems.effects_position.update();
-    self.systems.effects_rotation.update();
-    self.systems.effects_scale.update();
-    self.systems.effects_color.update();
-    self.systems.effects_edge.update();
-    self.systems.effects_spawn.update();
+    self.systems.hide.update();
+    self.systems.position.update();
+    self.systems.rotation.update();
+    self.systems.scale.update();
+    self.systems.color.update();
+    self.systems.edge.update();
+    self.systems.spawn.update();
 
     self.systems.camera.update();
     self.systems.shader.update();
@@ -157,13 +157,13 @@ pub const World = struct {
     // Render
     const success = self.systems.subworld.render();
 
-    self.systems.render_background.render();
+    self.systems.background.render();
 
     self.systems.camera.start();
-    self.systems.render_model.render();
+    self.systems.model.render();
     self.systems.camera.stop();
 
-    self.systems.render_text.render();
+    self.systems.text.render();
     self.systems.fps.render();
 
     self.systems.dirty.clean();
@@ -256,7 +256,7 @@ fn GetComponentHashTypes() type {
       .type = std.AutoHashMap(ent.EntityID, field.type.Component),
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = @alignOf(field.type.Component),
+      .alignment = @alignOf(std.AutoHashMap(ent.EntityID, field.type.Component)),
     };
   }
 

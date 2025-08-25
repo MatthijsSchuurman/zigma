@@ -3,6 +3,8 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
+const SystemModel = @import("../model/system.zig");
+
 pub const System = struct {
   world: *ecs.World,
 
@@ -20,7 +22,7 @@ pub const System = struct {
 
       if (self.world.components.dirty.getPtr(spawn.source_model_id)) |dirty| { // Spawn dirty
         if (dirty.position or dirty.rotation or dirty.scale) {
-          const transform = ecs.Systems.Render_Model.System.transform(
+          const transform = SystemModel.System.transform(
             self.world.components.position.get(spawn.source_model_id) orelse unreachable,
             self.world.components.rotation.get(spawn.source_model_id) orelse unreachable,
             self.world.components.scale.get(spawn.source_model_id) orelse unreachable,
@@ -42,7 +44,7 @@ pub const System = struct {
             };
             position = rl.Vector3Transform(position, transform);
 
-            model.transforms.?.items[i] = ecs.Systems.Render_Model.System.transform(
+            model.transforms.?.items[i] = SystemModel.System.transform(
               position,
               rotation.*,
               scale.*,

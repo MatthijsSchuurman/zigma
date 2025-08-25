@@ -1,6 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const EntityTimelineEventProgress = @import("entity_timelineeventprogress.zig");
+const ComponentTimeline = @import("component_timeline.zig");
+const ComponentTimelineEvent = @import("component_timelineevent.zig");
+const ComponentTimelineEventProgress = @import("component_timelineeventprogress.zig");
 
 const timePrecision: f32 = 0.000001;
 
@@ -27,7 +30,7 @@ pub const System = struct {
     //   //get related events
     //   const event_entry = self.world.components.timelineevent.getPtr(id) orelse continue;
     //
-    //   const related_ids = ecs.Components.TimelineEvent.Query.exec(self.world,
+    //   const related_ids = ComponentTimelineEvent.Query.exec(self.world,
     //     .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
     //     &.{.end_desc},
     //    );
@@ -135,7 +138,7 @@ pub const System = struct {
     }
   }
 
-  fn progressCalculation(timelineCurrent :f32, event: ecs.Components.TimelineEvent.Component) f32 {
+  fn progressCalculation(timelineCurrent :f32, event: ComponentTimelineEvent.Component) f32 {
     const total_time = event.end - event.start;
     const total_elapsed = timelineCurrent - event.start;
     const repeat: f32 = @floatFromInt(@max(1, event.repeat));
@@ -161,7 +164,7 @@ pub const System = struct {
     return progress;
   }
 
-  fn motionCalculation(t: f32, event: ecs.Components.TimelineEvent.Component) f32 {
+  fn motionCalculation(t: f32, event: ComponentTimelineEvent.Component) f32 {
     const progress = switch (event.motion) {
       .Instant => if (t >= 1.0) @as(f32, 1.0) else @as(f32, 0.0),
       .Linear => t,
@@ -199,7 +202,7 @@ test "System should determine time" {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
 
-    try tst.expectEqual(ecs.Components.Timeline.Component{
+    try tst.expectEqual(ComponentTimeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.0,
       .timePrevious = 0.0,
@@ -223,7 +226,7 @@ test "System should determine time" {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
 
-    try tst.expectEqual(ecs.Components.Timeline.Component{
+    try tst.expectEqual(ComponentTimeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.001,
       .timePrevious = 0.0,
@@ -251,7 +254,7 @@ test "System should determine offset" {
 
   // Then
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
-    try tst.expectEqual(ecs.Components.Timeline.Component{
+    try tst.expectEqual(ComponentTimeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.5,
       .timePrevious = 0.0,
@@ -285,7 +288,7 @@ test "System should determine Tenet time" {
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
-    try tst.expectEqual(ecs.Components.Timeline.Component{
+    try tst.expectEqual(ComponentTimeline.Component{
       .speed = -1.0,
       .timeCurrent = -0.001,
       .timePrevious = 0.0,
@@ -316,7 +319,7 @@ test "System should process events" {
 
   // Then
   if (entity.world.components.timelineeventprogress.get(event.id)) |timelineeventprogress| {
-    try tst.expectEqual(ecs.Components.TimelineEventProgress.Component{
+    try tst.expectEqual(ComponentTimelineEventProgress.Component{
       .progress = 0.5,
       .target_id = event.parent_id,
     }, timelineeventprogress);
@@ -328,13 +331,13 @@ test "System should process events" {
 
 test "System should process calculation" {
   // Given
-  var event = ecs.Components.TimelineEvent.Component{
+  var event = ComponentTimelineEvent.Component{
     .timeline_id = 0,
     .start = 0.0,
     .end = 1.0,
     .repeat = 1,
-    .pattern = ecs.Components.TimelineEvent.Pattern.Forward,
-    .motion = ecs.Components.TimelineEvent.Motion.Linear,
+    .pattern = ComponentTimelineEvent.Pattern.Forward,
+    .motion = ComponentTimelineEvent.Motion.Linear,
     .target_id = 0,
   };
 
@@ -349,7 +352,7 @@ test "System should process calculation" {
 
 
   // Given
-  event.pattern = ecs.Components.TimelineEvent.Pattern.Reverse;
+  event.pattern = ComponentTimelineEvent.Pattern.Reverse;
 
   i = 0;
   while (i <= 1.0) : (i += 0.1) {
@@ -363,13 +366,13 @@ test "System should process calculation" {
 
 test "System should motion calculation" {
   // Given
-  var event = ecs.Components.TimelineEvent.Component{
+  var event = ComponentTimelineEvent.Component{
     .timeline_id = 0,
     .start = 0.0,
     .end = 1.0,
     .repeat = 1,
-    .pattern = ecs.Components.TimelineEvent.Pattern.Forward,
-    .motion = ecs.Components.TimelineEvent.Motion.Linear,
+    .pattern = ComponentTimelineEvent.Pattern.Forward,
+    .motion = ComponentTimelineEvent.Motion.Linear,
     .target_id = 0,
   };
 
@@ -384,7 +387,7 @@ test "System should motion calculation" {
 
 
   // Given
-  event.motion = ecs.Components.TimelineEvent.Motion.EaseIn;
+  event.motion = ComponentTimelineEvent.Motion.EaseIn;
 
   i = 0;
   while (i <= 1.0) : (i += 0.1) {

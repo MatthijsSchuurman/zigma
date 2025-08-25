@@ -2,11 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const component = @import("component.zig");
+const ComponentColor = @import("component.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_colors: std.AutoHashMap(ent.EntityID, component.Component),
+  start_colors: std.AutoHashMap(ent.EntityID, ComponentColor.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -14,7 +14,7 @@ pub const System = struct {
       .start_colors = undefined,
     };
 
-    self.start_colors = std.AutoHashMap(ent.EntityID, ecs.Components.Color.Component).init(world.allocator);
+    self.start_colors = std.AutoHashMap(ent.EntityID, ComponentColor.Component).init(world.allocator);
     return self;
   }
 
@@ -29,7 +29,7 @@ pub const System = struct {
       const event = entry.value_ptr.*;
       const target_id = event.target_id orelse continue;
 
-      var start: ecs.Components.Color.Component = undefined;
+      var start: ComponentColor.Component = undefined;
       if (self.start_colors.get(id)) |cached| {
         start = cached;
       } else if (self.world.components.color.getPtr(target_id)) |target_color| { // Use current color of target entity
@@ -65,13 +65,15 @@ const tst = std.testing;
 
 test "System should update color" {
   // Given
+  const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
   const entity = world.entity("test").color(255, 128, 0, 100);
   const event = world.entity("test event").color(0, 128, 255, 200);
 
-  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
+  const new = ComponentTimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
@@ -82,7 +84,7 @@ test "System should update color" {
 
   // Then
   if (entity.world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.r = 128, .g = 128, .b = 128, .a = 150}, color)
+    try tst.expectEqual(ComponentColor.Component{.r = 128, .g = 128, .b = 128, .a = 150}, color)
    else
     return error.TestExpectedColor;
 

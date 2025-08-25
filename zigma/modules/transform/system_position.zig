@@ -2,11 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const component = @import("component_position.zig");
+const ComponentPosition = @import("component_position.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_positions: std.AutoHashMap(ent.EntityID, component.Component),
+  start_positions: std.AutoHashMap(ent.EntityID, ComponentPosition.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -14,7 +14,7 @@ pub const System = struct {
       .start_positions = undefined,
     };
 
-    self.start_positions = std.AutoHashMap(ent.EntityID, ecs.Components.Position.Component).init(world.allocator);
+    self.start_positions = std.AutoHashMap(ent.EntityID, ComponentPosition.Component).init(world.allocator);
     return self;
   }
 
@@ -29,7 +29,7 @@ pub const System = struct {
       const event = entry.value_ptr.*;
       const target_id = event.target_id orelse continue;
 
-      var start: ecs.Components.Position.Component = undefined;
+      var start: ComponentPosition.Component = undefined;
       if (self.start_positions.get(id)) |cached| {
         start = cached;
       } else if (self.world.components.position.getPtr(target_id)) |target_position| { // Use current position of target entity
@@ -53,13 +53,15 @@ const tst = std.testing;
 
 test "System should update position" {
   // Given
+  const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
   const entity = world.entity("test").position(0, 0, 0);
   const event = world.entity("test event").position(1, -1, 100);
 
-  const new = ecs.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
+  const new = ComponentTimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
@@ -70,7 +72,7 @@ test "System should update position" {
 
   // Then
   if (entity.world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = 0.5, .y = -0.5, .z = 50}, position)
+    try tst.expectEqual(ComponentPosition.Component{.x = 0.5, .y = -0.5, .z = 50}, position)
    else
     return error.TestExpectedPosition;
 

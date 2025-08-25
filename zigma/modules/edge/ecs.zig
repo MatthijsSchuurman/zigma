@@ -7,7 +7,7 @@ pub const Module = struct {
     pub const Edge = @import("component.zig");
   };
 
-  pub const System = struct {
+  pub const Systems = struct {
     pub const Edge = @import("system.zig");
   };
 };
