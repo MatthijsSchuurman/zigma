@@ -83,9 +83,9 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/ecs.zig");
-const ModuleShader = @import("../shader/ecs.zig");
-const ModuleCamera = @import("../camera/ecs.zig");
+const ModuleModel = @import("../model/module.zig");
+const ModuleShader = @import("../shader/module.zig");
+const ModuleCamera = @import("../camera/module.zig");
 
 test "System should update light" {
   // Given

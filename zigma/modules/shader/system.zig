@@ -34,9 +34,9 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/ecs.zig");
-const ModuleLight = @import("../light/ecs.zig");
-const ModuleCamera = @import("../camera/ecs.zig");
+const ModuleModel = @import("../model/module.zig");
+const ModuleLight = @import("../light/module.zig");
+const ModuleCamera = @import("../camera/module.zig");
 
 test "System should update shader" {
   // Given

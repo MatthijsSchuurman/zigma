@@ -17,28 +17,28 @@ const ent = @import("entity.zig");
 
 // Modules
 const modules = [_]type{
-  @import("modules/timeline/ecs.zig"),
-  @import("modules/music/ecs.zig"),
-  @import("modules/subworld/ecs.zig"),
+  @import("modules/timeline/module.zig"),
+  @import("modules/music/module.zig"),
+  @import("modules/subworld/module.zig"),
 
-  @import("modules/dirty/ecs.zig"),
-  @import("modules/hide/ecs.zig"),
+  @import("modules/dirty/module.zig"),
+  @import("modules/hide/module.zig"),
 
-  @import("modules/model/ecs.zig"),
-  @import("modules/camera/ecs.zig"),
-  @import("modules/shader/ecs.zig"),
-  @import("modules/light/ecs.zig"),
+  @import("modules/model/module.zig"),
+  @import("modules/camera/module.zig"),
+  @import("modules/shader/module.zig"),
+  @import("modules/light/module.zig"),
 
-  @import("modules/transform/ecs.zig"),
-  @import("modules/material/ecs.zig"),
-  @import("modules/color/ecs.zig"),
-  @import("modules/edge/ecs.zig"),
+  @import("modules/transform/module.zig"),
+  @import("modules/material/module.zig"),
+  @import("modules/color/module.zig"),
+  @import("modules/edge/module.zig"),
 
-  @import("modules/spawn/ecs.zig"),
+  @import("modules/spawn/module.zig"),
 
-  @import("modules/background/ecs.zig"),
-  @import("modules/text/ecs.zig"),
-  @import("modules/fps/ecs.zig"),
+  @import("modules/background/module.zig"),
+  @import("modules/text/module.zig"),
+  @import("modules/fps/module.zig"),
 };
 
 pub const Components = LoadModules(&modules, "Components");
@@ -209,7 +209,12 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
   var fields: [100]std.builtin.Type.StructField = undefined;
   var fields_count: usize = 0;
 
-  const ecsTypeSingular = if (std.mem.eql(u8, ecsType, "Systems")) "System" else "Component";
+  const ecsTypeSingular =
+         if (std.mem.eql(u8, ecsType, "Entities")) "Entity"
+    else if (std.mem.eql(u8, ecsType, "EntityHooks")) "EntityHook"
+    else if (std.mem.eql(u8, ecsType, "Components")) "Component"
+    else if (std.mem.eql(u8, ecsType, "Systems")) "System"
+    else @compileError("Unexpected ecsType");
 
   inline for (mods) |mod| {
     if (!@hasDecl(mod, "Module"))

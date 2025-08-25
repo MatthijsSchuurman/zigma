@@ -50,7 +50,7 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/ecs.zig");
+const ModuleModel = @import("../model/module.zig");
 const EntitySpawn = @import("entity.zig");
 
 test "Query should filter" {

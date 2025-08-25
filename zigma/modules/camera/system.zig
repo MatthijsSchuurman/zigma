@@ -65,7 +65,7 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/ecs.zig");
+const ModuleModel = @import("../model/module.zig");
 
 test "System should update camera" {
   // Given
