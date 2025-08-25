@@ -2,9 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
+const component = @import("component_rotation.zig");
+
 pub const System = struct {
   world: *ecs.World,
-  start_rotations: std.AutoHashMap(ent.EntityID, ecs.Components.Rotation.Component),
+  start_rotations: std.AutoHashMap(ent.EntityID, component.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{

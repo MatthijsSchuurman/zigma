@@ -2,9 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
+const component = @import("component.zig");
+
 pub const System = struct {
   world: *ecs.World,
-  start_colors: std.AutoHashMap(ent.EntityID, ecs.Components.Color.Component),
+  start_colors: std.AutoHashMap(ent.EntityID, component.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{

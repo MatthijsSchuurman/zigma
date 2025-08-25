@@ -73,8 +73,9 @@ pub const World = struct {
   }
 
   pub fn initSystems(self: *World) void {
-    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+    inline for (@typeInfo(SystemTypes).@"struct".fields) |field| {
       @field(self.systems, toLower(field.name)) = field.type.init(self);
+    }
   }
 
   pub fn deinit(self: *World) void {
@@ -204,7 +205,7 @@ pub const World = struct {
 
 
 // Utils
-fn LoadModules(comptime mods: []const type, ecsType: []const u8) type {
+fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
   var fields: [100]std.builtin.Type.StructField = undefined;
   var fields_count: usize = 0;
 
@@ -222,23 +223,21 @@ fn LoadModules(comptime mods: []const type, ecsType: []const u8) type {
     inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Components / Systems declarations
       const D = @field(S, decl.name);
 
-      //if (!@hasField(D, ecsTypeSingular)) // declaration must have Component / System struct
-      //  continue;
+      if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Component / System struct
+        continue;
 
-      const T = @field(D, ecsTypeSingular);
       fields[fields_count] = .{
         .name = decl.name,
-        .type = T,
+        .type = D,
         .default_value_ptr = null,
         .is_comptime = false,
-        .alignment = @alignOf(T),
+        .alignment = @alignOf(D),
       };
 
       fields_count += 1;
     }
   }
 
-  @compileLog(fields_count);
   return @Type(.{ .@"struct" = .{
     .layout = .auto,
     .fields = fields[0..fields_count],
@@ -251,15 +250,13 @@ fn GetComponentHashTypes() type {
   const components = @typeInfo(Components).@"struct";
   var fields: [components.fields.len]std.builtin.Type.StructField = undefined;
 
-  @compileLog("Components");
   inline for (components.fields, 0..) |field, i| {
-    @compileLog(field.name, field.type);
     fields[i] = .{
       .name = toLower(field.name),
-      .type = std.AutoHashMap(ent.EntityID, field.type),
+      .type = std.AutoHashMap(ent.EntityID, field.type.Component),
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = @alignOf(field.type),
+      .alignment = @alignOf(field.type.Component),
     };
   }
 
@@ -275,15 +272,13 @@ fn GetSystemTypes() type {
   const systems = @typeInfo(Systems).@"struct";
   var fields: [systems.fields.len]std.builtin.Type.StructField = undefined;
 
-  @compileLog("Systems");
   inline for (systems.fields, 0..) |field, i| {
-    @compileLog(field.name, field.type);
     fields[i] = .{
       .name = toLower(field.name),
-      .type = field.type,
+      .type = field.type.System,
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = @alignOf(field.type),
+      .alignment = @alignOf(field.type.System),
     };
   }
 
