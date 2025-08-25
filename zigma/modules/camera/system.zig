@@ -65,7 +65,6 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/module.zig");
 
 test "System should update camera" {
   // Given
@@ -80,6 +79,8 @@ test "System should update camera" {
 
 test "System should start / stop camera" {
   // Given
+  const ModuleModel = @import("../model/module.zig").Module;
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 

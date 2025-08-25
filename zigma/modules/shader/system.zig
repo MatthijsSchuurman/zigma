@@ -34,12 +34,13 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/module.zig");
-const ModuleLight = @import("../light/module.zig");
-const ModuleCamera = @import("../camera/module.zig");
 
 test "System should update shader" {
   // Given
+  const ModuleModel = @import("../model/module.zig").Module;
+  const ModuleLight = @import("../light/module.zig").Module;
+  const ModuleCamera = @import("../camera/module.zig").Module;
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 

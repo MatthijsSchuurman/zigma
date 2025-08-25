@@ -3,15 +3,15 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentScale = @import("component_scale.zig");
+const Module = @import("module.zig").Module;
 
 pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
   if (entity.world.components.scale.getPtr(entity.id)) |existing| {
-    existing.* = ComponentScale.Component{.x = x, .y = y, .z = z};
+    existing.* = Module.Components.Scale.Component{.x = x, .y = y, .z = z};
     return entity.dirty(&.{.scale});
   }
 
-  const new = ComponentScale.Component{.x = x, .y = y, .z = z };
+  const new = Module.Components.Scale.Component{.x = x, .y = y, .z = z };
   entity.world.components.scale.put(entity.id, new) catch @panic("Failed to store scale");
 
   return entity.dirty(&.{.scale});
@@ -36,7 +36,7 @@ test "Component should set scale" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.scale.get(entity.id)) |scale|
-    try tst.expectEqual(ComponentScale.Component{.x = 1, .y = 2, .z = 3}, scale)
+    try tst.expectEqual(Module.Components.Scale.Component{.x = 1, .y = 2, .z = 3}, scale)
   else
     return error.TestExpectedScale;
 

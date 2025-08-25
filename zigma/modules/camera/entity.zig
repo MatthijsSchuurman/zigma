@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentCamera = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Camera = struct {
   fovy: f32 = 45.0,
@@ -20,7 +20,7 @@ pub fn init(entity: ent.Entity, params: Camera) ent.Entity {
     return entity;
 
   const is_first = entity.world.components.camera.count() == 0;
-  const new = ComponentCamera.Component{
+  const new = Module.Components.Camera.Component{
     .active = is_first,
     .target = .{.x = params.target.x, .y = params.target.y, .z = params.target.z},
     .fovy = params.fovy,
@@ -81,17 +81,17 @@ test "Component should init camera" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 
   if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = 5, .y = 2, .z = 5}, position)
+    try tst.expectEqual(ecs.Module.Components.s.Position.Component{.x = 5, .y = 2, .z = 5}, position)
   else
     return error.TestExpectedPosition;
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0, .y = 1, .z = 0}, rotation)
+    try tst.expectEqual(ecs.Module.Components.s.Rotation.Component{.x = 0, .y = 1, .z = 0}, rotation)
   else
     return error.TestExpectedRotation;
 }
@@ -105,12 +105,12 @@ test "Component should activate camera" {
   const entity2 = world.entity("test2").camera(.{});
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 
   if (world.components.camera.get(entity2.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 
@@ -122,12 +122,12 @@ test "Component should activate camera" {
   try tst.expectEqual(entity2.world, result.world);
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 
   if (world.components.camera.get(entity2.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 }
@@ -148,12 +148,12 @@ test "Component should deactivate camera" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 
   if (world.components.camera.get(entity2.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = false, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 }
@@ -173,7 +173,7 @@ test "Component should set fovy" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 90.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = true, .target = .{.x = 0, .y = 0, .z = 0}, .fovy = 90.0}, camera)
   else
     return error.TestExpectedCamera;
 }
@@ -193,7 +193,7 @@ test "Component should set target" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.camera.get(entity.id)) |camera|
-    try tst.expectEqual(ComponentCamera.Component{.active = true, .target = .{.x = 1, .y = 2, .z = 3}, .fovy = 45.0}, camera)
+    try tst.expectEqual(Module.Components.Camera.Component{.active = true, .target = .{.x = 1, .y = 2, .z = 3}, .fovy = 45.0}, camera)
   else
     return error.TestExpectedCamera;
 }

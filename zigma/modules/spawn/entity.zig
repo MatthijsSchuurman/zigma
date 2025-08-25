@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentSpawn = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Spawn = struct {
   source_model: []const u8 = "",
@@ -22,7 +22,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   const source_entity = entity.world.entity(params.source_model); // May not exists yet
   const source_model = entity.world.components.model.get(source_entity.id) orelse @panic("Spawn requires source model entity to exist");
 
-  var new = ComponentSpawn.Component{
+  var new = Module.Components.Spawn.Component{
     .source_model_id = source_entity.id,
     .vertex_indexes = std.ArrayList(usize).init(entity.world.allocator),
   };
@@ -86,6 +86,9 @@ const zigma = @import("../../ma.zig");
 
 test "Component should init model spawn" {
   // Given
+  const ModuleTransform = @import("../transform/module.zig").Module;
+  const ModuleColor = @import("../color/module.zig").Module;
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -119,17 +122,17 @@ test "Component should init model spawn" {
     return error.TestExpectedModel;
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0, .y = 0, .z = 0}, rotation)
+    try tst.expectEqual(ModuleTransform.Components.Rotation.Component{.x = 0, .y = 0, .z = 0}, rotation)
   else
     return error.TestExpectedRotation;
 
   if (world.components.scale.get(entity.id)) |scale|
-    try tst.expectEqual(ecs.Components.Scale.Component{.x = 0.1, .y = 0.1, .z = 0.1}, scale)
+    try tst.expectEqual(ModuleTransform.Components.Scale.Component{.x = 0.1, .y = 0.1, .z = 0.1}, scale)
   else
     return error.TestExpectedScale;
 
   if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
+    try tst.expectEqual(ModuleColor.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
 }

@@ -50,11 +50,12 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-const ModuleModel = @import("../model/module.zig");
-const EntityEdge = @import("entity.zig");
 
 test "Query should filter" {
   // Given
+  const ModuleModel = @import("../model/module.zig").Module;
+  const EntityEdge = @import("entity.zig");
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 

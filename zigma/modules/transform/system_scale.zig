@@ -2,11 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const ComponentScale = @import("component_scale.zig");
+const Module = @import("module.zig").Module;
 
 pub const System = struct {
   world: *ecs.World,
-  start_scales: std.AutoHashMap(ent.EntityID, ComponentScale.Component),
+  start_scales: std.AutoHashMap(ent.EntityID, Module.Components.Scale.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -14,7 +14,7 @@ pub const System = struct {
       .start_scales = undefined,
     };
 
-    self.start_scales = std.AutoHashMap(ent.EntityID, ComponentScale.Component).init(world.allocator);
+    self.start_scales = std.AutoHashMap(ent.EntityID, Module.Components.Scale.Component).init(world.allocator);
     return self;
   }
 
@@ -29,7 +29,7 @@ pub const System = struct {
       const event = entry.value_ptr.*;
       const target_id = event.target_id orelse continue;
 
-      var start: ComponentScale.Component = undefined;
+      var start: Module.Components.Scale.Component = undefined;
       if (self.start_scales.get(id)) |cached| {
         start = cached;
       } else if (self.world.components.scale.getPtr(target_id)) |target_scale| { // Use current scale of target entity
@@ -53,7 +53,7 @@ const tst = std.testing;
 
 test "System should update scale" {
   // Given
-  const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+  const ModuleTimeline = @import("../timeline/module.zig").Module;
 
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
@@ -61,7 +61,7 @@ test "System should update scale" {
   const entity = world.entity("test").scale(0, 0, 0);
   const event = world.entity("test event").scale(1, -1, 100);
 
-  const new = ComponentTimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
+  const new = ModuleTimeline.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
@@ -72,7 +72,7 @@ test "System should update scale" {
 
   // Then
   if (entity.world.components.scale.get(entity.id)) |scale|
-    try tst.expectEqual(ComponentScale.Component{.x = 0.5, .y = -0.5, .z = 50}, scale)
+    try tst.expectEqual(Module.Components.Scale.Component{.x = 0.5, .y = -0.5, .z = 50}, scale)
    else
     return error.TestExpectedScale;
 
