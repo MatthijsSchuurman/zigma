@@ -2,13 +2,13 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const ComponentTimeline = @import("component_timeline.zig");
+const Module = @import("module.zig").Module;
 
 pub fn init(entity: ent.Entity) ent.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |_|
     return entity;
 
-  const new = ComponentTimeline.Component{};
+  const new = Module.Components.Timeline.Component{};
   entity.world.components.timeline.put(entity.id, new) catch @panic("Failed to store timeline");
 
   return entity;
@@ -47,7 +47,7 @@ test "Component should init timeline" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.timeline.get(entity.id)) |timeline|
-    try tst.expectEqual(ComponentTimeline.Component{.speed = 1.0, .timeCurrent = 0, .timePrevious = 0, .timeOffset = 0, .timeDelta = 0, .timestampPreviousMS = 0}, timeline)
+    try tst.expectEqual(Module.Components.Timeline.Component{.speed = 1.0, .timeCurrent = 0, .timePrevious = 0, .timeOffset = 0, .timeDelta = 0, .timestampPreviousMS = 0}, timeline)
   else
     return error.TestExpectedTimeline;
 }

@@ -2,7 +2,7 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const ComponentTimelineEvent = @import("component_timelineevent.zig");
+const Module = @import("module.zig").Module;
 
 pub const Event = struct {
   timeline: []const u8 = "",
@@ -12,8 +12,8 @@ pub const Event = struct {
   duration: ?f32 = null,
 
   repeat: u32 = 1,
-  pattern: ComponentTimelineEvent.Pattern = .Forward,
-  motion: ComponentTimelineEvent.Motion = .Linear,
+  pattern: Module.Components.TimelineEvent.Pattern = .Forward,
+  motion: Module.Components.TimelineEvent.Motion = .Linear,
 };
 
 pub fn add(entity: ent.Entity, params: Event) ent.Entity {
@@ -74,7 +74,7 @@ pub fn add(entity: ent.Entity, params: Event) ent.Entity {
   if (realStart < 0.0)
     @panic("Negative time not yet implemented");
 
-  const new = ComponentTimelineEvent.Component{
+  const new = Module.Components.TimelineEvent.Component{
     .timeline_id = timeline.id,
     .target_id = event.parent_id,
 
@@ -108,8 +108,8 @@ test "Component should add timeline event" {
     .end = 2.0,
     .duration = 1.0,
     .repeat = 1,
-    .pattern = ComponentTimelineEvent.Pattern.Forward,
-    .motion = ComponentTimelineEvent.Motion.Linear,
+    .pattern = Module.Components.TimelineEvent.Pattern.Forward,
+    .motion = Module.Components.TimelineEvent.Motion.Linear,
   });
 
   // Then
@@ -117,14 +117,14 @@ test "Component should add timeline event" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.timelineevent.get(result.id)) |timelineevent|
-    try tst.expectEqual(timelineevent, ComponentTimelineEvent.Component{
+    try tst.expectEqual(timelineevent, Module.Components.TimelineEvent.Component{
       .timeline_id = timeline.id,
       .target_id = entity.id,
       .start = 1.0,
       .end = 2.0,
       .repeat = 1,
-      .pattern = ComponentTimelineEvent.Pattern.Forward,
-      .motion = ComponentTimelineEvent.Motion.Linear,
+      .pattern = Module.Components.TimelineEvent.Pattern.Forward,
+      .motion = Module.Components.TimelineEvent.Motion.Linear,
     })
   else
     return error.TestExpectedTimelineEvent;

@@ -2,11 +2,11 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const ComponentRotation = @import("component_rotation.zig");
+const Module = @import("module.zig").Module;
 
 pub const System = struct {
   world: *ecs.World,
-  start_rotations: std.AutoHashMap(ent.EntityID, ComponentRotation.Component),
+  start_rotations: std.AutoHashMap(ent.EntityID, Module.Components.Rotation.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -14,7 +14,7 @@ pub const System = struct {
       .start_rotations = undefined,
     };
 
-    self.start_rotations = std.AutoHashMap(ent.EntityID, ComponentRotation.Component).init(world.allocator);
+    self.start_rotations = std.AutoHashMap(ent.EntityID, Module.Components.Rotation.Component).init(world.allocator);
     return self;
   }
 
@@ -29,7 +29,7 @@ pub const System = struct {
       const event = entry.value_ptr.*;
       const target_id = event.target_id orelse continue;
 
-      var start: ComponentRotation.Component = undefined;
+      var start: Module.Components.Rotation.Component = undefined;
       if (self.start_rotations.get(id)) |cached| {
         start = cached;
       } else if (self.world.components.rotation.getPtr(target_id)) |target_rotation| { // Use current rotation of target entity
@@ -53,7 +53,7 @@ const tst = std.testing;
 
 test "System should update rotation" {
   // Given
-  const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+  const ModuleTimeline = @import("../timeline/module.zig").Module;
 
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
@@ -61,7 +61,7 @@ test "System should update rotation" {
   const entity = world.entity("test").rotation(0, 0, 0);
   const event = world.entity("test event").rotation(1, -1, 100);
 
-  const new = ComponentTimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
+  const new = ModuleTimeline.Components.TimelineEventProgress.Component{.target_id = entity.id, .progress = 0.5};
   world.components.timelineeventprogress.put(event.id, new) catch @panic("Failed to store timeline event progress");
 
   var system = System.init(&world);
@@ -72,7 +72,7 @@ test "System should update rotation" {
 
   // Then
   if (entity.world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ComponentRotation.Component{.x = 0.5, .y = -0.5, .z = 50}, rotation)
+    try tst.expectEqual(Module.Components.Rotation.Component{.x = 0.5, .y = -0.5, .z = 50}, rotation)
    else
     return error.TestExpectedRotation;
 

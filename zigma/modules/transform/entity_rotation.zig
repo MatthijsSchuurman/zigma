@@ -3,15 +3,15 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentRotation = @import("component_rotation.zig");
+const Module = @import("module.zig").Module;
 
 pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
   if (entity.world.components.rotation.getPtr(entity.id)) |existing| {
-    existing.* = ComponentRotation.Component{.x = x, .y = y, .z = z};
+    existing.* = Module.Components.Rotation.Component{.x = x, .y = y, .z = z};
     return entity.dirty(&.{.rotation});
   }
 
-  const new = ComponentRotation.Component{.x = x, .y = y, .z = z };
+  const new = Module.Components.Rotation.Component{.x = x, .y = y, .z = z };
   entity.world.components.rotation.put(entity.id, new) catch @panic("Failed to store rotation");
 
   return entity.dirty(&.{.rotation});
@@ -36,7 +36,7 @@ test "Component should set rotation" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ComponentRotation.Component{.x = 1, .y = 2, .z = 3}, rotation)
+    try tst.expectEqual(Module.Components.Rotation.Component{.x = 1, .y = 2, .z = 3}, rotation)
   else
     return error.TestExpectedRotation;
 

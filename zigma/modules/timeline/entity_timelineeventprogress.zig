@@ -2,14 +2,14 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 
-const ComponentTimelineEventProgress = @import("component_timelineeventprogress.zig");
+const Module = @import("module.zig").Module;
 
 pub fn activate(entity: ent.Entity, target_id: ?ent.EntityID) void {
   if (entity.world.components.timelineeventprogress.getPtr(entity.id)) |_| { // Already active
     return;
   }
 
-  const new = ComponentTimelineEventProgress.Component{.target_id = target_id};
+  const new = Module.Components.TimelineEventProgress.Component{.target_id = target_id};
   entity.world.components.timelineeventprogress.put(entity.id, new) catch @panic("Failed to store timeline event progress");
 }
 
@@ -40,7 +40,7 @@ test "Component should activate timeline event progress" {
 
   // Then
   if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
-    try tst.expectEqual(ComponentTimelineEventProgress.Component{.progress = 0, .target_id = null}, timelineeventprogress)
+    try tst.expectEqual(Module.Components.TimelineEventProgress.Component{.progress = 0, .target_id = null}, timelineeventprogress)
   else
     return error.TestExpectedTimelineEventProgress;
 }
@@ -58,7 +58,7 @@ test "Component should set progress" {
 
   // Then
   if (world.components.timelineeventprogress.get(entity.id)) |timelineeventprogress|
-    try tst.expectEqual(ComponentTimelineEventProgress.Component{.progress = 0.5, .target_id = null}, timelineeventprogress)
+    try tst.expectEqual(Module.Components.TimelineEventProgress.Component{.progress = 0.5, .target_id = null}, timelineeventprogress)
   else
     return error.TestExpectedTimelineEventProgress;
 }

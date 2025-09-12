@@ -1,9 +1,7 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const EntityTimelineEventProgress = @import("entity_timelineeventprogress.zig");
-const ComponentTimeline = @import("component_timeline.zig");
-const ComponentTimelineEvent = @import("component_timelineevent.zig");
-const ComponentTimelineEventProgress = @import("component_timelineeventprogress.zig");
+
+const Module = @import("module.zig").Module;
 
 const timePrecision: f32 = 0.000001;
 
@@ -30,7 +28,7 @@ pub const System = struct {
     //   //get related events
     //   const event_entry = self.world.components.timelineevent.getPtr(id) orelse continue;
     //
-    //   const related_ids = ComponentTimelineEvent.Query.exec(self.world,
+    //   const related_ids = Module.Components.TimelineEvent.Query.exec(self.world,
     //     .{.timeline_id = .{ .eq = event_entry.timeline_id}, .target_id = .{ .eq = event_entry.target_id}},
     //     &.{.end_desc},
     //    );
@@ -89,23 +87,23 @@ pub const System = struct {
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
             if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
-              EntityTimelineEventProgress.activate(entity, event.target_id);
+              Module.Entities.TimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
             progress = motionCalculation(progress, event);
 
-            EntityTimelineEventProgress.progress(entity, progress);
+            Module.Entities.TimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (timeline.timePrevious <= event.end) { // Finalize event (leaves it active for 1 more round so it reaches its end state)
               if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
-                EntityTimelineEventProgress.activate(entity, event.target_id);
+                Module.Entities.TimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.end, event); // Force end of event
               progress = motionCalculation(progress, event);
 
-              EntityTimelineEventProgress.progress(entity, progress);
+              Module.Entities.TimelineEventProgress.progress(entity, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
-              EntityTimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
+              Module.Entities.TimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
             }
           }
         } else { // Tenet
@@ -114,23 +112,23 @@ pub const System = struct {
 
           if (event.start <= timeline.timeCurrent and timeline.timeCurrent <= event.end) { // Active event
             if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
-              EntityTimelineEventProgress.activate(entity, event.target_id);
+              Module.Entities.TimelineEventProgress.activate(entity, event.target_id);
 
             var progress = progressCalculation(timeline.timeCurrent, event);
             progress = motionCalculation(progress, event);
 
-            EntityTimelineEventProgress.progress(entity, progress);
+            Module.Entities.TimelineEventProgress.progress(entity, progress);
           } else { // No longer active
             if (event.start <= timeline.timePrevious) { // Finalize event (leaves it active for 1 more round so it reaches its start state)
               if (self.world.components.timelineeventprogress.getPtr(id) == null) // Not yet active
-                EntityTimelineEventProgress.activate(entity, event.target_id);
+                Module.Entities.TimelineEventProgress.activate(entity, event.target_id);
 
               var progress = progressCalculation(event.start, event); // Force start of event
               progress = motionCalculation(progress, event);
 
-              EntityTimelineEventProgress.progress(entity, progress);
+              Module.Entities.TimelineEventProgress.progress(entity, progress);
             } else if (self.world.components.timelineeventprogress.getPtr(id)) |_| { // Event already finalized previously
-              EntityTimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
+              Module.Entities.TimelineEventProgress.deactivate(entity); // Removes it from the TimelineEventProgress list
             }
           }
         }
@@ -138,7 +136,7 @@ pub const System = struct {
     }
   }
 
-  fn progressCalculation(timelineCurrent :f32, event: ComponentTimelineEvent.Component) f32 {
+  fn progressCalculation(timelineCurrent :f32, event: Module.Components.TimelineEvent.Component) f32 {
     const total_time = event.end - event.start;
     const total_elapsed = timelineCurrent - event.start;
     const repeat: f32 = @floatFromInt(@max(1, event.repeat));
@@ -164,7 +162,7 @@ pub const System = struct {
     return progress;
   }
 
-  fn motionCalculation(t: f32, event: ComponentTimelineEvent.Component) f32 {
+  fn motionCalculation(t: f32, event: Module.Components.TimelineEvent.Component) f32 {
     const progress = switch (event.motion) {
       .Instant => if (t >= 1.0) @as(f32, 1.0) else @as(f32, 0.0),
       .Linear => t,
@@ -202,7 +200,7 @@ test "System should determine time" {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
 
-    try tst.expectEqual(ComponentTimeline.Component{
+    try tst.expectEqual(Module.Components.Timeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.0,
       .timePrevious = 0.0,
@@ -226,7 +224,7 @@ test "System should determine time" {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
 
-    try tst.expectEqual(ComponentTimeline.Component{
+    try tst.expectEqual(Module.Components.Timeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.001,
       .timePrevious = 0.0,
@@ -254,7 +252,7 @@ test "System should determine offset" {
 
   // Then
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
-    try tst.expectEqual(ComponentTimeline.Component{
+    try tst.expectEqual(Module.Components.Timeline.Component{
       .speed = 1.0,
       .timeCurrent = 0.5,
       .timePrevious = 0.0,
@@ -288,7 +286,7 @@ test "System should determine Tenet time" {
   if (entity.world.components.timeline.get(entity.id)) |timeline| {
     try tst.expect(std.time.milliTimestamp() >= timeline.timestampPreviousMS);
     const timestampCurrentMS = timeline.timestampPreviousMS;
-    try tst.expectEqual(ComponentTimeline.Component{
+    try tst.expectEqual(Module.Components.Timeline.Component{
       .speed = -1.0,
       .timeCurrent = -0.001,
       .timePrevious = 0.0,
@@ -319,7 +317,7 @@ test "System should process events" {
 
   // Then
   if (entity.world.components.timelineeventprogress.get(event.id)) |timelineeventprogress| {
-    try tst.expectEqual(ComponentTimelineEventProgress.Component{
+    try tst.expectEqual(Module.Components.TimelineEventProgress.Component{
       .progress = 0.5,
       .target_id = event.parent_id,
     }, timelineeventprogress);
@@ -331,13 +329,13 @@ test "System should process events" {
 
 test "System should process calculation" {
   // Given
-  var event = ComponentTimelineEvent.Component{
+  var event = Module.Components.TimelineEvent.Component{
     .timeline_id = 0,
     .start = 0.0,
     .end = 1.0,
     .repeat = 1,
-    .pattern = ComponentTimelineEvent.Pattern.Forward,
-    .motion = ComponentTimelineEvent.Motion.Linear,
+    .pattern = Module.Components.TimelineEvent.Pattern.Forward,
+    .motion = Module.Components.TimelineEvent.Motion.Linear,
     .target_id = 0,
   };
 
@@ -352,7 +350,7 @@ test "System should process calculation" {
 
 
   // Given
-  event.pattern = ComponentTimelineEvent.Pattern.Reverse;
+  event.pattern = Module.Components.TimelineEvent.Pattern.Reverse;
 
   i = 0;
   while (i <= 1.0) : (i += 0.1) {
@@ -366,13 +364,13 @@ test "System should process calculation" {
 
 test "System should motion calculation" {
   // Given
-  var event = ComponentTimelineEvent.Component{
+  var event = Module.Components.TimelineEvent.Component{
     .timeline_id = 0,
     .start = 0.0,
     .end = 1.0,
     .repeat = 1,
-    .pattern = ComponentTimelineEvent.Pattern.Forward,
-    .motion = ComponentTimelineEvent.Motion.Linear,
+    .pattern = Module.Components.TimelineEvent.Pattern.Forward,
+    .motion = Module.Components.TimelineEvent.Motion.Linear,
     .target_id = 0,
   };
 
@@ -387,7 +385,7 @@ test "System should motion calculation" {
 
 
   // Given
-  event.motion = ComponentTimelineEvent.Motion.EaseIn;
+  event.motion = Module.Components.TimelineEvent.Motion.EaseIn;
 
   i = 0;
   while (i <= 1.0) : (i += 0.1) {

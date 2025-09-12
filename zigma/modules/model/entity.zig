@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentModel = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Model = struct {
   type: []const u8,
@@ -14,7 +14,7 @@ pub fn init(entity: ent.Entity, params: Model) ent.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |_|
     return entity;
 
-  var new = ComponentModel.Component{
+  var new = Module.Components.Model.Component{
     .type = params.type,
     .model = rl.LoadModelFromMesh(loadMesh(params.type)),
   };
@@ -83,6 +83,9 @@ const zigma = @import("../../ma.zig");
 
 test "Component should init model" {
   // Given
+  const ModuleTransform = @import("../transform/module.zig").Module;
+  const ModuleColor = @import("../color/module.zig").Module;
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -110,22 +113,22 @@ test "Component should init model" {
     return error.TestExpectedModel;
 
   if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = 0, .y = 0, .z = 0}, position)
+    try tst.expectEqual(ModuleTransform.Components.Position.Component{.x = 0, .y = 0, .z = 0}, position)
   else
     return error.TestExpectedPosition;
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ecs.Components.Rotation.Component{.x = 0, .y = 0, .z = 0}, rotation)
+    try tst.expectEqual(ModuleTransform.Components.Rotation.Component{.x = 0, .y = 0, .z = 0}, rotation)
   else
     return error.TestExpectedRotation;
 
   if (world.components.scale.get(entity.id)) |scale|
-    try tst.expectEqual(ecs.Components.Scale.Component{.x = 1, .y = 1, .z = 1}, scale)
+    try tst.expectEqual(ModuleTransform.Components.Scale.Component{.x = 1, .y = 1, .z = 1}, scale)
   else
     return error.TestExpectedScale;
 
   if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
+    try tst.expectEqual(ModuleColor.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
 }
