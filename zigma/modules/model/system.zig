@@ -49,28 +49,28 @@ pub const System = struct {
       if (self.world.components.hide.getPtr(model.key_ptr.*)) |hide| if (hide.hidden) continue;
 
       if (model.value_ptr.material_id == 0) { // No material (no shader)
-        self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+        self.opaques.append(self.world.allocator, model.key_ptr.*) catch @panic("Failed to store model entity id");
         continue;
       }
 
       if (self.world.components.material.getPtr(model.value_ptr.material_id)) |material| {
         if (material.shader_id == 0) { // Default shader
-          self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+          self.opaques.append(self.world.allocator, model.key_ptr.*) catch @panic("Failed to store model entity id");
           continue;
         }
       }
 
       if (self.world.components.color.getPtr(model.key_ptr.*)) |color| {
         if (color.a == 255) { // Opaque
-          self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+          self.opaques.append(self.world.allocator, model.key_ptr.*) catch @panic("Failed to store model entity id");
           continue;
         }
       } else {
-        self.opaques.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+        self.opaques.append(self.world.allocator, model.key_ptr.*) catch @panic("Failed to store model entity id");
         continue;
       }
 
-      self.transparent.append(model.key_ptr.*) catch @panic("Failed to store model entity id");
+      self.transparent.append(self.world.allocator, model.key_ptr.*) catch @panic("Failed to store model entity id");
     }
 
     return SplitByAlphaIDs{
