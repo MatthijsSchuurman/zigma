@@ -12,9 +12,6 @@ pub const raylib = @cImport({
 const rl = raylib;
 
 
-const ent = @import("entity.zig");
-
-
 // Modules
 const modules = [_]type{
   @import("modules/timeline/module.zig"),
@@ -41,9 +38,12 @@ const modules = [_]type{
   @import("modules/fps/module.zig"),
 };
 
+pub const Entities = LoadModules(&modules, "Entities");
 pub const Components = LoadModules(&modules, "Components");
 pub const Systems = LoadModules(&modules, "Systems");
 
+pub const EntityID = u32;
+pub const Entity = GetEntityStruct(&modules);
 const ComponentHashTypes = GetComponentHashTypes();
 const SystemTypes = GetSystemTypes();
 
@@ -52,8 +52,8 @@ const SystemTypes = GetSystemTypes();
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  entity_id: ent.EntityID = 1, // 0 is no entry
-  entities: std.StringHashMap(ent.EntityID),
+  entity_id: EntityID = 1, // 0 is no entry
+  entities: std.StringHashMap(EntityID),
 
   components: ComponentHashTypes,
   systems: SystemTypes,
@@ -61,7 +61,7 @@ pub const World = struct {
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(ent.EntityID).init(allocator),
+      .entities = std.StringHashMap(EntityID).init(allocator),
       .components = undefined,
       .systems = undefined,
     };
@@ -79,9 +79,9 @@ pub const World = struct {
   }
 
   pub fn deinit(self: *World) void {
-    var id: usize = self.entity_id;
-    while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
-      self.entityWrap(@intCast(id)).deinit();
+    // var id: usize = self.entity_id;
+    // while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
+    //   self.entityWrap(@intCast(id)).deinit();
 
     self.entities.deinit();
 
@@ -94,42 +94,42 @@ pub const World = struct {
   }
 
   // Entity
-  pub fn entityNextID(self: *World) ent.EntityID {
+  pub fn entityNextID(self: *World) EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
   }
 
-  pub fn entityNext(self: *World) ent.Entity {
+  pub fn entityNext(self: *World) Entity {
     const id = self.entityNextID();
-    return ent.Entity{
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entityWrap(self: *World, id: ent.EntityID) ent.Entity {
-    return ent.Entity{
+  pub fn entityWrap(self: *World, id: EntityID) Entity {
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entity(self: *World, name: []const u8) ent.Entity {
+  pub fn entity(self: *World, name: []const u8) Entity {
     if (self.entities.get(name)) |id| // Existing named entity
-      return ent.Entity{
+      return Entity{
         .id = id,
         .world = self,
       };
 
     const id = self.entityNextID();
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
-    return ent.Entity{
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entityDelete(self: *World, id: ent.EntityID) void {
+  pub fn entityDelete(self: *World, id: EntityID) void {
     self.entityWrap(id).deinit();
 
     inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
@@ -171,8 +171,8 @@ pub const World = struct {
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(ent.EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []ent.EntityID {
-    var results: std.ArrayList(ent.EntityID) = .empty;
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []EntityID {
+    var results: std.ArrayList(EntityID) = .empty;
     defer results.deinit(self.allocator);
 
     var it = component.iterator();
@@ -182,7 +182,7 @@ pub const World = struct {
 
     if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
-        component: *const std.AutoHashMap(ent.EntityID, T.Data),
+        component: *const std.AutoHashMap(EntityID, T.Data),
         sort: []const T.Sort,
       };
 
@@ -191,8 +191,8 @@ pub const World = struct {
         .sort = sort,
       };
 
-      std.sort.heap(ent.EntityID, results.items, context, struct {
-        fn lessThan(ctx: Context, a: ent.EntityID, b: ent.EntityID) bool {
+      std.sort.heap(EntityID, results.items, context, struct {
+        fn lessThan(ctx: Context, a: EntityID, b: EntityID) bool {
           const va = ctx.component.get(a).?;
           const vb = ctx.component.get(b).?;
           return T.compare(va, vb, ctx.sort) == .lt;
@@ -211,8 +211,7 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
   var fields_count: usize = 0;
 
   const ecsTypeSingular =
-         if (std.mem.eql(u8, ecsType, "Entities")) "Entity"
-    else if (std.mem.eql(u8, ecsType, "EntityHooks")) "EntityHook"
+    if (std.mem.eql(u8, ecsType, "Entities")) "Entity"
     else if (std.mem.eql(u8, ecsType, "Components")) "Component"
     else if (std.mem.eql(u8, ecsType, "Systems")) "System"
     else @compileError("Unexpected ecsType");
@@ -222,14 +221,14 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
       @compileError("Module struct not found for " ++ @typeName(mod));
 
     const M = @field(mod, "Module");
-    if (!@hasDecl(M, ecsType)) // Only check Components / Systems
+    if (!@hasDecl(M, ecsType))  // Only check Entities / Components / Systems
       continue;
 
     const S = @field(M, ecsType);
-    inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Components / Systems declarations
+    inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Entities / Components / Systems declarations
       const D = @field(S, decl.name);
 
-      if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Component / System struct
+      if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Entity / Component / System struct
         continue;
 
       fields[fields_count] = .{
@@ -252,6 +251,51 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
   }});
 }
 
+fn GetEntityStruct(comptime mods: []const type) type {
+  var fields: [100]std.builtin.Type.StructField = undefined;
+
+  var zero: EntityID = 0;
+  fields[0] = .{ .name = "id", .type = EntityID, .default_value_ptr = null, .is_comptime = false, .alignment = @alignOf(EntityID) };
+  fields[1] = .{ .name = "parent_id", .type = EntityID, .default_value_ptr = &zero, .is_comptime = true, .alignment = @alignOf(EntityID) };
+  fields[2] = .{ .name = "world", .type = *World, .default_value_ptr = null, .is_comptime = false, .alignment = @alignOf(*World) };
+  var fields_count: usize = 3;
+
+  inline for (mods) |mod| {
+    if (!@hasDecl(mod, "Module"))
+      @compileError("Module struct not found for " ++ @typeName(mod));
+
+    const M = @field(mod, "Module");
+    if (!@hasDecl(M, "EntityHooks"))
+      continue;
+
+    const S = @field(M, "EntityHooks");
+    inline for (@typeInfo(S).@"struct".decls) |decl| { //Entity functions hooks
+      const F = @field(S, decl.name);
+      const FT = @TypeOf(F);
+
+      if (@typeInfo(FT) != .@"fn")
+        continue;
+
+      fields[fields_count] = .{
+        .name = decl.name,
+        .type = FT,
+        .default_value_ptr = &F,
+        .is_comptime = true,
+        .alignment = 0,
+      };
+
+      fields_count += 1;
+    }
+  }
+
+  return @Type(.{ .@"struct" = .{
+    .layout = .auto,
+    .fields = fields[0..fields_count],
+    .decls = &.{},
+    .is_tuple = false,
+  }});
+}
+
 fn GetComponentHashTypes() type {
   const components = @typeInfo(Components).@"struct";
   var fields: [components.fields.len]std.builtin.Type.StructField = undefined;
@@ -259,10 +303,10 @@ fn GetComponentHashTypes() type {
   inline for (components.fields, 0..) |field, i| {
     fields[i] = .{
       .name = toLower(field.name),
-      .type = std.AutoHashMap(ent.EntityID, field.type.Component),
+      .type = std.AutoHashMap(EntityID, field.type.Component),
       .default_value_ptr = null,
       .is_comptime = false,
-      .alignment = @alignOf(std.AutoHashMap(ent.EntityID, field.type.Component)),
+      .alignment = @alignOf(std.AutoHashMap(EntityID, field.type.Component)),
     };
   }
 
