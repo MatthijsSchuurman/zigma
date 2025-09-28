@@ -44,7 +44,7 @@ pub fn init(entity: ent.Entity, params: Model) ent.Entity {
 }
 
 pub fn deinit(entity: ent.Entity) void {
-  const existing = entity.world.components.model.getPtr(entity.id) orelse return;
+  const existing = entity.world.components.model.getPtrMut(entity.id) orelse return;
 
   if (existing.material_id == 0) { // Default material
     if (existing.model.materials) |materials| {
@@ -61,7 +61,7 @@ pub fn deinit(entity: ent.Entity) void {
   }
 
   if (existing.transforms) |transforms|
-    transforms.deinit();
+    transforms.deinit(entity.world.allocator);
 
   rl.UnloadModel(existing.model);
 }

@@ -172,12 +172,13 @@ pub const World = struct {
 
   //Components
   pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(ent.EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []ent.EntityID {
-    var results = std.ArrayList(ent.EntityID).init(self.allocator);
+    var results: std.ArrayList(ent.EntityID) = .empty;
+    defer results.deinit(self.allocator);
 
     var it = component.iterator();
     while (it.next()) |entry|
       if (T.filter(entry.value_ptr.*, filter))
-        results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
+        results.append(self.allocator, entry.key_ptr.*) catch @panic("Failed to append query result");
 
     if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
@@ -199,7 +200,7 @@ pub const World = struct {
       }.lessThan);
     }
 
-    return results.toOwnedSlice() catch @panic("Failed to convert result to slice");
+    return results.toOwnedSlice(self.allocator) catch @panic("Failed to convert result to slice");
   }
 };
 

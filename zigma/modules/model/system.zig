@@ -13,14 +13,14 @@ pub const System = struct {
     return System{
       .world = world,
 
-      .opaques = std.ArrayList(ent.EntityID).init(world.allocator),
-      .transparent = std.ArrayList(ent.EntityID).init(world.allocator),
+      .opaques = .empty,
+      .transparent = .empty,
     };
   }
 
   pub fn deinit(self: *System) void {
-    self.opaques.deinit();
-    self.transparent.deinit();
+    self.opaques.deinit(self.world.allocator);
+    self.transparent.deinit(self.world.allocator);
   }
 
 

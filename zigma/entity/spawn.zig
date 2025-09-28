@@ -24,12 +24,12 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
 
   var new = ComponentSpawn.Component{
     .source_model_id = source_entity.id,
-    .vertex_indexes = std.ArrayList(usize).init(entity.world.allocator),
+    .vertex_indexes = .empty,
   };
 
   // Get unique coordinates
-  var unique = std.AutoArrayHashMap(usize, rl.Vector3).init(entity.world.allocator);
-  defer unique.deinit();
+  var unique: std.AutoArrayHashMap(usize, rl.Vector3) = .empty;
+  defer unique.deinit(entity.world.allocator);
 
   const mesh = source_model.model.meshes[0];
   vertex: for (0..@intCast(mesh.vertexCount)) |vertex_index| {
@@ -56,7 +56,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   entity.world.components.spawn.put(entity.id, new) catch @panic("Failed to store spawn");
 
   // Prepare model transformations array
-  model.transforms = std.ArrayList(rl.Matrix).init(entity.world.allocator);
+  model.transforms = .empty;
   for (0..new.vertex_indexes.items.len) |_|
     model.transforms.?.append(rl.Matrix{}) catch @panic("Failed to prepare model transforms");
 
@@ -76,7 +76,7 @@ pub fn deinit(entity: ent.Entity) void {
   // while (it.next()) |entry|
   //   entity.world.entityDelete(entry.key_ptr.*);
 
-  existing.vertex_indexes.deinit();
+  existing.vertex_indexes.deinit(entity.world.allocator);
 }
 
 
