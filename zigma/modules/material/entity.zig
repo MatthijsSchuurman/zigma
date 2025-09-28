@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentMaterial = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Material = struct {
   shader: []const u8 = "",
@@ -13,7 +13,7 @@ pub fn init(entity: ent.Entity, params: Material) ent.Entity {
   if (entity.world.components.material.getPtr(entity.id)) |_|
     return entity;
 
-  var new = ComponentMaterial.Component{
+  var new = Module.Components.Material.Component{
     .material = rl.LoadMaterialDefault(),
   };
 

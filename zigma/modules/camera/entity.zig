@@ -68,6 +68,8 @@ const tst = std.testing;
 
 test "Component should init camera" {
   // Given
+  const ModuleTransform = @import("../transform/module.zig").Module;
+
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
@@ -86,12 +88,12 @@ test "Component should init camera" {
     return error.TestExpectedCamera;
 
   if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Module.Components.s.Position.Component{.x = 5, .y = 2, .z = 5}, position)
+    try tst.expectEqual(ModuleTransform.Components.Position.Component{.x = 5, .y = 2, .z = 5}, position)
   else
     return error.TestExpectedPosition;
 
   if (world.components.rotation.get(entity.id)) |rotation|
-    try tst.expectEqual(ecs.Module.Components.s.Rotation.Component{.x = 0, .y = 1, .z = 0}, rotation)
+    try tst.expectEqual(ModuleTransform.Components.Rotation.Component{.x = 0, .y = 1, .z = 0}, rotation)
   else
     return error.TestExpectedRotation;
 }

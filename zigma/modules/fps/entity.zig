@@ -3,13 +3,13 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentFPS = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub fn init(entity: ent.Entity) ent.Entity {
   if (entity.world.components.fps.getPtr(entity.id)) |_|
     return entity;
 
-  const new = ComponentFPS.Component{};
+  const new = Module.Components.FPS.Component{};
   entity.world.components.fps.put(entity.id, new) catch @panic("Failed to store fps");
 
   return entity;
@@ -34,7 +34,7 @@ test "Component should init fps" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.fps.get(entity.id)) |exists|
-    try tst.expectEqual(ComponentFPS.Component{}, exists)
+    try tst.expectEqual(Module.Components.FPS.Component{}, exists)
   else
     return error.TestExpectedFPS;
 }

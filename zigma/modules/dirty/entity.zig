@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentDirty = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Dirty = enum {
   position,
@@ -20,7 +20,7 @@ pub fn set(entity: ent.Entity, flags: []const Dirty) ent.Entity {
   const entry = entity.world.components.dirty.getOrPut(entity.id) catch @panic("Failed to store dirty");
 
   if (!entry.found_existing)
-    entry.value_ptr.* = ComponentDirty.Component{};
+    entry.value_ptr.* = Module.Components.Dirty.Component{};
 
   for (flags) |flag| {
     switch (flag) {
@@ -57,7 +57,7 @@ test "Component should set dirty" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.dirty.get(entity.id)) |dirty|
-    try tst.expectEqual(ComponentDirty.Component{
+    try tst.expectEqual(Module.Components.Dirty.Component{
       .position = true,
       .rotation = false,
       .scale = false,

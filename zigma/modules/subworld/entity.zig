@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentSubWorld= @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub fn init(entity: ent.Entity, world: *ecs.World) ent.Entity {
   if (entity.world.components.subworld.getPtr(entity.id)) |existing| {
@@ -11,7 +11,7 @@ pub fn init(entity: ent.Entity, world: *ecs.World) ent.Entity {
     return entity;
   }
 
-  const new = ComponentSubWorld.Component{.world = world };
+  const new = Module.Components.SubWorld.Component{.world = world };
   entity.world.components.subworld.put(entity.id, new) catch @panic("Failed to store subworld");
 
   return entity;

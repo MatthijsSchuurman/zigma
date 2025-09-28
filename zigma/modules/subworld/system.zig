@@ -2,8 +2,7 @@ const std = @import("std");
 const ecs = @import("../../ecs.zig");
 const rl = ecs.raylib;
 
-const EntityMusic = @import("entity.zig");
-const ComponentTimelineEventProgress = @import("../timeline/component_timelineeventprogress.zig");
+const ModuleTimeline = @import("../timeline/module.zig").Module;
 
 pub const System = struct {
   world: *ecs.World,
@@ -22,7 +21,7 @@ pub const System = struct {
       const id = entry.key_ptr.*;
       const sub = entry.value_ptr.*;
 
-      const active_events = ComponentTimelineEventProgress.Query.exec(
+      const active_events = ModuleTimeline.Components.TimelineEventProgress.Query.exec(
         self.world,
        .{.target_id = .{ .eq = id}},
         &.{},
@@ -53,8 +52,6 @@ const SystemTimeline = @import("system.zig");
 
 test "System should render subworld" {
   // Given
-  const ComponentTimeline = @import("../timeline/component_timeline.zig");
-
   var universe = ecs.World.init(tst.allocator);
   defer universe.deinit();
   var world = ecs.World.init(tst.allocator);
@@ -88,7 +85,7 @@ test "System should render subworld" {
   // Then
   try tst.expectEqual(true, result);
   if (world.components.timeline.get(world_timeline_entity.id)) |timeline| {
-    try tst.expectEqual(ComponentTimeline.Component{
+    try tst.expectEqual(ModuleTimeline.Components.Timeline.Component{
       .speed = 1.5,
       .timeCurrent = 0.3,
       .timePrevious = 0.0,

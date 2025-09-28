@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentHide= @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub fn set(entity: ent.Entity, hidden: bool) ent.Entity {
   if (entity.world.components.hide.getPtr(entity.id)) |_| {
@@ -18,7 +18,7 @@ pub fn set(entity: ent.Entity, hidden: bool) ent.Entity {
   if (!hidden) // Don't add entry
     return entity;
 
-  const new = ComponentHide.Component{.hidden = true };
+  const new = Module.Components.Hide.Component{.hidden = true };
   entity.world.components.hide.put(entity.id, new) catch @panic("Failed to store hide");
 
   return entity;

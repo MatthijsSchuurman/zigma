@@ -3,11 +3,11 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentLight = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Light = struct {
   active: bool = true,
-  type: ComponentLight.LightType = .Point,
+  type: Module.Components.Light.LightType = .Point,
 
   target: struct {
     x: f32 = 0,
@@ -20,7 +20,7 @@ pub fn init(entity: ent.Entity, params: Light) ent.Entity {
   if (entity.world.components.light.getPtr(entity.id)) |_|
     return entity;
 
-  const new = ComponentLight.Component{
+  const new = Module.Components.Light.Component{
     .active = params.active,
     .type = params.type,
     .target = .{.x = params.target.x, .y = params.target.y, .z = params.target.z},
@@ -62,6 +62,9 @@ const tst = std.testing;
 
 test "Component should init light" {
   // Given
+  const ModuleTransform = @import("../transform/module.zig").Module;
+  const ModuleColor = @import("../color/module.zig").Module;
+
   var world = ecs.World.init(std.testing.allocator);
   defer ecs.World.deinit(&world);
 
@@ -75,17 +78,17 @@ test "Component should init light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(ComponentLight.Component{.active = true, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
+    try tst.expectEqual(Module.Components.Light.Component{.active = true, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
   else
     return error.TestExpectedCamera;
 
   if (world.components.position.get(entity.id)) |position|
-    try tst.expectEqual(ecs.Components.Position.Component{.x = -5, .y = 2, .z = 5}, position)
+    try tst.expectEqual(ModuleTransform.Components.Position.Component{.x = -5, .y = 2, .z = 5}, position)
   else
     return error.TestExpectedPosition;
 
   if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
+    try tst.expectEqual(ModuleColor.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
 }
@@ -98,7 +101,7 @@ test "Component should activate light" {
   const entity = world.entity("test").light(.{.active = false});
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(ComponentLight.Component{.active = false, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
+    try tst.expectEqual(Module.Components.Light.Component{.active = false, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
   else
     return error.TestExpectedCamera;
 
@@ -110,7 +113,7 @@ test "Component should activate light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(ComponentLight.Component{.active = true, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
+    try tst.expectEqual(Module.Components.Light.Component{.active = true, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
   else
     return error.TestExpectedCamera;
 }
@@ -130,7 +133,7 @@ test "Component should deactivate light" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(ComponentLight.Component{.active = false, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
+    try tst.expectEqual(Module.Components.Light.Component{.active = false, .type = .Point, .target = .{.x = 0, .y = 0, .z = 0}}, light)
   else
     return error.TestExpectedCamera;
 }
@@ -150,7 +153,7 @@ test "Component should set target" {
   try tst.expectEqual(entity.world, result.world);
 
   if (world.components.light.get(entity.id)) |light|
-    try tst.expectEqual(ComponentLight.Component{.active = true, .type = .Point, .target = .{.x = 1, .y = 2, .z = 3}}, light)
+    try tst.expectEqual(Module.Components.Light.Component{.active = true, .type = .Point, .target = .{.x = 1, .y = 2, .z = 3}}, light)
   else
     return error.TestExpectedCamera;
 }

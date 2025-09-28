@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentMusic = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Music = struct {
   path: []const u8 = "",
@@ -13,7 +13,7 @@ pub fn init(entity: ent.Entity, params: Music) ent.Entity {
   if (entity.world.components.music.getPtr(entity.id)) |_|
     return entity;
 
-  const new = ComponentMusic.Component{
+  const new = Module.Components.Music.Component{
     .music = rl.LoadMusicStream(@ptrCast(params.path)),
     .path = params.path,
   };

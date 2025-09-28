@@ -3,7 +3,7 @@ const ecs = @import("../../ecs.zig");
 const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
-const ComponentShader = @import("component.zig");
+const Module = @import("module.zig").Module;
 
 pub const Shader = struct {
   type: []const u8 = "lighting",
@@ -13,7 +13,7 @@ pub fn init(entity: ent.Entity, params: Shader) ent.Entity {
   if (entity.world.components.shader.getPtr(entity.id)) |_|
     return entity;
 
-  const new = ComponentShader.Component{
+  const new = Module.Components.Shader.Component{
     .type = params.type,
     .shader = loadShader(params.type),
   };
@@ -45,6 +45,8 @@ const zigma = @import("../../ma.zig");
 
 test "Component should init shader" {
   // Given
+  const ModuleColor = @import("../color/module.zig").Module;
+
   var world = ecs.World.init(tst.allocator);
   defer world.deinit();
 
@@ -62,7 +64,7 @@ test "Component should init shader" {
   }
 
   if (world.components.color.get(entity.id)) |color|
-    try tst.expectEqual(ecs.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
+    try tst.expectEqual(ModuleColor.Components.Color.Component{.r = 255, .g = 255, .b = 255, .a = 255}, color)
   else
     return error.TestExpectedColor;
 }
