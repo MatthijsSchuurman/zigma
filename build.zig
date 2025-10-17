@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) !void {
 
   // Modules
   const zigma = b.createModule(.{
-    .root_source_file = . { .cwd_relative = "zigma/ma.zig" },
+    .root_source_file = b.path("zigma/ma.zig"),
     .target = target,
     .optimize = optimize,
   });
@@ -46,7 +46,10 @@ pub fn build(b: *std.Build) !void {
   defer test_cmd.deinit(b.allocator);
 
   try test_cmd.appendSlice(b.allocator, "set -o pipefail; ");
-  try test_cmd.appendSlice(b.allocator, "zig test -lm -lraylib zigma/ma.zig ");
+  try test_cmd.appendSlice(b.allocator, "zig test -lm -lraylib ");
+  try test_cmd.appendSlice(b.allocator, b.path("zigma/ma.zig").getPath(b));
+  try test_cmd.appendSlice(b.allocator, " ");
+
   if (test_filter) |filter| {
     try test_cmd.appendSlice(b.allocator, "--test-filter ");
     if (std.mem.startsWith(u8, filter, "zigma."))
