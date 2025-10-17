@@ -214,7 +214,7 @@ test "System should determine time" {
 
 
   // Given
-  std.time.sleep(1_000_000);
+  std.Thread.sleep(1_000_000);
 
   // When
   system.determineTime();
@@ -279,7 +279,7 @@ test "System should determine Tenet time" {
 
   // When
   system.determineTime();
-  std.time.sleep(1_000_000);
+  std.Thread.sleep(1_000_000);
   system.determineTime();
 
   // Then

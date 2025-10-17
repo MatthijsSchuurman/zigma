@@ -205,7 +205,7 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const SystemCamera = @import("system.zig");
+const ModuleCamera = @import("../camera/module.zig").Module;
 
 test "Should should transform" {
   // Given
@@ -233,7 +233,7 @@ test "System should render model" {
 
   var system = System.init(&world);
   defer system.deinit();
-  var system_camera = SystemCamera.System.init(&world);
+  var system_camera = ModuleCamera.Systems.Camera.System.init(&world);
   world.systems.camera = system_camera; // Needed by model system
 
   _ = world.entity("camera").camera(.{});

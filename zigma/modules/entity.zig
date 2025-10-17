@@ -24,10 +24,9 @@ const ModuleText = @import("text/module.zig").Module;
 const ModuleFPS = @import("fps/module.zig").Module;
 
 //Entity
-pub const EntityID = u32;
 pub const Entity = struct {
-  id: EntityID,
-  parent_id: EntityID = 0,
+  id: ecs.EntityID,
+  parent_id: ecs.EntityID = 0,
   world: *ecs.World,
 
   pub const timeline = ModuleTimeline.Entities.Timeline.init;

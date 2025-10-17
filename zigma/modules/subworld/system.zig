@@ -48,7 +48,6 @@ pub const System = struct {
 
 // Testing
 const tst = std.testing;
-const SystemTimeline = @import("system.zig");
 
 test "System should render subworld" {
   // Given
@@ -58,7 +57,7 @@ test "System should render subworld" {
   world.initSystems();
   defer world.deinit();
 
-  var universe_system_timeline = SystemTimeline.System.init(&universe);
+  var universe_system_timeline = ModuleTimeline.Systems.Timeline.System.init(&universe);
   var universe_system = System.init(&universe);
 
   const universe_timeline_entity = universe.entity("timeline").timeline();

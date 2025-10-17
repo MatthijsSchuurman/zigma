@@ -38,15 +38,15 @@ const modules = [_]type{
   @import("modules/fps/module.zig"),
 };
 
-pub const Entities = LoadModules(&modules, "Entities");
-pub const Components = LoadModules(&modules, "Components");
-pub const Systems = LoadModules(&modules, "Systems");
+const Entities = LoadModules(&modules, "Entities");
+const Components = LoadModules(&modules, "Components");
+const Systems = LoadModules(&modules, "Systems");
 
 const ComponentHashTypes = GetComponentHashTypes();
 const SystemTypes = GetSystemTypes();
 
-pub const EntityID = @import("modules/entity.zig").EntityID;
-pub const Entity = @import("modules/entity.zig").Entity;
+pub const EntityID = u32;
+pub const Entity = @import("modules/entity.zig").Entity; //TODO: make dynamic based on imported modules
 
 
 // World
@@ -134,7 +134,7 @@ pub const World = struct {
     self.entityWrap(id).deinit();
 
     inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
-      @field(self.components, toLower(field.name)).remove(id);
+      _ = @field(self.components, toLower(field.name)).remove(id);
   }
 
   // Render
@@ -445,6 +445,8 @@ test "ECS World should init" {
 
 test "ECS World should init systems" {
   // Given
+  const ModuleTimeline = @import("modules/timeline/module.zig").Module;
+
   const allocator = std.testing.allocator;
   var world = World.init(allocator);
   defer world.deinit();
@@ -453,7 +455,7 @@ test "ECS World should init systems" {
   world.initSystems();
 
   // Then
-  try tst.expectEqual(Systems.Timeline.System, @TypeOf(world.systems.timeline));
+  try std.testing.expectEqual(ModuleTimeline.Systems.Timeline.System, @TypeOf(world.systems.timeline));
 }
 
 test "ECS World should deinit" {
@@ -502,6 +504,8 @@ test "ECS World should add entity" {
 
 test "ECS World should delete entity" {
   // Given
+  const ModuleTransform = @import("modules/transform/module.zig").Module;
+
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
@@ -522,12 +526,12 @@ test "ECS World should delete entity" {
     return error.TestEntityNotDeleted;
 
   if (world.components.position.get(entity2.id)) |position|
-    try tst.expectEqual(Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
+    try tst.expectEqual(ModuleTransform.Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
   else
     return error.TestEntityNotFound;
 
   if (world.components.scale.get(entity2.id)) |scale|
-    try tst.expectEqual(Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
+    try tst.expectEqual(ModuleTransform.Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
   else
     return error.TestEntityNotFound;
 }
@@ -547,6 +551,8 @@ test "ECS World should render" {
 
 test "ECS World should query timeline events" {
   // Given
+  const ModuleTimeline = @import("modules/timeline/module.zig").Module;
+
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
@@ -554,7 +560,7 @@ test "ECS World should query timeline events" {
   _ = world.entity("test").event(.{ .start = 0, .end = 1 });
 
   // When
-  const result = world.query(Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
+  const result = world.query(ModuleTimeline.Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
   defer world.allocator.free(result);
 
   // Then

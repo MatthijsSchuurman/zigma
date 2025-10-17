@@ -48,7 +48,7 @@ test "System should update shader" {
   var system_camera = ModuleCamera.Systems.Camera.System.init(&world);
   world.systems.camera = system_camera; // Needed by model system
   var system_light= ModuleLight.Systems.Light.System.init(&world);
-  var system_model = ModuleModel.System.Model.System.init(&world);
+  var system_model = ModuleModel.Systems.Model.System.init(&world);
   defer system_model.deinit();
 
   _ = world.entity("camera").camera(.{});
