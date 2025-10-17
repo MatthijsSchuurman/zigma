@@ -27,7 +27,7 @@ pub const System = struct {
 
       if (timeline.timeCurrent < 0.0) { // Before start of music
         _ = EntityMusic.pause(self.world.entityWrap(id));
-      } else if (timeline.timePrevious < 0.0 and timeline.timeCurrent >= 0.0) { // (Re)Start music
+      } else if (timeline.timePrevious <= 0.0 and timeline.timeCurrent >= 0.0) { // (Re)Start music
         _ = EntityMusic.seek(self.world.entityWrap(id), timeline.timeCurrent);
         _ = EntityMusic.play(self.world.entityWrap(id));
       } else if (@abs(timeline.timeDelta) > 0.1) { // Sync music on big jumps

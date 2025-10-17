@@ -58,6 +58,7 @@ pub const World = struct {
 
   components: ComponentHashTypes,
   systems: SystemTypes,
+  systems_initialised: bool = false,
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
@@ -73,10 +74,11 @@ pub const World = struct {
     return self;
   }
 
-  pub fn initSystems(self: *World) void {
-    inline for (@typeInfo(SystemTypes).@"struct".fields) |field| {
+  pub fn initSystems(self: *World) void { // Separate so self reference uses correct World instance (init returns a copy)
+    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
       @field(self.systems, toLower(field.name)) = field.type.init(self);
-    }
+
+    self.systems_initialised = true;
   }
 
   pub fn deinit(self: *World) void {
@@ -89,9 +91,10 @@ pub const World = struct {
     inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
       @field(self.components, toLower(field.name)).deinit();
 
-    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
-      if (@hasDecl(field.type, "deinit"))
-        @field(self.systems, toLower(field.name)).deinit();
+    if (self.systems_initialised)
+      inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+        if (@hasDecl(field.type, "deinit"))
+          @field(self.systems, toLower(field.name)).deinit();
   }
 
   // Entity
@@ -139,6 +142,8 @@ pub const World = struct {
 
   // Render
   pub fn render(self: *World) bool {
+    if (!self.systems_initialised) @panic("Systems not initialised, ensure you call world.initSystems();");
+
     self.systems.timeline.update();
     self.systems.music.update();
 
@@ -435,6 +440,7 @@ test "ECS World should init" {
 
   // When
   var world = World.init(allocator);
+
   defer world.deinit();
 
   // Then
