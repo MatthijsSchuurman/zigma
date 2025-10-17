@@ -80,9 +80,9 @@ pub const World = struct {
   }
 
   pub fn deinit(self: *World) void {
-    // var id: usize = self.entity_id;
-    // while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
-    //   self.entityWrap(@intCast(id)).deinit();
+    var id: usize = self.entity_id;
+    while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
+       self.entityWrap(@intCast(id)).deinit();
 
     self.entities.deinit();
 

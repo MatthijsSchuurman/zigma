@@ -4,7 +4,7 @@ const rl = ecs.raylib;
 
 pub const Component = struct {
   source_model_id: ecs.EntityID = 0,
-  vertex_indexes: std.ArrayList(usize),
+  vertex_indexes: std.ArrayList(usize) = .empty,
 };
 
 pub const Query = struct {

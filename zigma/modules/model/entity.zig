@@ -59,8 +59,8 @@ pub fn deinit(entity: ecs.Entity) void {
     }
   }
 
-  if (existing.transforms) |transforms|
-    transforms.deinit();
+  if (existing.transforms) |*transforms|
+    transforms.deinit(entity.world.allocator);
 
   rl.UnloadModel(existing.model);
 }
