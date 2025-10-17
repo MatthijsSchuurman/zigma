@@ -42,10 +42,11 @@ pub const Entities = LoadModules(&modules, "Entities");
 pub const Components = LoadModules(&modules, "Components");
 pub const Systems = LoadModules(&modules, "Systems");
 
-pub const EntityID = u32;
-pub const Entity = GetEntityStruct(&modules);
 const ComponentHashTypes = GetComponentHashTypes();
 const SystemTypes = GetSystemTypes();
+
+pub const EntityID = @import("modules/entity.zig").EntityID;
+pub const Entity = @import("modules/entity.zig").Entity;
 
 
 // World
@@ -228,8 +229,9 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
     inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Entities / Components / Systems declarations
       const D = @field(S, decl.name);
 
-      if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Entity / Component / System struct
-        continue;
+      if (!std.mem.eql(u8, ecsTypeSingular, "Entity"))
+        if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Component / System struct
+          continue;
 
       fields[fields_count] = .{
         .name = decl.name,
@@ -238,52 +240,6 @@ fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
         .is_comptime = false,
         .alignment = @alignOf(D),
       };
-
-      fields_count += 1;
-    }
-  }
-
-  return @Type(.{ .@"struct" = .{
-    .layout = .auto,
-    .fields = fields[0..fields_count],
-    .decls = &.{},
-    .is_tuple = false,
-  }});
-}
-
-fn GetEntityStruct(comptime mods: []const type) type {
-  var fields: [100]std.builtin.Type.StructField = undefined;
-
-  var zero: EntityID = 0;
-  fields[0] = .{ .name = "id", .type = EntityID, .default_value_ptr = null, .is_comptime = false, .alignment = @alignOf(EntityID) };
-  fields[1] = .{ .name = "parent_id", .type = EntityID, .default_value_ptr = &zero, .is_comptime = true, .alignment = @alignOf(EntityID) };
-  fields[2] = .{ .name = "world", .type = *World, .default_value_ptr = null, .is_comptime = false, .alignment = @alignOf(*World) };
-  var fields_count: usize = 3;
-
-  inline for (mods) |mod| {
-    if (!@hasDecl(mod, "Module"))
-      @compileError("Module struct not found for " ++ @typeName(mod));
-
-    const M = @field(mod, "Module");
-    if (!@hasDecl(M, "EntityHooks"))
-      continue;
-
-    const S = @field(M, "EntityHooks");
-    inline for (@typeInfo(S).@"struct".decls) |decl| { //Entity functions hooks
-      const F = @field(S, decl.name);
-      const FT = @TypeOf(F);
-
-      if (@typeInfo(FT) != .@"fn")
-        continue;
-
-      fields[fields_count] = .{
-        .name = decl.name,
-        .type = FT,
-        .default_value_ptr = &F,
-        .is_comptime = true,
-        .alignment = 0,
-      };
-
       fields_count += 1;
     }
   }
