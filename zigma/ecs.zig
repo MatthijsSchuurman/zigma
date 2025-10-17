@@ -11,176 +11,149 @@ pub const raylib = @cImport({
 });
 const rl = raylib;
 
-const ent = @import("entity.zig");
 
-//Components
-pub const Components = struct {
-  pub const Timeline = @import("components/timeline.zig");
-  pub const TimelineEvent = @import("components/timelineevent.zig");
-  pub const TimelineEventProgress = @import("components/timelineeventprogress.zig");
-  pub const Music = @import("components/music.zig");
-  pub const SubWorld = @import("components/subworld.zig");
+// Modules
+const modules = [_]type{
+  @import("modules/timeline/module.zig"),
+  @import("modules/music/module.zig"),
+  @import("modules/subworld/module.zig"),
 
-  pub const Dirty = @import("components/dirty.zig");
-  pub const Camera = @import("components/camera.zig");
+  @import("modules/dirty/module.zig"),
+  @import("modules/hide/module.zig"),
 
-  pub const Spawn = @import("components/spawn.zig");
-  pub const Position = @import("components/position.zig");
-  pub const Rotation = @import("components/rotation.zig");
-  pub const Scale = @import("components/scale.zig");
-  pub const Color = @import("components/color.zig");
-  pub const Edge = @import("components/edge.zig");
-  pub const Hide = @import("components/hide.zig");
+  @import("modules/model/module.zig"),
+  @import("modules/camera/module.zig"),
+  @import("modules/shader/module.zig"),
+  @import("modules/light/module.zig"),
 
-  pub const Shader = @import("components/shader.zig");
-  pub const Light = @import("components/light.zig");
-  pub const Material = @import("components/material.zig");
-  pub const Model = @import("components/model.zig");
-  pub const Text = @import("components/text.zig");
-  pub const FPS = @import("components/fps.zig");
+  @import("modules/transform/module.zig"),
+  @import("modules/material/module.zig"),
+  @import("modules/color/module.zig"),
+  @import("modules/edge/module.zig"),
+
+  @import("modules/spawn/module.zig"),
+
+  @import("modules/background/module.zig"),
+  @import("modules/text/module.zig"),
+  @import("modules/fps/module.zig"),
 };
 
-const ComponentDeclarations = std.meta.declarations(Components); // Needed to prevent: unable to resolve comptime value
+const Entities = LoadModules(&modules, "Entities");
+const Components = LoadModules(&modules, "Components");
+const Systems = LoadModules(&modules, "Systems");
 
+const ComponentHashTypes = GetComponentHashTypes();
+const SystemTypes = GetSystemTypes();
 
-//Systems
-pub const Systems = struct {
-  pub const Timeline = @import("systems/timeline.zig");
-  pub const Music = @import("systems/music.zig");
-  pub const SubWorld = @import("systems/subworld.zig");
-
-  pub const Dirty = @import("systems/dirty.zig");
-  pub const Camera = @import("systems/camera.zig");
-  pub const Shader = @import("systems/shader.zig");
-  pub const Light = @import("systems/light.zig");
-
-  // Effects
-  pub const Effects_Spawn = @import("systems/effects/spawn.zig");
-  pub const Effects_Position = @import("systems/effects/position.zig");
-  pub const Effects_Rotation = @import("systems/effects/rotation.zig");
-  pub const Effects_Scale = @import("systems/effects/scale.zig");
-  pub const Effects_Color = @import("systems/effects/color.zig");
-  pub const Effects_Edge = @import("systems/effects/edge.zig");
-  pub const Effects_Hide = @import("systems/effects/hide.zig");
-
-  // Render
-  pub const Render_Background = @import("systems/render/background.zig");
-  pub const Render_Model = @import("systems/render/model.zig");
-  pub const Render_Text = @import("systems/render/text.zig");
-  pub const FPS = @import("systems/render/fps.zig");
-};
-
-const SystemDeclarations = std.meta.declarations(Systems); // Needed to prevent: unable to resolve comptime value
+pub const EntityID = u32;
+pub const Entity = @import("modules/entity.zig").Entity; //TODO: make dynamic based on imported modules
 
 
 // World
 pub const World = struct {
   allocator: std.mem.Allocator,
 
-  entity_id: ent.EntityID = 1, // 0 is no entry
-  entities: std.StringHashMap(ent.EntityID),
+  entity_id: EntityID = 1, // 0 is no entry
+  entities: std.StringHashMap(EntityID),
 
- components: ComponentStores(),
-  systems: SystemStores(),
+  components: ComponentHashTypes,
+  systems: SystemTypes,
+  systems_initialised: bool = false,
 
   pub fn init(allocator: std.mem.Allocator) World {
     var self = World{
       .allocator = allocator,
-      .entities = std.StringHashMap(ent.EntityID).init(allocator),
+      .entities = std.StringHashMap(EntityID).init(allocator),
       .components = undefined,
       .systems = undefined,
     };
 
-    inline for (ComponentDeclarations) |declaration| {
-      const T = @field(Components, declaration.name).Component;
-      @field(self.components, toLower(declaration.name)) = std.AutoHashMap(ent.EntityID, T).init(allocator);
-    }
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      @field(self.components, toLower(field.name)) = field.type.init(allocator);
 
     return self;
   }
 
-  pub fn initSystems(self: *World) void {
-    inline for (SystemDeclarations) |declaration| {
-      const T = @field(Systems, declaration.name).System;
-      @field(self.systems, toLower(declaration.name)) = T.init(self);
-    }
+  pub fn initSystems(self: *World) void { // Separate so self reference uses correct World instance (init returns a copy)
+    inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+      @field(self.systems, toLower(field.name)) = field.type.init(self);
+
+    self.systems_initialised = true;
   }
 
   pub fn deinit(self: *World) void {
     var id: usize = self.entity_id;
     while (id > 0) : (id -= 1) // Bit of a blunt instrument, may wanna replace this with deinit callbacks registration
-      self.entityWrap(@intCast(id)).deinit();
+       self.entityWrap(@intCast(id)).deinit();
 
     self.entities.deinit();
 
-    inline for (ComponentDeclarations) |declaration|
-      @field(self.components, toLower(declaration.name)).deinit();
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      @field(self.components, toLower(field.name)).deinit();
 
-    inline for (SystemDeclarations) |declaration| {
-      const T = @field(Systems, declaration.name).System;
-
-      if (@hasDecl(T, "deinit"))
-        @field(self.systems, toLower(declaration.name)).deinit();
-    }
+    if (self.systems_initialised)
+      inline for (@typeInfo(SystemTypes).@"struct".fields) |field|
+        if (@hasDecl(field.type, "deinit"))
+          @field(self.systems, toLower(field.name)).deinit();
   }
 
   // Entity
-  pub fn entityNextID(self: *World) ent.EntityID {
+  pub fn entityNextID(self: *World) EntityID {
     defer self.entity_id += 1;
     return self.entity_id;
   }
 
-  pub fn entityNext(self: *World) ent.Entity {
+  pub fn entityNext(self: *World) Entity {
     const id = self.entityNextID();
-    return ent.Entity{
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entityWrap(self: *World, id: ent.EntityID) ent.Entity {
-    return ent.Entity{
+  pub fn entityWrap(self: *World, id: EntityID) Entity {
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entity(self: *World, name: []const u8) ent.Entity {
+  pub fn entity(self: *World, name: []const u8) Entity {
     if (self.entities.get(name)) |id| // Existing named entity
-      return ent.Entity{
+      return Entity{
         .id = id,
         .world = self,
       };
 
     const id = self.entityNextID();
     self.entities.put(name, id) catch @panic("Failed to store entity mapping");
-    return ent.Entity{
+    return Entity{
       .id = id,
       .world = self,
     };
   }
 
-  pub fn entityDelete(self: *World, id: ent.EntityID) void {
+  pub fn entityDelete(self: *World, id: EntityID) void {
     self.entityWrap(id).deinit();
 
-    inline for (ComponentDeclarations) |declaration| {
-      var components = &@field(self.components, toLower(declaration.name));
-      _ = components.remove(id);
-    }
+    inline for (@typeInfo(ComponentHashTypes).@"struct".fields) |field|
+      _ = @field(self.components, toLower(field.name)).remove(id);
   }
 
   // Render
   pub fn render(self: *World) bool {
+    if (!self.systems_initialised) @panic("Systems not initialised, ensure you call world.initSystems();");
+
     self.systems.timeline.update();
     self.systems.music.update();
 
-    self.systems.effects_hide.update();
-    self.systems.effects_position.update();
-    self.systems.effects_rotation.update();
-    self.systems.effects_scale.update();
-    self.systems.effects_color.update();
-    self.systems.effects_edge.update();
-    self.systems.effects_spawn.update();
+    self.systems.hide.update();
+    self.systems.position.update();
+    self.systems.rotation.update();
+    self.systems.scale.update();
+    self.systems.color.update();
+    self.systems.edge.update();
+    self.systems.spawn.update();
 
     self.systems.camera.update();
     self.systems.shader.update();
@@ -190,13 +163,13 @@ pub const World = struct {
     // Render
     const success = self.systems.subworld.render();
 
-    self.systems.render_background.render();
+    self.systems.background.render();
 
     self.systems.camera.start();
-    self.systems.render_model.render();
+    self.systems.model.render();
     self.systems.camera.stop();
 
-    self.systems.render_text.render();
+    self.systems.text.render();
     self.systems.fps.render();
 
     self.systems.dirty.clean();
@@ -204,17 +177,18 @@ pub const World = struct {
   }
 
   //Components
-  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(ent.EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []ent.EntityID {
-    var results = std.ArrayList(ent.EntityID).init(self.allocator);
+  pub fn query(self: *World, comptime T: type, component: *const std.AutoHashMap(EntityID, T.Data), filter: T.Filter, sort: []const T.Sort) []EntityID {
+    var results: std.ArrayList(EntityID) = .empty;
+    defer results.deinit(self.allocator);
 
     var it = component.iterator();
     while (it.next()) |entry|
       if (T.filter(entry.value_ptr.*, filter))
-        results.append(entry.key_ptr.*) catch @panic("Failed to append query result");
+        results.append(self.allocator, entry.key_ptr.*) catch @panic("Failed to append query result");
 
     if (@hasDecl(T, "compare") and sort.len > 0) {
       const Context = struct {
-        component: *const std.AutoHashMap(ent.EntityID, T.Data),
+        component: *const std.AutoHashMap(EntityID, T.Data),
         sort: []const T.Sort,
       };
 
@@ -223,8 +197,8 @@ pub const World = struct {
         .sort = sort,
       };
 
-      std.sort.heap(ent.EntityID, results.items, context, struct {
-        fn lessThan(ctx: Context, a: ent.EntityID, b: ent.EntityID) bool {
+      std.sort.heap(EntityID, results.items, context, struct {
+        fn lessThan(ctx: Context, a: EntityID, b: EntityID) bool {
           const va = ctx.component.get(a).?;
           const vb = ctx.component.get(b).?;
           return T.compare(va, vb, ctx.sort) == .lt;
@@ -232,54 +206,97 @@ pub const World = struct {
       }.lessThan);
     }
 
-    return results.toOwnedSlice() catch @panic("Failed to convert result to slice");
+    return results.toOwnedSlice(self.allocator) catch @panic("Failed to convert result to slice");
   }
 };
 
 
 // Utils
-fn ComponentStores() type {
-  const ds = std.meta.declarations(Components);
-  var f: [ds.len]std.builtin.Type.StructField = undefined;
+fn LoadModules(comptime mods: []const type, comptime ecsType: []const u8) type {
+  var fields: [100]std.builtin.Type.StructField = undefined;
+  var fields_count: usize = 0;
 
-  inline for (ds, 0..) |d, i| {
-    const T = @field(Components, d.name).Component;
-    f[i] = .{
-      .name          = toLower(d.name),
-      .type          = std.AutoHashMap(ent.EntityID, T),
-      .default_value_ptr = null,
-      .is_comptime   = false,
-      .alignment     = 0,
-    };
+  const ecsTypeSingular =
+    if (std.mem.eql(u8, ecsType, "Entities")) "Entity"
+    else if (std.mem.eql(u8, ecsType, "Components")) "Component"
+    else if (std.mem.eql(u8, ecsType, "Systems")) "System"
+    else @compileError("Unexpected ecsType");
+
+  inline for (mods) |mod| {
+    if (!@hasDecl(mod, "Module"))
+      @compileError("Module struct not found for " ++ @typeName(mod));
+
+    const M = @field(mod, "Module");
+    if (!@hasDecl(M, ecsType))  // Only check Entities / Components / Systems
+      continue;
+
+    const S = @field(M, ecsType);
+    inline for (@typeInfo(S).@"struct".decls) |decl| { //Module -> Entities / Components / Systems declarations
+      const D = @field(S, decl.name);
+
+      if (!std.mem.eql(u8, ecsTypeSingular, "Entity"))
+        if (!@hasDecl(D, ecsTypeSingular)) // declaration must have Component / System struct
+          continue;
+
+      fields[fields_count] = .{
+        .name = decl.name,
+        .type = D,
+        .default_value_ptr = null,
+        .is_comptime = false,
+        .alignment = @alignOf(D),
+      };
+      fields_count += 1;
+    }
   }
 
   return @Type(.{ .@"struct" = .{
-    .layout   = .auto,
-    .fields   = &f,
-    .decls    = &.{},
+    .layout = .auto,
+    .fields = fields[0..fields_count],
+    .decls = &.{},
     .is_tuple = false,
   }});
 }
 
-fn SystemStores() type {
-  const ds = std.meta.declarations(Systems);
-  var f: [ds.len]std.builtin.Type.StructField = undefined;
+fn GetComponentHashTypes() type {
+  const components = @typeInfo(Components).@"struct";
+  var fields: [components.fields.len]std.builtin.Type.StructField = undefined;
 
-  inline for (ds, 0..) |d, i| {
-    const T = @field(Systems, d.name).System;
-    f[i] = .{
-      .name          = toLower(d.name),
-      .type          = T,
+  inline for (components.fields, 0..) |field, i| {
+    fields[i] = .{
+      .name = toLower(field.name),
+      .type = std.AutoHashMap(EntityID, field.type.Component),
       .default_value_ptr = null,
-      .is_comptime   = false,
-      .alignment     = 0,
+      .is_comptime = false,
+      .alignment = @alignOf(std.AutoHashMap(EntityID, field.type.Component)),
     };
   }
 
   return @Type(.{ .@"struct" = .{
-    .layout   = .auto,
-    .fields   = &f,
-    .decls    = &.{},
+    .layout = .auto,
+    .fields = fields[0..],
+    .decls = &.{},
+    .is_tuple = false,
+  }});
+}
+
+fn GetSystemTypes() type {
+  const systems = @typeInfo(Systems).@"struct";
+  var fields: [systems.fields.len]std.builtin.Type.StructField = undefined;
+
+  inline for (systems.fields, 0..) |field, i| {
+    fields[i] = .{
+      .name = toLower(field.name),
+      .type = field.type.System,
+      .default_value_ptr = null,
+      .is_comptime = false,
+      .alignment = @alignOf(field.type.System),
+    };
+  }
+
+  return @Type(.{ .@"struct" = .{
+    .layout = .auto,
+    .fields = fields[0..],
+    .decls = &.{},
     .is_tuple = false,
   }});
 }
@@ -423,6 +440,7 @@ test "ECS World should init" {
 
   // When
   var world = World.init(allocator);
+
   defer world.deinit();
 
   // Then
@@ -433,6 +451,8 @@ test "ECS World should init" {
 
 test "ECS World should init systems" {
   // Given
+  const ModuleTimeline = @import("modules/timeline/module.zig").Module;
+
   const allocator = std.testing.allocator;
   var world = World.init(allocator);
   defer world.deinit();
@@ -441,7 +461,7 @@ test "ECS World should init systems" {
   world.initSystems();
 
   // Then
-  try tst.expectEqual(Systems.Timeline.System, @TypeOf(world.systems.timeline));
+  try std.testing.expectEqual(ModuleTimeline.Systems.Timeline.System, @TypeOf(world.systems.timeline));
 }
 
 test "ECS World should deinit" {
@@ -490,6 +510,8 @@ test "ECS World should add entity" {
 
 test "ECS World should delete entity" {
   // Given
+  const ModuleTransform = @import("modules/transform/module.zig").Module;
+
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
@@ -510,12 +532,12 @@ test "ECS World should delete entity" {
     return error.TestEntityNotDeleted;
 
   if (world.components.position.get(entity2.id)) |position|
-    try tst.expectEqual(Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
+    try tst.expectEqual(ModuleTransform.Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
   else
     return error.TestEntityNotFound;
 
   if (world.components.scale.get(entity2.id)) |scale|
-    try tst.expectEqual(Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
+    try tst.expectEqual(ModuleTransform.Components.Scale.Component{.x = 4, .y = 5, .z = 6}, scale)
   else
     return error.TestEntityNotFound;
 }
@@ -535,6 +557,8 @@ test "ECS World should render" {
 
 test "ECS World should query timeline events" {
   // Given
+  const ModuleTimeline = @import("modules/timeline/module.zig").Module;
+
   var world = World.init(std.testing.allocator);
   defer world.deinit();
 
@@ -542,7 +566,7 @@ test "ECS World should query timeline events" {
   _ = world.entity("test").event(.{ .start = 0, .end = 1 });
 
   // When
-  const result = world.query(Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
+  const result = world.query(ModuleTimeline.Components.TimelineEvent.Query, &world.components.timelineevent, .{ .timeline_id = .{ .eq = 1 } }, &.{.end_desc});
   defer world.allocator.free(result);
 
   // Then

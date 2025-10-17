@@ -1,0 +1,46 @@
+const std = @import("std");
+const ecs = @import("../../ecs.zig");
+const rl = ecs.raylib;
+
+const Module = @import("module.zig").Module;
+
+pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
+  if (entity.world.components.position.getPtr(entity.id)) |existing| {
+    existing.* = Module.Components.Position.Component{.x = x, .y = y, .z = z};
+    return entity.dirty(&.{.position});
+  }
+
+  const new = Module.Components.Position.Component{.x = x, .y = y, .z = z };
+  entity.world.components.position.put(entity.id, new) catch @panic("Failed to store position");
+
+  return entity.dirty(&.{.position});
+}
+
+
+// Testing
+const tst = std.testing;
+
+test "Component should set position" {
+  // Given
+  var world = ecs.World.init(std.testing.allocator);
+  defer ecs.World.deinit(&world);
+
+  const entity = world.entity("test");
+
+  // When
+  const result = set(entity, 1, 2, 3);
+
+  // Then
+  try tst.expectEqual(entity.id, result.id);
+  try tst.expectEqual(entity.world, result.world);
+
+  if (world.components.position.get(entity.id)) |position|
+    try tst.expectEqual(Module.Components.Position.Component{.x = 1, .y = 2, .z = 3}, position)
+  else
+    return error.TestExpectedPosition;
+
+  if (world.components.dirty.get(entity.id)) |dirty|
+    try tst.expectEqual(true, dirty.position)
+  else
+    return error.TestExpectedDirty;
+}
