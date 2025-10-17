@@ -5,12 +5,6 @@ pub const Module = struct {
     pub const TimelineEventProgress = @import("entity_timelineeventprogress.zig");
   };
 
-  pub const EntityHooks = struct {
-    pub const timeline = Entities.Timeline.init;
-    pub const timeline_speed = Entities.Timeline.setSpeed;
-    pub const timeline_offset = Entities.Timeline.setOffset;
-  };
-
   pub const Components = struct {
     pub const Timeline = @import("component_timeline.zig");
     pub const TimelineEvent = @import("component_timelineevent.zig");

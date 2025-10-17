@@ -1,11 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
 
-pub fn set(entity: ent.Entity, hidden: bool) ent.Entity {
+pub fn set(entity: ecs.Entity, hidden: bool) ecs.Entity {
   if (entity.world.components.hide.getPtr(entity.id)) |_| {
 
     if (!hidden) // Remove entry
@@ -24,10 +23,10 @@ pub fn set(entity: ent.Entity, hidden: bool) ent.Entity {
   return entity;
 }
 
-pub fn hide(entity: ent.Entity) ent.Entity {
+pub fn hide(entity: ecs.Entity) ecs.Entity {
   return set(entity, true);
 }
-pub fn unhide(entity: ent.Entity) ent.Entity {
+pub fn unhide(entity: ecs.Entity) ecs.Entity {
   return set(entity, false);
 }
 

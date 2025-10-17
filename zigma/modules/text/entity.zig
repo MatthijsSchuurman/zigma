@@ -1,9 +1,9 @@
 const std = @import("std");
-const ent = @import("../../entity.zig");
+const ecs = @import("../../ecs.zig");
 
 const Module = @import("module.zig").Module;
 
-pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
+pub fn set(entity: ecs.Entity, text: []const u8) ecs.Entity {
   if (entity.world.components.text.getPtr(entity.id)) |existing| {
     existing.text = text;
     return entity.dirty(&.{.text});
@@ -24,7 +24,6 @@ pub fn set(entity: ent.Entity, text: []const u8) ent.Entity {
 
 // Testing
 const tst = std.testing;
-const ecs = @import("../../ecs.zig");
 
 test "Component should set text" {
   // Given

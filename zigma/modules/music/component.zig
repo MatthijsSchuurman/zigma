@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = struct {
@@ -58,7 +57,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
     return world.query(Query, &world.components.music, f, sort);
   }
 };

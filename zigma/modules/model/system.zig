@@ -1,13 +1,12 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
   world: *ecs.World,
 
-  opaques: std.ArrayList(ent.EntityID), // Use preallocated lists for splitByAlpha
-  transparent: std.ArrayList(ent.EntityID),
+  opaques: std.ArrayList(ecs.EntityID), // Use preallocated lists for splitByAlpha
+  transparent: std.ArrayList(ecs.EntityID),
 
   pub fn init(world: *ecs.World) System {
     return System{
@@ -37,8 +36,8 @@ pub const System = struct {
   }
 
   const SplitByAlphaIDs = struct {
-    opaques: []const ent.EntityID,
-    transparent: []const ent.EntityID,
+    opaques: []const ecs.EntityID,
+    transparent: []const ecs.EntityID,
   };
   fn splitByAlpha(self: *System) SplitByAlphaIDs {
     self.opaques.clearRetainingCapacity(); // Clear previous data
@@ -85,8 +84,8 @@ pub const System = struct {
 
     pub fn lessThan(
         self: *const Comparator,
-        a: ent.EntityID,
-        b: ent.EntityID,
+        a: ecs.EntityID,
+        b: ecs.EntityID,
     ) bool {
         const pa = self.world.components.position.getPtr(a).?.*;
         const pb = self.world.components.position.getPtr(b).?.*;
@@ -107,7 +106,7 @@ pub const System = struct {
       .world = self.world,
       .camera_position = camera_position.*,
     };
-    std.sort.pdq(ent.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
+    std.sort.pdq(ecs.EntityID, self.transparent.items, &comparator, Comparator.lessThan);
 
     // Render opaque models
     for (ids.opaques) |id|
@@ -145,7 +144,7 @@ pub const System = struct {
     rl.rlEnableDepthMask();
   }
 
-  fn renderModel(self: *System, id: ent.EntityID) void {
+  fn renderModel(self: *System, id: ecs.EntityID) void {
     var model = self.world.components.model.getPtr(id) orelse unreachable;
     const color = self.world.components.color.getPtr(id) orelse unreachable;
 

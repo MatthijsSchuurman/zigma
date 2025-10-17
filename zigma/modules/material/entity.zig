@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -9,7 +8,7 @@ pub const Material = struct {
   shader: []const u8 = "",
 };
 
-pub fn init(entity: ent.Entity, params: Material) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Material) ecs.Entity {
   if (entity.world.components.material.getPtr(entity.id)) |_|
     return entity;
 
@@ -32,7 +31,7 @@ pub fn init(entity: ent.Entity, params: Material) ent.Entity {
   return entity.dirty(&.{.material});
 }
 
-pub fn deinit(entity: ent.Entity) void {
+pub fn deinit(entity: ecs.Entity) void {
   const existing = entity.world.components.material.getPtr(entity.id) orelse return;
 
   existing.material.shader = rl.Shader{}; // Unlink shader

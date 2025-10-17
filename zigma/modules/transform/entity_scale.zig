@@ -1,11 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
 
-pub fn set(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
+pub fn set(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   if (entity.world.components.scale.getPtr(entity.id)) |existing| {
     existing.* = Module.Components.Scale.Component{.x = x, .y = y, .z = z};
     return entity.dirty(&.{.scale});

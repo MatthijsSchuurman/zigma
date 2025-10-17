@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -9,7 +8,7 @@ pub const Shader = struct {
   type: []const u8 = "lighting",
 };
 
-pub fn init(entity: ent.Entity, params: Shader) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Shader) ecs.Entity {
   if (entity.world.components.shader.getPtr(entity.id)) |_|
     return entity;
 
@@ -32,7 +31,7 @@ fn loadShader(shader_type: []const u8) rl.Shader {
   return rl.LoadShader("zigma/shaders/lighting.vs", "zigma/shaders/lighting.fs");
 }
 
-pub fn deinit(entity: ent.Entity) void {
+pub fn deinit(entity: ecs.Entity) void {
   const existing = entity.world.components.shader.getPtr(entity.id) orelse return;
 
   rl.UnloadShader(existing.shader);

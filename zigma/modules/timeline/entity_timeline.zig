@@ -1,10 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 const Module = @import("module.zig").Module;
 
-pub fn init(entity: ent.Entity) ent.Entity {
+pub fn init(entity: ecs.Entity) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |_|
     return entity;
 
@@ -14,14 +13,14 @@ pub fn init(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
-pub fn setSpeed(entity: ent.Entity, speed: f32) ent.Entity {
+pub fn setSpeed(entity: ecs.Entity, speed: f32) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
     timeline.speed = speed;
 
   return entity;
 }
 
-pub fn setOffset(entity: ent.Entity, offset: f32) ent.Entity {
+pub fn setOffset(entity: ecs.Entity, offset: f32) ecs.Entity {
   if (entity.world.components.timeline.getPtr(entity.id)) |timeline|
     timeline.timeOffset = offset;
 

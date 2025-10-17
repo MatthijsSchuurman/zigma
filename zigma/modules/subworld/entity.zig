@@ -1,11 +1,10 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
 
-pub fn init(entity: ent.Entity, world: *ecs.World) ent.Entity {
+pub fn init(entity: ecs.Entity, world: *ecs.World) ecs.Entity {
   if (entity.world.components.subworld.getPtr(entity.id)) |existing| {
     existing.*.world = world;
     return entity;

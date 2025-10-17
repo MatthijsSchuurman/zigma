@@ -1,10 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 pub const System = struct {
   world: *ecs.World,
-  start_hides: std.AutoHashMap(ent.EntityID, bool),
+  start_hides: std.AutoHashMap(ecs.EntityID, bool),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -12,7 +11,7 @@ pub const System = struct {
       .start_hides = undefined,
     };
 
-    self.start_hides = std.AutoHashMap(ent.EntityID, bool).init(world.allocator);
+    self.start_hides = std.AutoHashMap(ecs.EntityID, bool).init(world.allocator);
     return self;
   }
 

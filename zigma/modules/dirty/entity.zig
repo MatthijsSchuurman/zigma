@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -16,7 +15,7 @@ pub const Dirty = enum {
   text,
 };
 
-pub fn set(entity: ent.Entity, flags: []const Dirty) ent.Entity {
+pub fn set(entity: ecs.Entity, flags: []const Dirty) ecs.Entity {
   const entry = entity.world.components.dirty.getOrPut(entity.id) catch @panic("Failed to store dirty");
 
   if (!entry.found_existing)

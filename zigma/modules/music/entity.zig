@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -9,7 +8,7 @@ pub const Music = struct {
   path: []const u8 = "",
 };
 
-pub fn init(entity: ent.Entity, params: Music) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Music) ecs.Entity {
   if (entity.world.components.music.getPtr(entity.id)) |_|
     return entity;
 
@@ -26,13 +25,13 @@ pub fn init(entity: ent.Entity, params: Music) ent.Entity {
   return play(entity);
 }
 
-pub fn deinit(entity: ent.Entity) void {
+pub fn deinit(entity: ecs.Entity) void {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return;
 
   rl.UnloadMusicStream(existing.music);
 }
 
-pub fn play(entity: ent.Entity) ent.Entity {
+pub fn play(entity: ecs.Entity) ecs.Entity {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return entity;
 
   rl.PlayMusicStream(existing.music);
@@ -40,7 +39,7 @@ pub fn play(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
-pub fn pause(entity: ent.Entity) ent.Entity {
+pub fn pause(entity: ecs.Entity) ecs.Entity {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return entity;
 
   rl.PauseMusicStream(existing.music);
@@ -48,7 +47,7 @@ pub fn pause(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
-pub fn speed(entity: ent.Entity, pitch: f32) ent.Entity {
+pub fn speed(entity: ecs.Entity, pitch: f32) ecs.Entity {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return entity;
 
   existing.speed = pitch;
@@ -62,7 +61,7 @@ pub fn speed(entity: ent.Entity, pitch: f32) ent.Entity {
   return entity;
 }
 
-pub fn seek(entity: ent.Entity, seconds: f32) ent.Entity {
+pub fn seek(entity: ecs.Entity, seconds: f32) ecs.Entity {
   const existing = entity.world.components.music.getPtr(entity.id) orelse return entity;
 
   rl.SeekMusicStream(existing.music, seconds);

@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -15,7 +14,7 @@ pub const Camera = struct {
   } = .{},
 };
 
-pub fn init(entity: ent.Entity, params: Camera) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Camera) ecs.Entity {
   if (entity.world.components.camera.getPtr(entity.id)) |_|
     return entity;
 
@@ -34,7 +33,7 @@ pub fn init(entity: ent.Entity, params: Camera) ent.Entity {
   return entity;
 }
 
-pub fn activate(entity: ent.Entity) ent.Entity {
+pub fn activate(entity: ecs.Entity) ecs.Entity {
   var it = entity.world.components.camera.iterator();
   while(it.next()) |entry| //Ensure only this camera is active
     entry.value_ptr.*.active = entry.key_ptr.* == entity.id;
@@ -42,21 +41,21 @@ pub fn activate(entity: ent.Entity) ent.Entity {
   return entity;
 }
 
-pub fn deactivate(entity: ent.Entity) ent.Entity {
+pub fn deactivate(entity: ecs.Entity) ecs.Entity {
   if (entity.world.components.camera.getPtr(entity.id)) |camera|
     camera.active = false;
 
   return entity;
 }
 
-pub fn target(entity: ent.Entity, x: f32, y: f32, z: f32) ent.Entity {
+pub fn target(entity: ecs.Entity, x: f32, y: f32, z: f32) ecs.Entity {
   if (entity.world.components.camera.getPtr(entity.id)) |camera|
     camera.target = .{.x = x, .y = y, .z = z };
 
   return entity;
 }
 
-pub fn fovy(entity: ent.Entity, value: f32) ent.Entity {
+pub fn fovy(entity: ecs.Entity, value: f32) ecs.Entity {
   if (entity.world.components.camera.getPtr(entity.id)) |camera|
     camera.fovy = value;
 

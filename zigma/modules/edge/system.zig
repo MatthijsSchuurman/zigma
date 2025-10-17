@@ -1,13 +1,12 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
 
 pub const System = struct {
   world: *ecs.World,
-  start_edges: std.AutoHashMap(ent.EntityID, Module.Components.Edge.Component),
+  start_edges: std.AutoHashMap(ecs.EntityID, Module.Components.Edge.Component),
 
   pub fn init(world: *ecs.World) System {
     var self = System{
@@ -15,7 +14,7 @@ pub const System = struct {
       .start_edges = undefined,
     };
 
-    self.start_edges = std.AutoHashMap(ent.EntityID, Module.Components.Edge.Component).init(world.allocator);
+    self.start_edges = std.AutoHashMap(ecs.EntityID, Module.Components.Edge.Component).init(world.allocator);
     return self;
   }
 

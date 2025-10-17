@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -10,7 +9,7 @@ pub const Edge = struct {
   color: ?rl.Color = null,
 };
 
-pub fn set(entity: ent.Entity, params: Edge) ent.Entity {
+pub fn set(entity: ecs.Entity, params: Edge) ecs.Entity {
   if (entity.world.components.edge.getPtr(entity.id)) |existing| {
     existing.width = params.width;
     if (params.color) |color|

@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -10,7 +9,7 @@ pub const Model = struct {
   material: []const u8 = "",
 };
 
-pub fn init(entity: ent.Entity, params: Model) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Model) ecs.Entity {
   if (entity.world.components.model.getPtr(entity.id)) |_|
     return entity;
 
@@ -43,7 +42,7 @@ pub fn init(entity: ent.Entity, params: Model) ent.Entity {
   return entity.dirty(&.{.model});
 }
 
-pub fn deinit(entity: ent.Entity) void {
+pub fn deinit(entity: ecs.Entity) void {
   const existing = entity.world.components.model.getPtr(entity.id) orelse return;
 
   if (existing.material_id == 0) { // Default material

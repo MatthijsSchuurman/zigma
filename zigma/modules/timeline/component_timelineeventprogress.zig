@@ -1,10 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 pub const Component = struct {
   progress: f32 = 0,
-  target_id: ?ent.EntityID,
+  target_id: ?ecs.EntityID,
 };
 
 pub const Query = struct {
@@ -12,7 +11,7 @@ pub const Query = struct {
 
   pub const Filter = struct {
     progress: ?ecs.FieldFilter(f32) = null,
-    target_id: ?ecs.FieldFilter(?ent.EntityID) = null,
+    target_id: ?ecs.FieldFilter(?ecs.EntityID) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
@@ -21,7 +20,7 @@ pub const Query = struct {
         return false;
 
     if (f.target_id) |cond|
-      if (!ecs.matchField(?ent.EntityID, self.target_id, cond))
+      if (!ecs.matchField(?ecs.EntityID, self.target_id, cond))
         return false;
 
     return true;
@@ -68,7 +67,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
     return world.query(Query, &world.components.timelineeventprogress, f, sort);
   }
 };

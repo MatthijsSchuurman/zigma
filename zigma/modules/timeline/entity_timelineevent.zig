@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 const Module = @import("module.zig").Module;
 
@@ -16,14 +15,14 @@ pub const Event = struct {
   motion: Module.Components.TimelineEvent.Motion = .Linear,
 };
 
-pub fn add(entity: ent.Entity, params: Event) ent.Entity {
+pub fn add(entity: ecs.Entity, params: Event) ecs.Entity {
   if (params.end == null and params.duration == null)
     @panic("Event end or duration must be provided");
 
   if (params.repeat < 1)
     @panic("Event repeat should be at least 1");
 
-  var timeline: ent.Entity = undefined;
+  var timeline: ecs.Entity = undefined;
   if (params.timeline.len == 0) {
     timeline = entity.world.entity("timeline"); // Use default timeline
   } else {

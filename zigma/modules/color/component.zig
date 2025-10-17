@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = rl.Color;
@@ -37,7 +36,7 @@ pub const Query = struct {
 
   pub const Sort = enum {noyetimplemented};
 
-  pub fn exec(world: *ecs.World, f: Filter) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
     return world.query(Query, &world.components.color, f, &.{});
   }
 };
@@ -45,7 +44,7 @@ pub const Query = struct {
 
 // Testing
 const tst = std.testing;
-const EntityColor= @import("entity.zig");
+const EntityColor = @import("entity.zig");
 
 test "Query should filter" {
   // Given

@@ -1,23 +1,22 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = struct {
   material: rl.Material,
-  shader_id: ent.EntityID = 0,
+  shader_id: ecs.EntityID = 0,
 };
 
 pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    shader_id: ?ecs.FieldFilter(ent.EntityID) = null,
+    shader_id: ?ecs.FieldFilter(ecs.EntityID) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.shader_id) |cond|
-      if (!ecs.matchField(ent.EntityID, self.shader_id, cond))
+      if (!ecs.matchField(ecs.EntityID, self.shader_id, cond))
         return false;
 
     return true;
@@ -25,7 +24,7 @@ pub const Query = struct {
 
   pub const Sort = enum {noyetimplemented};
 
-  pub fn exec(world: *ecs.World, f: Filter) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter) []ecs.EntityID {
     return world.query(Query, &world.components.material, f, &.{});
   }
 };

@@ -1,10 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 const Module = @import("module.zig").Module;
 
-pub fn activate(entity: ent.Entity, target_id: ?ent.EntityID) void {
+pub fn activate(entity: ecs.Entity, target_id: ?ecs.EntityID) void {
   if (entity.world.components.timelineeventprogress.getPtr(entity.id)) |_| { // Already active
     return;
   }
@@ -13,14 +12,14 @@ pub fn activate(entity: ent.Entity, target_id: ?ent.EntityID) void {
   entity.world.components.timelineeventprogress.put(entity.id, new) catch @panic("Failed to store timeline event progress");
 }
 
-pub fn progress(entity: ent.Entity, currentProgress: f32) void {
+pub fn progress(entity: ecs.Entity, currentProgress: f32) void {
   if (entity.world.components.timelineeventprogress.getPtr(entity.id)) |existing| { // Already active
     existing.progress = currentProgress;
     return;
   }
 }
 
-pub fn deactivate(entity: ent.Entity) void {
+pub fn deactivate(entity: ecs.Entity) void {
   _ = entity.world.components.timelineeventprogress.remove(entity.id);
 }
 

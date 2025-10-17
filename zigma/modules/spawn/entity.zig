@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 const Module = @import("module.zig").Module;
@@ -10,7 +9,7 @@ pub const Spawn = struct {
 };
 
 
-pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
+pub fn init(entity: ecs.Entity, params: Spawn) ecs.Entity {
   if (entity.world.components.spawn.getPtr(entity.id)) |_|
     return entity;
 
@@ -68,7 +67,7 @@ pub fn init(entity: ent.Entity, params: Spawn) ent.Entity {
   return entity;
 }
 
-pub fn deinit(entity: ent.Entity) void {
+pub fn deinit(entity: ecs.Entity) void {
   const existing = entity.world.components.spawn.getPtr(entity.id) orelse return;
 
   // World cleans this up for now

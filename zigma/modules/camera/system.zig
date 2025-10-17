@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const System = struct {
@@ -12,7 +11,7 @@ pub const System = struct {
     };
   }
 
-  pub fn active(self: *System) ent.EntityID {
+  pub fn active(self: *System) ecs.EntityID {
     var it = self.world.components.camera.iterator();
     while (it.next()) |entry|
       if (entry.value_ptr.*.active) return entry.key_ptr.*;

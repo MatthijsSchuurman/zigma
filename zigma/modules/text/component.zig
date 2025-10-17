@@ -1,6 +1,5 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 
 pub const Component = struct {
   text: []const u8,
@@ -40,7 +39,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
     return world.query(Query, &world.components.text, f, sort);
   }
 };

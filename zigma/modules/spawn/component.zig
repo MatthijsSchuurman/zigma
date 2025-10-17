@@ -1,10 +1,9 @@
 const std = @import("std");
 const ecs = @import("../../ecs.zig");
-const ent = @import("../../entity.zig");
 const rl = ecs.raylib;
 
 pub const Component = struct {
-  source_model_id: ent.EntityID = 0,
+  source_model_id: ecs.EntityID = 0,
   vertex_indexes: std.ArrayList(usize),
 };
 
@@ -12,12 +11,12 @@ pub const Query = struct {
   pub const Data = Component;
 
   pub const Filter = struct {
-    source_model_id: ?ecs.FieldFilter(ent.EntityID) = null,
+    source_model_id: ?ecs.FieldFilter(ecs.EntityID) = null,
   };
 
   pub fn filter(self: Data, f: Filter) bool {
     if (f.source_model_id) |cond|
-      if (!ecs.matchField(ent.EntityID, self.source_model_id, cond))
+      if (!ecs.matchField(ecs.EntityID, self.source_model_id, cond))
         return false;
 
     return true;
@@ -42,7 +41,7 @@ pub const Query = struct {
     return .eq;
   }
 
-  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ent.EntityID {
+  pub fn exec(world: *ecs.World, f: Filter, sort: []const Sort) []ecs.EntityID {
     return world.query(Query, &world.components.spawn, f, sort);
   }
 };
